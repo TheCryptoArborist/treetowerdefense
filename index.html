@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e1b">
+  <meta name="description" content="Canopy Defense: build your forest and defend the Tree of Life. A TREE Arcade gameplay preview.">
+  <title>Canopy Defense · TREE Arcade</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="preview-banner"><span class="status-dot"></span> DEVELOPMENT PREVIEW <span class="banner-detail">Simulated NFTree access & TREE purchases · No wallet or real payments</span></div>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Canopy Defense home"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 7 19h7L5 29h12v8h6v-8h12l-9-10h7Z" fill="currentColor"/></svg><span>TREE <small>ARCADE</small></span></a>
+    <div class="header-actions"><button id="help-button" class="quiet">How to play</button><button id="preview-button" class="account-button">Preview NFTree <span id="account-rarity">Common</span></button></div>
+  </header>
+  <main>
+    <section class="title-row">
+      <div><p class="eyebrow">THE FOREST IS YOUR FORTRESS</p><h1>Canopy <em>Defense</em></h1><p class="subtitle">Build your forest. Defend the Tree of Life.</p></div>
+      <div class="chapter"><span>CHAPTER 01</span><strong>The Emerald Crossing</strong><small>10 waves · 5 defenders · 1 ancient tree</small></div>
+    </section>
+    <section class="hud" aria-label="Game statistics">
+      <div class="life-stat"><span class="stat-label">TREE OF LIFE</span><strong id="health-value">100<span> / 100</span></strong><div class="health-track"><i id="health-bar"></i></div><small id="shield-value">Root shield: 0</small></div>
+      <div><span class="stat-label">WAVE</span><strong id="wave-value">00<span> / 10</span></strong><small id="phase-value">Prepare your forest</small></div>
+      <div><span class="stat-label">SAP <span class="mini-tag">EARNED</span></span><strong id="sap-value">300</strong><small>Plant your defenders</small></div>
+      <div><span class="stat-label">TREE <span class="mini-tag">SIMULATED</span></span><strong id="tree-value">150,000</strong><small>Supplies · upgrades · continues</small></div>
+      <div class="score-stat"><span class="stat-label">SCORE</span><strong id="score-value">0</strong><small id="kills-value">0 pests defeated</small></div>
+    </section>
+    <div class="game-layout">
+      <aside class="defenders-panel panel">
+        <div class="panel-heading"><h2>Your defenders</h2><span>01—05</span></div><p class="panel-intro">Choose a tree, then a glowing build site.</p>
+        <div id="tower-cards" class="tower-cards"></div>
+        <div class="supply-section"><div class="panel-heading"><h2>Field supplies</h2><span>TREE</span></div><p class="panel-intro">Preview prices · campaign effects</p>
+          <button class="supply-button" data-supply="shield"><span class="supply-icon">◇</span><span><strong>Root Shield</strong><small>50 protection</small></span><b>3,000</b></button>
+          <button class="supply-button" data-supply="fertilizer"><span class="supply-icon">✦</span><span><strong>Fertilizer</strong><small>+50% damage · 20s</small></span><b>5,000</b></button>
+          <button class="supply-button" data-supply="storm"><span class="supply-icon">ϟ</span><span><strong>Leaf Storm</strong><small>180 damage to all pests</small></span><b>8,000</b></button>
+        </div>
+      </aside>
+      <section class="battle-panel panel" aria-label="Forest battlefield">
+        <div class="battle-topline"><span><i class="status-dot"></i> EMERALD CROSSING</span><span id="enemy-count">PATH CLEAR</span></div>
+        <div class="canvas-wrap"><canvas id="battlefield" width="1000" height="720" tabindex="0" aria-label="Forest battlefield. Choose a defender, then a build site. Build site buttons below provide an accessible alternative."></canvas>
+          <div id="outcome" class="outcome" hidden><div class="outcome-card"><span id="outcome-label" class="eyebrow"></span><h2 id="outcome-title"></h2><p id="outcome-description"></p><button id="continue-button" class="primary">Continue · 20,000 preview TREE</button><button id="outcome-new-run" class="secondary">Start a fresh run · included</button></div></div>
+        </div>
+        <div class="battle-toolbar"><div><span id="battle-status" class="eyebrow">PREPARE YOUR FOREST</span><p id="message">Place your defenders, then send the first wave.</p></div><div class="run-controls"><button id="pause-button" class="secondary" disabled>Pause</button><button id="wave-button" class="primary">Send wave 1 <span>→</span></button></div></div>
+        <details class="build-sites"><summary>Choose a build site <span>Touch & keyboard controls</span></summary><div id="pad-buttons" class="pad-buttons"></div></details>
+      </section>
+      <aside class="custom-panel panel">
+        <div class="panel-heading"><h2>Canopy studio</h2><span>APPEARANCE</span></div><p id="style-instruction" class="panel-intro">Choose the style for your next defender.</p>
+        <div id="style-grid" class="style-grid"></div>
+        <p class="rarity-note">Your preview NFTree unlocks its rarity and every tier below it.</p>
+        <div id="inspector" class="inspector"><span class="eyebrow">YOUR STRATEGY STARTS HERE</span><h3>Roots before riches.</h3><p>Plant defenders along the path. Select a planted tower to upgrade it or change its appearance.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE upgrades them</span></div></div>
+        <div class="guide-note"><span>✦</span><p>Rarity controls tower appearance. TREE upgrades determine tower level.</p></div>
+      </aside>
+    </div>
+    <footer><span>CANOPY DEFENSE <b>v0.1</b> · THE TREE ARCADE</span><div><span id="save-status">Saves on this device</span><button id="new-run-button" class="quiet">New run</button><button id="reset-button" class="quiet">Reset preview</button></div></footer>
+  </main>
+  <dialog id="access-dialog" aria-labelledby="access-title"><form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close preview settings">×</button></form><span class="eyebrow">NFTREE IS YOUR KEY</span><h2 id="access-title">Enter the forest.</h2><p>In the finished game, holding an NFTree grants access. This build lets you simulate ownership and explore each rarity.</p><label for="rarity-select">Preview NFTree rarity</label><select id="rarity-select"><option>Common</option><option>Rare</option><option>Epic</option><option>Legendary</option><option>Mythic</option><option>1-of-1</option></select><div class="access-benefits"><span>✓ Game access & seasonal content</span><span>✓ Rarity-based tower appearances</span><span>✓ Starting new runs is included</span></div><button id="enter-preview" class="primary">Enter development preview <span>→</span></button><p class="dialog-footnote">150,000 simulated TREE to try purchases. No wallet connection, tokens, prizes, or real transactions.</p></dialog>
+  <dialog id="help-dialog" aria-labelledby="help-title"><form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close instructions">×</button></form><span class="eyebrow">FIELD GUIDE</span><h2 id="help-title">Defend the Tree of Life.</h2><ol><li><strong>Plant.</strong> Choose a defender and tap a glowing site. Sap pays for planting; defeated pests and cleared waves earn more.</li><li><strong>Prepare.</strong> Choose a rarity style. Tap a planted tower to buy a level upgrade with preview TREE.</li><li><strong>Defend.</strong> Send a wave. Defenders attack automatically; place more towers or use supplies during battle.</li><li><strong>Survive.</strong> Finish ten waves and defeat the Blight King. After defeat, a TREE continue restores health while preserving your wave and towers.</li></ol><p>Keyboard: <kbd>1</kbd>–<kbd>5</kbd> choose defenders · <kbd>N</kbd> sends a wave · <kbd>Space</kbd> pauses · <kbd>Esc</kbd> clears selection.</p><p class="dialog-footnote">Progress saves locally. Reloading or switching tabs pauses battle. Preview prices and balancing are provisional. No paid admission or separate season-pass purchase.</p></dialog>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
