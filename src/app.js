@@ -1,6 +1,7 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES } from './engine.js';
 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintBackdrop, paintShot, loadDefenderArt, getDefenderArtStatus } from './art.js';
+import { scoutWave, starterTip, PurchaseReview } from './playtest.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'canopy-defense-preview-v1';
@@ -29,7 +30,35 @@ const canvas = $('battlefield');
 const ctx = canvas.getContext('2d');
 const accessDialog = $('access-dialog');
 const helpDialog = $('help-dialog');
+const purchaseDialog = $('purchase-dialog');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const GUIDE_KEY = 'canopy-defense-guide-v1';
+let guideStatus = saved && (game.wave > 0 || game.towers.length || game.forestRank) ? 'dismissed' : 'active';
+let guideSignature = '', scoutSignature = '', showGuideCompletion = false, pendingPurchase = null;
+try {
+  const preference = localStorage.getItem(GUIDE_KEY);
+  if (['active','dismissed','complete'].includes(preference)) guideStatus = preference;
+} catch { /* The guide works for this session even when storage is unavailable. */ }
+function saveGuide() {
+  try { localStorage.setItem(GUIDE_KEY, guideStatus); } catch { /* Session-only preference. */ }
+}
+function closeGuide() { guideStatus = 'dismissed'; showGuideCompletion = false; saveGuide(); renderUI(); }
+$('skip-guide').addEventListener('click', closeGuide);
+function focusControl(control) {
+  control.scrollIntoView({ block: 'center', behavior: reducedMotion ? 'instant' : 'smooth' }); control.focus({ preventScroll: true });
+}
+$('guide-action').addEventListener('click', () => {
+  const tip = starterTip(game);
+  if (tip.tower) {
+    selectedType = tip.tower; selectedTower = null;
+    document.querySelector('.build-sites').open = true; renderUI();
+    focusControl(document.querySelector(`[data-pad="${tip.pad}"]`));
+  } else if (tip.key === 'launch') focusControl($('wave-button'));
+  else if (tip.key === 'recover') newRun();
+  else if (tip.key === 'done') closeGuide();
+  else if (game.phase === 'paused') act(() => game.pause());
+  else focusControl(canvas);
+});
 
 function save() {
   if (!storageAvailable) return;
@@ -80,23 +109,53 @@ canvas.addEventListener('pointerup', event => { const pad = pointerPad(event); i
 function act(action) { action(); save(); renderUI(); }
 $('wave-button').addEventListener('click', () => act(() => game.startWave()));
 $('pause-button').addEventListener('click', () => act(() => game.pause()));
-document.querySelectorAll('[data-supply]').forEach(button => button.addEventListener('click', () => act(() => game.supply(button.dataset.supply))));
+document.querySelectorAll('[data-supply]').forEach(button => button.addEventListener('click', () => reviewPurchase(button.dataset.supply)));
 $('preview-button').addEventListener('click', () => { $('rarity-select').selectedIndex = game.rarity; if (game.phase === 'running') game.pause(); accessDialog.showModal(); renderUI(); });
 $('enter-preview').addEventListener('click', () => { game.allowPreview($('rarity-select').selectedIndex); accessDialog.close(); save(); renderUI(); });
 $('help-button').addEventListener('click', () => { if (game.phase === 'running') game.pause(); helpDialog.showModal(); renderUI(); });
-$('continue-button').addEventListener('click', () => act(() => game.continueRun()));
-function newRun() {
-  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return;
-  game.newRun(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; save(); renderUI();
+$('continue-button').addEventListener('click', () => reviewPurchase('continue'));
+function reviewPurchase(kind, towerId = null) {
+  if (purchaseDialog.open) return;
+  pendingPurchase = new PurchaseReview(game, kind, towerId);
+  if (!pendingPurchase.details().available) { game.message = pendingPurchase.details().reason; pendingPurchase = null; renderUI(); return; }
+  renderPurchase(); purchaseDialog.showModal();
 }
+function renderPurchase() {
+  if (!pendingPurchase) return;
+  const quote = pendingPurchase.details();
+  if (quote.title) $('purchase-title').textContent = quote.title;
+  if (quote.description) $('purchase-description').textContent = quote.description;
+  $('purchase-cost').textContent = quote.cost?.toLocaleString() ?? '—';
+  $('purchase-balance').textContent = game.tree.toLocaleString();
+  $('purchase-after').textContent = quote.balanceAfter >= 0 ? quote.balanceAfter.toLocaleString() : 'Unavailable';
+  $('purchase-error').hidden = quote.available;
+  $('purchase-error').textContent = quote.reason;
+  $('confirm-purchase').disabled = !quote.available;
+}
+$('cancel-purchase').addEventListener('click', () => purchaseDialog.close());
+purchaseDialog.addEventListener('close', () => { pendingPurchase = null; renderUI(); });
+$('confirm-purchase').addEventListener('click', () => {
+  if (!pendingPurchase || !purchaseDialog.open) return;
+  if (pendingPurchase.confirm()) { purchaseDialog.close(); save(); renderUI(); }
+  else renderPurchase();
+});
+function newRun() {
+  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return false;
+  game.newRun(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
+  return true;
+}
+$('guided-run-button').addEventListener('click', () => {
+  if (!newRun()) return;
+  guideStatus = 'active'; showGuideCompletion = false; saveGuide(); helpDialog.close(); renderUI();
+});
 $('new-run-button').addEventListener('click', newRun);
 $('outcome-new-run').addEventListener('click', newRun);
 $('reset-button').addEventListener('click', () => {
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
-  game = new Game(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; save(); renderUI(); accessDialog.showModal();
+  game = new Game(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
-  if (accessDialog.open || helpDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
+  if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
   const index = Number(event.key) - 1;
   if (index >= 0 && index < 5 && Number.isInteger(index)) {
     selectedType = Object.keys(TOWERS)[index]; selectedTower = null; renderUI();
@@ -114,7 +173,7 @@ for (const [i, chapter] of CHAPTERS.entries()) {
 }
 function selectChapter(i) {
   if (game.wave > 0 && !['defeat', 'victory'].includes(game.phase) && !confirm('Travel to another chapter? Your current battle resets. Permanent growth and forest progress are kept.')) return;
-  if (game.chooseChapter(i)) { selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; save(); renderUI(); }
+  if (game.chooseChapter(i)) { selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
 }
 $('next-chapter').addEventListener('click', () => selectChapter(game.chapter + 1));
 let sound = false, audio = null, lastTone = 0;
@@ -145,6 +204,7 @@ loadDefenderArt().then(status => {
   if (status.failed.length) console.warn('Some guardian sprites were unavailable; matching canvas artwork is active.');
 });
 function renderUI() {
+  renderGuide(); renderScout(); renderPurchase();
   const tower = game.towers.find(t => t.id === selectedTower);
   $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
   const starCount = game.forest.stars.reduce((a,b) => a+b,0);
@@ -206,7 +266,7 @@ function renderUI() {
     $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">Growth applies to every ${d.name}, now and in future runs.</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><button id="upgrade-button" class="primary">${tower.level === 3 ? 'Ancient growth reached ✓' : `Grow all ${d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
     shapeTree($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
     $('upgrade-button').disabled = !active || tower.level >= 3 || game.tree < game.upgradeCost(tower);
-    $('upgrade-button').addEventListener('click', () => act(() => game.upgrade(tower.id)));
+    $('upgrade-button').addEventListener('click', () => reviewPurchase('upgrade', tower.id));
     $('remove-button').disabled = !active;
     $('remove-button').addEventListener('click', () => act(() => { game.sell(tower.id); selectedTower = null; selectedType = tower.type; }));
   } else {
@@ -227,7 +287,41 @@ function renderUI() {
   }
 }
 
-// Procedural original characters and scenery; no external art or font downloads.
+function renderGuide() {
+  const tip = starterTip(game);
+  if (guideStatus === 'active' && tip.key === 'done') { guideStatus = 'complete'; showGuideCompletion = true; saveGuide(); }
+  const visible = game.access && (guideStatus === 'active' || showGuideCompletion);
+  $('starter-guide').hidden = !visible;
+  const signature = `${visible}:${guideStatus}:${tip.key}:${game.phase}`;
+  if (signature !== guideSignature) {
+    $('guide-step').textContent = tip.key === 'done' ? 'GUIDED START COMPLETE' : `FIRST RUN · ${tip.step} OF 4`;
+    $('guide-title').textContent = tip.title; $('guide-text').textContent = tip.text;
+    $('guide-action').textContent = tip.action; $('skip-guide').textContent = tip.key === 'done' ? 'Dismiss' : 'Skip guide';
+    document.querySelectorAll('[data-tower]').forEach(button => button.classList.toggle('tutorial-target', visible && guideStatus === 'active' && button.dataset.tower === tip.tower));
+    document.querySelectorAll('[data-pad]').forEach(button => button.classList.toggle('tutorial-target', visible && guideStatus === 'active' && Number(button.dataset.pad) === tip.pad));
+    $('wave-button').classList.toggle('tutorial-target', visible && guideStatus === 'active' && tip.key === 'launch');
+    guideSignature = signature;
+  }
+}
+function renderScout() {
+  const signature = `${game.chapter}:${game.wave}:${game.phase}`;
+  if (signature === scoutSignature) return;
+  scoutSignature = signature;
+  const scout = scoutWave(game.chapter, game.wave + 1);
+  $('scout-title').textContent = game.wave === 10 ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave}`;
+  $('scout-total').textContent = scout.total ? `${scout.total} PESTS${scout.wave === 10 ? ' · BOSS WAVE' : ''}` : '10 OF 10';
+  $('scout-pests').replaceChildren();
+  for (const group of scout.groups) {
+    const card = document.createElement('div'); card.className = 'scout-pest';
+    card.innerHTML = `<canvas width="96" height="92" aria-hidden="true"></canvas><strong>${group.name} <b>×${group.count}</b></strong><small>${group.trait}</small>`;
+    const c = card.querySelector('canvas').getContext('2d'); c.translate(48,55); c.scale(.65,.65);
+    paintPest(c,{kind:group.kind,x:0,y:0,id:0,hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0);
+    $('scout-pests').append(card);
+  }
+  $('scout-tip').textContent = scout.tip || (game.phase === 'victory' ? 'Replay to improve your stars, or explore the next unlocked chapter.' : 'The Blight King is the final challenge. There are no further waves in this run.');
+}
+
+// Local sprite artwork and procedural scenery; no remote art or font downloads.
 const backdrop = document.createElement('canvas'); backdrop.width = WIDTH; backdrop.height = HEIGHT;
 const bg = backdrop.getContext('2d');
 let backdropKey = '', floaters = [];
@@ -245,6 +339,7 @@ function draw(clock, dt) {
   ctx.save();ctx.fillStyle='#2c5334';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.fillText('TREE OF LIFE',900,704);ctx.restore();
   if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(900,608,65,84,0,0,Math.PI*2);ctx.stroke(); }
   const pulse = reducedMotion ? 1 : .6 + Math.sin(clock * 2) * .3;
+  const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
   for (let i = 0; i < PADS.length; i++) {
     const [x,y] = PADS[i], tower = game.towers.find(t => t.pad === i);
     const selected = tower && tower.id === selectedTower;
@@ -254,6 +349,9 @@ function draw(clock, dt) {
     }
     ctx.fillStyle = tower ? '#c0b57e' : '#d6cc99';ctx.strokeStyle=selected||hoveredPad===i?'#fff5b7':'#839957';ctx.lineWidth=selected?4:3;
     ctx.beginPath();ctx.ellipse(x,y+12,32,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    if (suggestedPad === i && !tower) {
+      ctx.strokeStyle='#fff4ad';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(x,y+12,40,25,0,0,Math.PI*2);ctx.stroke();
+    }
     if (!tower) {
       ctx.globalAlpha=.6+pulse*.3;ctx.fillStyle='#526d3d';ctx.font='bold 23px Arial';ctx.textAlign='center';ctx.fillText('+',x,y+20);ctx.globalAlpha=1;
       ctx.fillStyle='#35532f';ctx.font='bold 10px Arial';ctx.fillText(i+1,x,y+40);
@@ -290,7 +388,7 @@ function draw(clock, dt) {
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
-  if (!accessDialog.open && !helpDialog.open) game.step(dt);
+  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !document.hidden) game.step(dt);
   draw(now / 1000, dt);
   if (now - lastUI > 150) { renderUI(); lastUI = now; }
   if (now - lastSave > 2000 && game.access) { save(); lastSave = now; }

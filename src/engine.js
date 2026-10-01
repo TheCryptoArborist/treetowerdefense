@@ -40,6 +40,15 @@ export function pointAt(distance) {
 }
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+// Scouting and battle spawning share the same lineup, so forecasts cannot drift.
+export function waveLineup(chapter, wave) {
+  if (!Number.isInteger(chapter) || !CHAPTERS[chapter] || !Number.isInteger(wave) || wave < 1 || wave > 10) return [];
+  const lineup = Array.from({ length: 6 + wave * 2 }, (_, i) =>
+    wave >= 3 && i % 5 === 0 ? 'beetle' : wave >= 2 && i % 4 === 0 ? 'moth' : wave >= (chapter > 0 ? 3 : 5) && i % 7 === 0 ? 'blight' : 'termite');
+  if (wave === 10) lineup.push('boss');
+  return lineup;
+}
+
 export class Game {
   constructor() {
     this.version = 2;
@@ -126,12 +135,7 @@ export class Game {
   startWave() {
     if (!this.access || this.phase !== 'build' || this.wave >= 10) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
-    const count = 6 + this.wave * 2;
-    this.queue = Array.from({ length: count }, (_, i) => {
-      const kind = this.wave >= 3 && i % 5 === 0 ? 'beetle' : this.wave >= 2 && i % 4 === 0 ? 'moth' : this.wave >= (this.chapter > 0 ? 3 : 5) && i % 7 === 0 ? 'blight' : 'termite';
-      return kind;
-    });
-    if (this.wave === 10) this.queue.push('boss');
+    this.queue = waveLineup(this.chapter, this.wave);
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
     return true;
   }
