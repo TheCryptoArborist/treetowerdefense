@@ -1,6 +1,6 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES } from './engine.js';
 
-import { paintTree as shapeTree, paintPest, paintBackdrop, paintShot } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintPest, paintBackdrop, paintShot, loadDefenderArt, getDefenderArtStatus } from './art.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'canopy-defense-preview-v1';
@@ -135,6 +135,15 @@ function tone(frequency, duration = .08) {
   oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(); oscillator.stop(audio.currentTime + duration);
 }
 let cardSignature = '';
+loadDefenderArt().then(status => {
+  cardSignature = ''; inspectorSignature = null;
+  document.querySelectorAll('[data-style]').forEach(button => {
+    const icon = button.querySelector('canvas'), c = icon.getContext('2d');
+    c.clearRect(0,0,icon.width,icon.height); shapeTree(c,'oak',64,100,1,Number(button.dataset.style));
+  });
+  renderUI();
+  if (status.failed.length) console.warn('Some guardian sprites were unavailable; matching canvas artwork is active.');
+});
 function renderUI() {
   const tower = game.towers.find(t => t.id === selectedTower);
   $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
@@ -148,7 +157,7 @@ function renderUI() {
     button.querySelector('.chapter-stars').textContent = i > game.unlockedChapter ? 'Locked' : '★'.repeat(stars) + '☆'.repeat(3-stars);
     button.setAttribute('aria-label', `${CHAPTERS[i].name}: ${i > game.unlockedChapter ? 'locked' : `${stars} of 3 stars`}`);
   });
-  const nextCards = Object.values(game.forest.levels).join(':');
+  const nextCards = Object.values(game.forest.levels).join(':') + ':' + getDefenderArtStatus().loaded.length;
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
       const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.forest.levels[type];
@@ -232,7 +241,7 @@ function draw(clock, dt) {
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
   aura.addColorStop(0, '#fff6a940'); aura.addColorStop(1, '#fff6a900'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
   // Earning chapter landmarks grows the Tree of Life's visible silhouette.
-  shapeTree(ctx, 'oak', 900, 652, 1.22 + game.forestRank * .13, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
+  paintLifeTree(ctx, 'oak', 900, 652, 1.22 + game.forestRank * .13, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
   ctx.save();ctx.fillStyle='#2c5334';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.fillText('TREE OF LIFE',900,704);ctx.restore();
   if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(900,608,65,84,0,0,Math.PI*2);ctx.stroke(); }
   const pulse = reducedMotion ? 1 : .6 + Math.sin(clock * 2) * .3;

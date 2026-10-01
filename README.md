@@ -30,12 +30,12 @@ The direct Node command also works when PowerShell blocks `npm.ps1`. Stop the ru
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Forest-growth build · v0.2
+## NFTree warrior build · v0.3
 
 - Three campaign chapters: **Emerald Crossing**, **Sunpetal Meadow**, and **Moonlit Marsh**. The winding route is shared; each chapter changes the biome and pest difficulty.
 - Ten waves per chapter, four expressive pest types, and a final **Blight King** boss.
 - Five defenders: Oak splash damage, Pine rapid fire, Palm slowing, Cypress piercing, Mushroom poison.
-- A larger bright meadow battlefield with original animated guardians, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
+- A larger bright meadow battlefield with NFTree-style stump warriors with idle movement and attack recoil, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
 - Planting sites, automatic targeting, range previews, three permanent species levels, supplies, victory, and defeat.
 - Grow each defender species from **Sapling → Guardian → Ancient**. A TREE upgrade improves every current and future defender of that species.
 - Chapters unlock in order. Earn 1–3 stars from remaining health, grow the Tree of Life, and add permanent landmarks: an arborist cottage, flower garden, and lily pond.
@@ -62,11 +62,11 @@ There is no SUI admission fee and no separately purchased season pass. The devel
 
 | NFTree tier | Included theme | Visual privilege |
 | --- | --- | --- |
-| Common | Woodland | Natural bark, green canopy, root bases |
-| Rare | Bloom | Flowering canopy, seasonal colors |
-| Epic | Enchanted | Glowing accents, floating leaves |
-| Legendary | Gilded | Golden bark, animated runes |
-| Mythic | Celestial | Shimmering roots, orbiting lights |
+| Common | Woodland | Natural bark, leaf sprouts, wooden shields |
+| Rare | Bloom | Flower accents and lighter bark |
+| Epic | Enchanted | Purple hues and glowing accents |
+| Legendary | Gilded | Golden hues and orbiting sparks |
+| Mythic | Celestial | Aqua hues and orbiting lights |
 | 1-of-1 | Signature preview | A special preview theme; bespoke NFT-specific artwork is a later milestone |
 
 Each rarity unlocks lower-tier appearances. Different towers may use different unlocked styles. Cosmetics never alter attack strength, targeting, range, or rewards. The production entitlement must follow currently held eligible NFTs, not a saved rarity selector.
@@ -104,13 +104,15 @@ npm run check
 
 The 19 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses.
 
-Validation for v0.2: all 19 engine tests and JavaScript syntax checks pass. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
+Validation for v0.3: all 19 engine tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
 
 ## Art preview
 
 The character sheet below is rendered from the game’s actual drawing code; it is not a browser screenshot.
 
-![Guardian growth and NFTree appearances](docs/guardian-growth.png)
+![NFTree warrior growth and appearances](docs/warrior-growth.png)
+
+Artwork is generated from the three supplied character references, then used in the battlefield, planting cards, tower inspector, and appearance previews. See [the asset list and generation prompts](docs/warrior-art.md). Original generated PNGs are preserved; the runtime isolates silhouettes and caches recolors. The earlier v0.2 art sheet remains in `docs/guardian-growth.png` for reference.
 
 ## Mainnet integration milestone
 

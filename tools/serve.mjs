@@ -6,13 +6,13 @@ import path from 'node:path';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = Number(process.env.PORT || 5173);
 const host = process.env.HOST || '127.0.0.1';
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
+const mime = { '.png': 'image/png', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
 http.createServer(async (req, res) => {
   try {
     const requested = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const relative = requested === '/' ? 'index.html' : requested.replace(/^\/+/, '');
     // Serve only game assets, never git data, test files, or environment files.
-    if (!(relative === 'index.html' || relative === 'styles.css' || /^src\/[a-z-]+\.js$/.test(relative))) {
+    if (!(relative === 'index.html' || relative === 'styles.css' || /^src\/[a-z-]+\.js$/.test(relative) || /^assets\/defenders\/(oak|pine|palm|cypress|mushroom)-warriors\.png$/.test(relative))) {
       res.writeHead(404); res.end('Not found'); return;
     }
     const body = await readFile(path.join(root, relative));

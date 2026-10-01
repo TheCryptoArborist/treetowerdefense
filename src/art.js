@@ -27,7 +27,7 @@ function face(c, y, blink, attack = false) {
   }
   c.strokeStyle = '#314a35'; c.lineWidth = 2.2; c.beginPath(); c.arc(0, y + 9, 5, .1, Math.PI - .1); c.stroke();
 }
-export function paintTree(c, type, x, y, scale = 1, style = 0, level = 1, clock = 0, attack = false) {
+export function paintLifeTree(c, type, x, y, scale = 1, style = 0, level = 1, clock = 0, attack = false) {
   const p = STYLES[style];
   const growth = 1 + (level - 1) * .15;
   const bob = Math.sin(clock * 2.5 + x * .03) * 1.3;
@@ -88,6 +88,158 @@ export function paintTree(c, type, x, y, scale = 1, style = 0, level = 1, clock 
     polygon(c, [[-13, -77], [-15, -91], [-5, -86], [0, -96], [6, -86], [15, -91], [12, -77]], '#f2ca68', outline, 2);
     ellipse(c, 0, -86, 2.5, 3, p.accent);
     c.restore();
+  }
+  c.restore();
+}
+const defenderSprites = new Map();
+const DEFENDER_TYPES = ['oak', 'pine', 'palm', 'cypress', 'mushroom'];
+const artFailures = [];
+export function getDefenderArtStatus() {
+  return { loaded: [...defenderSprites.keys()], failed: [...artFailures] };
+}
+// Images remain unmodified on disk. Alpha bounds select each growth cell at draw time.
+export function installDefenderSprite(type, image, makeCanvas) {
+  if (!DEFENDER_TYPES.includes(type)) throw new Error('Unknown defender artwork');
+  const width = image.naturalWidth || image.width, height = image.naturalHeight || image.height;
+  const source = makeCanvas(width, height), context = source.getContext('2d');
+  context.drawImage(image, 0, 0); const data = context.getImageData(0, 0, width, height).data;
+  // Generated atlases are loosely spaced. Connected alpha silhouettes isolate each
+  // warrior without clipping shields or including a neighboring character.
+  const count = width * height, labels = new Int32Array(count), stack = new Int32Array(count), parts = [];
+  let label = 0;
+  for (let pixel = 0; pixel < count; pixel++) {
+    if (labels[pixel] || data[pixel * 4 + 3] < 180) continue;
+    label++; let pending = 1, size = 0, x0 = width, y0 = height, x1 = 0, y1 = 0;
+    stack[0] = pixel; labels[pixel] = label;
+    while (pending) {
+      const at = stack[--pending], x = at % width, y = Math.floor(at / width);
+      size++; x0 = Math.min(x0,x);x1 = Math.max(x1,x);y0 = Math.min(y0,y);y1 = Math.max(y1,y);
+      const neighbors = [x ? at-1 : -1, x < width-1 ? at+1 : -1, y ? at-width : -1, y < height-1 ? at+width : -1];
+      for (const next of neighbors) if (next >= 0 && !labels[next] && data[next*4+3] >= 180) {labels[next]=label;stack[pending++]=next;}
+    }
+    parts.push({label,size,x0,y0,x1,y1});
+  }
+  const bodies = parts.sort((a,b)=>b.size-a.size).slice(0,3).sort((a,b)=>a.x0-b.x0);
+  if (bodies.length !== 3 || bodies.some(body=>body.size < 1000)) throw new Error(`Missing ${type} growth silhouettes`);
+  const owners = new Int8Array(label+1); owners.fill(-1);
+  bodies.forEach((body,i)=>{owners[body.label]=i;});
+  // Floating spores belong to their nearest warrior. Ignore tiny alpha noise.
+  for (const part of parts) if (owners[part.label] < 0 && part.size >= 24) {
+    const x=(part.x0+part.x1)/2,y=(part.y0+part.y1)/2;
+    let nearest=0,distance=Infinity;
+    bodies.forEach((body,i)=>{
+      const dx=x-Math.max(body.x0,Math.min(x,body.x1)),dy=y-Math.max(body.y0,Math.min(y,body.y1));
+      const score=dx*dx+dy*dy+.01*(x-(body.x0+body.x1)/2)**2;
+      if(score<distance){distance=score;nearest=i;}
+    }); owners[part.label]=nearest;
+  }
+  const frames = bodies.map(()=>({x:width,y:height,width:0,height:0}));
+  const isolated = bodies.map(()=>{const c=makeCanvas(width,height);return {canvas:c,context:c.getContext('2d')};});
+  const pixels = isolated.map(item=>item.context.createImageData(width,height));
+  for(let at=0;at<count;at++){
+    if(data[at*4+3]<30)continue;
+    let owner=owners[labels[at]];
+    if(owner<0 && data[at*4+3]<180){
+      const x=at%width,y=Math.floor(at/width);
+      for(let dy=-2;dy<=2 && owner<0;dy++)for(let dx=-2;dx<=2 && owner<0;dx++){
+        if(x+dx>=0 && x+dx<width && y+dy>=0 && y+dy<height)owner=owners[labels[at+dy*width+dx]];
+      }
+    }
+    if(owner<0)continue;
+    const x=at%width,y=Math.floor(at/width),frame=frames[owner];
+    frame.x=Math.min(frame.x,x);frame.y=Math.min(frame.y,y);frame.width=Math.max(frame.width,x+1);frame.height=Math.max(frame.height,y+1);
+    pixels[owner].data.set(data.subarray(at*4,at*4+4),at*4);
+  }
+  frames.forEach(frame=>{frame.width-=frame.x;frame.height-=frame.y;});
+  isolated.forEach((item,i)=>item.context.putImageData(pixels[i],0,0));
+  const variants = [];
+  for (let level = 0; level < 3; level++) {
+    const frame = frames[level], styles = [];
+    for (let style = 0; style < STYLES.length; style++) {
+      const canvas = makeCanvas(160, 180), c = canvas.getContext('2d');
+      const ratio = Math.min([105,122,140][level] / frame.height, 146 / frame.width);
+      const w = frame.width * ratio, h = frame.height * ratio;
+      // Cache recolors once, rather than applying expensive filters every animation frame.
+      c.filter = ['none', 'brightness(1.12) saturate(.8)', 'sepia(.7) hue-rotate(210deg) saturate(1.15)', 'sepia(.8) saturate(1.5) brightness(1.15)', 'sepia(.65) hue-rotate(110deg) saturate(1.4)', 'sepia(.65) hue-rotate(285deg) saturate(1.2)'][style];
+      c.drawImage(isolated[level].canvas, frame.x, frame.y, frame.width, frame.height, 80-w/2, 160-h, w, h);
+      c.filter = 'none'; styles.push(canvas);
+    }
+    variants.push(styles);
+  }
+  defenderSprites.set(type, { variants, frames });
+  return frames;
+}
+export async function loadDefenderArt() {
+  await Promise.all(DEFENDER_TYPES.map(type => new Promise(resolve => {
+    const image = new Image();
+    image.onload = () => {
+      try { installDefenderSprite(type,image,(w,h) => { const c=document.createElement('canvas');c.width=w;c.height=h;return c; }); }
+      catch { artFailures.push(type); }
+      resolve();
+    };
+    image.onerror = () => { artFailures.push(type);resolve(); };
+    image.src = `assets/defenders/${type}-warriors.png`;
+  })));
+  return getDefenderArtStatus();
+}
+function sprout(c,x,y,dx,dy,color) {
+  line(c,[[x,y],[x+dx*.55,y+dy*.55],[x+dx,y+dy]],'#11130f',4);
+  c.save();c.translate(x+dx,y+dy);c.rotate(Math.atan2(dy,dx)+Math.PI/2);
+  polygon(c,[[0,-15],[-7,-3],[0,8],[7,-3]],color,'#11130f',2.5);
+  line(c,[[0,-9],[0,5]],'#182819',1.5);c.restore();
+}
+function paintReferenceGuardian(c,type,style,level,clock,attack) {
+  const p=STYLES[style],ink='#121510';
+  const wood=style===0?(type==='cypress'?'#e6e2c7':'#b49146'):p.bark;
+  const growth=1+(level-1)*.12;c.scale(growth,growth);
+  // Fallback uses the same stump-head, black-eye, bark-limb design as the references.
+  for(const side of [-1,1]) {
+    polygon(c,[[side*6,-3],[side*18,0],[side*25,15],[side*10,16]],wood,ink,3);
+    ellipse(c,side*20,17,16,8,ink);
+  }
+  polygon(c,[[-16,-40],[16,-40],[17,1],[-17,1]],wood,ink,3.5);
+  const armSwing=attack?Math.sin(clock*22)*4:0;
+  polygon(c,[[-14,-35],[-28,-24],[-36,-39+armSwing],[-45,-36+armSwing],[-36,-9],[-14,-20]],wood,ink,3.5);
+  ellipse(c,-39,-40+armSwing,10,12,wood,ink,3);line(c,[[-45,-42+armSwing],[-35,-42+armSwing]],ink,2);
+  polygon(c,[[14,-34],[29,-18],[39,-30],[44,-20],[34,-7],[15,-19]],wood,ink,3.5);
+  const headW=type==='cypress'?20:25;
+  polygon(c,[[-headW,-37],[-headW-2,-79],[-14,-77],[-11,-85],[-2,-81],[2,-88],[12,-79],[headW,-82],[headW+1,-36]],wood,ink,4);
+  for(const [x,y,length]of [[-18,-73,23],[-8,-78,17],[4,-79,22],[15,-73,20],[-13,-49,10],[12,-48,11]])line(c,[[x,y],[x+1,y+length]],'#3c301c',1.4);
+  if(type==='cypress') {
+    polygon(c,[[-18,-64],[-3,-61],[-6,-52],[-15,-51]],ink,null);polygon(c,[[3,-61],[18,-64],[15,-51],[6,-52]],ink,null);
+  } else {ellipse(c,-11,-59,8,10,ink);ellipse(c,11,-59,8,10,ink);}
+  c.beginPath();c.moveTo(-16,-46);c.bezierCurveTo(-13,-51,12,-49,17,-44);c.lineTo(15,attack?-26:-30);c.quadraticCurveTo(0,-33,-16,attack?-26:-30);c.closePath();c.fillStyle=ink;c.fill();
+  for(let i=0;i<3;i++){c.fillStyle='#fffbe9';c.fillRect(-11+i*8,-46,6,5);if(attack)c.fillRect(-10+i*7,-31,5,4);}
+  for(const [x,dx,dy]of [[-17,-22,-23],[-2,-7,-28],[10,10,-31],[19,25,-22]])sprout(c,x,-78,dx,dy,p.canopy);
+  // Species equipment stays distinct even if an image is still loading.
+  if(type==='oak'||type==='cypress') {
+    polygon(c,[[24,-43],[47,-39],[55,-22],[46,-2],[27,-9],[22,-27]],style>=3?p.accent:'#dad7bd',ink,3);
+    polygon(c,[[29,-36],[43,-33],[48,-22],[42,-9],[30,-14],[27,-26]],wood,ink,2);
+    line(c,[[29,-34],[44,-10]],'#f4dca9',2);line(c,[[42,-33],[30,-13]],'#f4dca9',2);
+  }
+  if(type==='pine') {polygon(c,[[23,-32],[48,-30],[49,-18],[23,-18]],'#715b32',ink,3);for(let i=0;i<3;i++)line(c,[[47,-28+i*4],[57,-29+i*4]],p.canopy,2);}
+  if(type==='palm') {line(c,[[43,9],[43,-65]],ink,5);sprout(c,43,-62,16,-15,p.canopy);sprout(c,43,-62,-14,-15,p.canopy);}
+  if(type==='cypress') {line(c,[[-35,8],[-35,-87]],ink,4);polygon(c,[[-35,-107],[-42,-85],[-28,-85]],'#8d7141',ink,2);}
+  if(type==='mushroom') {
+    c.beginPath();c.moveTo(-32,-76);c.bezierCurveTo(-25,-111,25,-111,32,-76);c.quadraticCurveTo(0,-68,-32,-76);c.fillStyle=p.canopy;c.fill();c.strokeStyle=ink;c.lineWidth=3;c.stroke();
+    for(const[x,y]of[[-16,-85],[0,-95],[17,-85]])ellipse(c,x,y,5,4,p.accent);
+  }
+  if(level>=2)for(const side of[-1,1])polygon(c,[[side*14,-39],[side*23,-41],[side*28,-29],[side*17,-27]],wood,ink,2.5);
+  if(level===3){line(c,[[-10,-24],[-10,-4]],p.accent,2);line(c,[[10,-24],[10,-4]],p.accent,2);}
+}
+export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false) {
+  const p=STYLES[style];c.save();c.translate(x,y);c.scale(scale,scale);
+  ellipse(c,0,17,36+(level-1)*4,10,'#26372a30');
+  if(style>=2)ellipse(c,0,17,37,10,p.accent+'35',p.accent+'90',2);
+  const bob=clock>0?Math.sin(clock*2.5+x*.03)*1.2:0;c.translate(0,bob);
+  if(attack)c.rotate(Math.sin(clock*30)*.028);
+  const sprite=defenderSprites.get(type);
+  if(sprite)c.drawImage(sprite.variants[level-1][style],-64,-112,128,144);
+  else paintReferenceGuardian(c,type,style,level,clock,attack);
+  if(style===1){flower(c,-20,-58,'#ffdbe9',.85);flower(c,20,-67,'#fff1bc',.75);}
+  if(style>=2)for(let i=0;i<(style>=4?4:2);i++){
+    const a=i*TAU/(style>=4?4:2)+clock*.65,dx=Math.cos(a)*39,dy=-42+Math.sin(a)*29;
+    polygon(c,[[dx,dy-5],[dx+3,dy],[dx,dy+5],[dx-3,dy]],p.accent,null);
   }
   c.restore();
 }
