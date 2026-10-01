@@ -30,8 +30,9 @@ The direct Node command also works when PowerShell blocks `npm.ps1`. Stop the ru
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.5
+## Fantasy forest build · v0.5.1
 
+- A **Coming later** concept gallery below the battlefield: Archer Watchtower, Sap Cannon, Thorn Bastion, and Root Obelisk. These structures preview future ideas and are not available to build or purchase. See [tower artwork and generation prompts](docs/future-towers.md).
 - Mature fantasy forest terrain, a textured stone route, engraved build foundations, and an ancient Tree of Life with no face.
 - Segmented insect pests with armor, mandibles, wings, and a horned Blight King. They turn with the route; combat statistics are unchanged.
 - Larger guardian portraits and battlefield silhouettes, a restrained UI palette, and clearer text against textured terrain.
@@ -115,6 +116,8 @@ The 30 Node tests cover access gating, purchase accounting, rarity permissions, 
 Validation for v0.5: all 30 game and purchase-review tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
 
 See [guided playtest notes and remaining manual checks](docs/playtest-notes.md). Existing v1/v2 game saves and permanent progress are preserved; the guide preference is stored separately. Upgrading an existing played save does not automatically show the guide.
+
+Validation for v0.5.1: all 30 tests and syntax checks pass. The four new PNGs decode with transparent backgrounds; gallery asset references, layout breakpoints, and local HTTP routes were checked. The static gallery introduces no combat, purchase, or save changes. Full browser layout checks remain pending under the same preview-browser restrictions.
 
 ## Art preview
 

@@ -13,3 +13,21 @@
 @media(max-width:1150px){.tower-card .tree-icon{width:58px;height:71px;margin:auto}}
 @media(max-width:800px){.tower-card .tree-icon{width:57px;height:70px;margin:0}}
 @media(max-width:600px){.tower-card .tree-icon{width:50px;height:61px;margin:auto}.tower-card{min-height:108px}.outcome-card h2{font-size:22px}}
+
+/* Future structures are an art gallery, separate from playable guardian controls. */
+.future-towers{margin-top:24px;padding:24px;background:#202c24}
+.future-towers-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:20px}
+.future-towers-heading h2{font:28px/1.15 Georgia,serif;margin:0}
+.future-towers-heading>p{font-size:12px;line-height:1.65;color:var(--muted);max-width:490px;margin:0}
+.future-tower-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.future-tower-card{min-width:0;border:1px solid #4c5947;border-radius:6px;overflow:hidden;background:#17231c}
+.future-tower-art{position:relative;aspect-ratio:1;background:radial-gradient(ellipse at 50% 65%,#42513a80,transparent 70%),#142019}
+.future-tower-art img{display:block;width:100%;height:100%;object-fit:contain;padding:16px}
+.future-tower-badge{position:absolute;left:12px;top:12px;background:#18231feb;border:1px solid #77735a;color:var(--gold);padding:5px 7px;font-size:8px;font-weight:bold;letter-spacing:.7px;border-radius:3px}
+.future-tower-copy{padding:16px;border-top:1px solid #4c5947}
+.future-tower-role{font-size:8px;font-weight:bold;letter-spacing:1px;color:var(--gold);margin:0 0 8px}
+.future-tower-copy h3{font:21px/1.2 Georgia,serif;margin:0 0 9px}
+.future-tower-copy>p:last-child{font-size:11px;line-height:1.65;color:var(--muted);margin:0}
+@media(max-width:1000px){.future-tower-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.future-towers-heading{align-items:start;flex-direction:column;gap:12px}.future-tower-art{aspect-ratio:5/4}}
+@media(max-width:600px){.future-towers{padding:16px;margin-top:18px}.future-tower-grid{gap:10px}.future-tower-copy{padding:12px}.future-tower-copy h3{font-size:18px}.future-tower-art img{padding:10px}.future-tower-badge{left:8px;top:8px;font-size:7px;padding:4px}.future-tower-role{font-size:7px;letter-spacing:.6px}}
+@media(max-width:420px){.future-tower-grid{grid-template-columns:1fr}.future-tower-art{aspect-ratio:5/4}}
