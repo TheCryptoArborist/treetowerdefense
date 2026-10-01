@@ -12,7 +12,7 @@ http.createServer(async (req, res) => {
     const requested = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const relative = requested === '/' ? 'index.html' : requested.replace(/^\/+/, '');
     // Serve only game assets, never git data, test files, or environment files.
-    if (!(relative === 'index.html' || relative === 'styles.css' || /^src\/[a-z-]+\.js$/.test(relative) || /^assets\/defenders\/(oak|pine|palm|cypress|mushroom)-warriors\.png$/.test(relative))) {
+    if (!(relative === 'index.html' || relative === 'styles.css' || /^src\/[a-z-]+\.js$/.test(relative) || /^assets\/environment\/(terrain-forest-v1|tree-life-v1|road-stone-v1)\.png$/.test(relative) || /^assets\/defenders\/(oak|pine|palm|cypress|mushroom)-warriors\.png$/.test(relative))) {
       res.writeHead(404); res.end('Not found'); return;
     }
     const body = await readFile(path.join(root, relative));

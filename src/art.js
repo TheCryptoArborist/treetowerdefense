@@ -1,4 +1,4 @@
-import { WIDTH, HEIGHT, PATH, PADS, STYLES, CHAPTERS } from './engine.js';
+import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt } from './engine.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
 function ellipse(c, x, y, rx, ry, fill, stroke = null, width = 3) {
@@ -18,76 +18,47 @@ export function flower(c, x, y, color, scale = 1) {
   for (let i = 0; i < 5; i++) ellipse(c, Math.cos(i * TAU / 5) * 4, Math.sin(i * TAU / 5) * 4, 3.4, 3.4, color);
   ellipse(c, 0, 0, 2.3, 2.3, '#ffe397'); c.restore();
 }
-function face(c, y, blink, attack = false) {
-  for (const side of [-1, 1]) {
-    if (blink) line(c, [[side * 9 - 4, y], [side * 9 + 3, y]], '#263b31', 2.4);
-    else { ellipse(c, side * 9, y, 5.4, 7, '#fff9d8', '#36533c', 1.7); ellipse(c, side * 9 + 1.6, y + .8, 2.4, 3.7, '#233d35'); ellipse(c, side * 9 + 2, y - 1.4, 1, 1.5, '#fff'); }
-    if (attack) line(c, [[side * 9 - 5, y - 9 + (side > 0 ? 2 : -2)], [side * 9 + 4, y - 9 + (side > 0 ? -2 : 2)]], '#304a37', 2.8);
-    ellipse(c, side * 18, y + 9, 4, 2.2, '#f39e7c80');
+const environment = new Map();
+let environmentRevision = 0;
+export function getEnvironmentArtStatus() { return { loaded: [...environment.keys()], revision: environmentRevision }; }
+export function installEnvironmentAsset(kind, image, makeCanvas) {
+  if (!['terrain','tree','road'].includes(kind)) throw new Error('Unknown environment asset');
+  const width = image.naturalWidth || image.width, height = image.naturalHeight || image.height;
+  let bounds = { x:0, y:0, width, height };
+  if (kind === 'tree') {
+    const source = makeCanvas(width,height), c = source.getContext('2d');c.drawImage(image,0,0);
+    const pixels=c.getImageData(0,0,width,height).data;let x0=width,y0=height,x1=0,y1=0;
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]>80){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+    if(x1<=x0||y1<=y0)throw new Error('Empty Tree of Life silhouette');
+    bounds={x:x0,y:y0,width:x1-x0+1,height:y1-y0+1};
   }
-  c.strokeStyle = '#314a35'; c.lineWidth = 2.2; c.beginPath(); c.arc(0, y + 9, 5, .1, Math.PI - .1); c.stroke();
+  let texture = null;
+  if(kind === 'road'){texture=makeCanvas(384,384);texture.getContext('2d').drawImage(image,0,0,384,384);}
+  environment.set(kind,{image,bounds,texture});environmentRevision++;return bounds;
 }
-export function paintLifeTree(c, type, x, y, scale = 1, style = 0, level = 1, clock = 0, attack = false) {
-  const p = STYLES[style];
-  const growth = 1 + (level - 1) * .15;
-  const bob = Math.sin(clock * 2.5 + x * .03) * 1.3;
-  const blink = clock > 0 && (clock + x * .01) % 5.7 > 5.5;
-  c.save(); c.translate(x, y); c.scale(scale, scale);
-  ellipse(c, 0, 15, 35 * growth, 12, '#3b693e30');
-  if (style >= 2) { ellipse(c, 0, 15, 32 * growth, 9, p.accent + '35', p.accent + 'a0', 2); }
-  c.translate(0, bob); c.scale(growth, growth);
-  if (attack) c.rotate(Math.sin(clock * 34) * .022);
-  // Roots and stout trunks remain readable below the canopy.
-  for (const side of [-1, 1]) line(c, [[0, 3], [side * 10, 13], [side * 25, 15]], outline, 8);
-  for (const side of [-1, 1]) line(c, [[0, 3], [side * 10, 13], [side * 25, 15]], p.bark, 4.5);
-  ellipse(c, 0, -7, type === 'oak' ? 15 : 10, 24, p.bark, outline, 3);
-  line(c, [[-3, -21], [-5, 2]], '#ffffff25', 3);
-  if (type === 'pine' || type === 'cypress') {
-    const w = type === 'cypress' ? 23 : 31;
-    for (let i = 0; i < 3; i++) {
-      const top = -42 - i * 13, bottom = -11 - i * 15;
-      polygon(c, [[0, top - 25], [-w + i * 6, bottom], [-9, bottom + 5], [9, bottom + 5], [w - i * 6, bottom]], p.canopy);
-      line(c, [[-w + i * 6 + 7, bottom - 3], [-6, top - 12]], '#ffffff25', 4);
-    }
-    face(c, -26, blink, attack);
-  } else if (type === 'palm') {
-    for (const side of [-1, 1]) {
-      polygon(c, [[0, -39], [side * 16, -65], [side * 35, -58], [side * 19, -52], [side * 9, -29]], p.canopy);
-      polygon(c, [[0, -39], [side * 29, -49], [side * 40, -24], [side * 25, -36], [side * 7, -26]], p.canopy);
-    }
-    polygon(c, [[0, -35], [-7, -72], [7, -70], [12, -34]], p.canopy);
-    ellipse(c, 0, -22, 17, 21, p.bark, outline, 2.5); face(c, -26, blink, attack);
-    ellipse(c, -13, -39, 6, 6, '#d0a368', outline, 2); ellipse(c, 9, -40, 6, 6, '#e1b77d', outline, 2);
-  } else if (type === 'mushroom') {
-    ellipse(c, 0, -2, 15, 21, '#fff0c2', outline, 3);
-    c.beginPath(); c.moveTo(-35, -26); c.bezierCurveTo(-33, -66, 33, -66, 35, -26); c.bezierCurveTo(21, -18, -21, -18, -35, -26); c.fillStyle = p.canopy; c.fill(); c.strokeStyle = outline; c.lineWidth = 3; c.stroke();
-    for (const [dx, dy, r] of [[-19, -33, 6], [-4, -46, 7], [18, -34, 5]]) ellipse(c, dx, dy, r, r * .8, p.accent, '#ffffff55', 1);
-    face(c, -7, blink, attack);
-  } else {
-    // Overlapping lobes give each oak a broad, soft silhouette.
-    for (const [dx, dy, r] of [[-23, -32, 23], [23, -32, 23], [-14, -54, 24], [14, -55, 25], [0, -26, 28]]) ellipse(c, dx, dy, r, r, p.canopy, outline, 2.5);
-    ellipse(c, 0, -42, 29, 26, p.canopy);
-    ellipse(c, -18, -57, 10, 6, '#ffffff25'); ellipse(c, 17, -63, 8, 4, '#ffffff25');
-    face(c, -32, blink, attack);
-  }
-  if (style === 1) { flower(c, -25, -45, '#ffe3ed', 1.1); flower(c, 23, -48, '#fff1bf'); }
-  else if (style >= 2) {
-    for (let i = 0; i < (style >= 4 ? 4 : 2); i++) {
-      const a = i * TAU / (style >= 4 ? 4 : 2) + clock * .7;
-      const dx = Math.cos(a) * 39, dy = -28 + Math.sin(a) * 27;
-      polygon(c, [[dx, dy - 5], [dx + 3, dy], [dx, dy + 5], [dx - 3, dy]], p.accent, null);
-    }
-  }
-  if (level >= 2) {
-    // Growth is a silhouette change plus permanent bark armor, independent of rarity.
-    polygon(c, [[-13, 0], [0, -5], [13, 0], [10, 15], [-10, 15]], level === 3 ? '#d7b55f' : '#9cb768', outline, 2);
-    ellipse(c, 0, 5, 3, 4, level === 3 ? '#fff1a7' : '#eff4c2');
-  }
-  if (level === 3) {
-    c.save(); c.translate(0, type === 'mushroom' ? 26 : type === 'palm' ? 9 : 0);
-    polygon(c, [[-13, -77], [-15, -91], [-5, -86], [0, -96], [6, -86], [15, -91], [12, -77]], '#f2ca68', outline, 2);
-    ellipse(c, 0, -86, 2.5, 3, p.accent);
-    c.restore();
+export async function loadEnvironmentArt() {
+  const files={terrain:'terrain-forest-v1.png',tree:'tree-life-v1.png',road:'road-stone-v1.png'};
+  await Promise.all(Object.entries(files).map(([kind,file])=>new Promise(resolve=>{
+    const image=new Image();image.onload=()=>{
+      try{installEnvironmentAsset(kind,image,(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;});}catch{console.warn('Environment fallback active:',kind);}resolve();
+    };image.onerror=()=>{console.warn('Environment fallback active:',kind);resolve();};image.src=`assets/environment/${file}`;
+  })));
+  return getEnvironmentArtStatus();
+}
+export function paintLifeTree(c,type,x,y,scale=1,style=0,level=1,clock=0) {
+  c.save();c.translate(x,y);c.scale(scale*(1+(level-1)*.06),scale*(1+(level-1)*.06));
+  ellipse(c,0,12,58,13,'#080f0c90');
+  const art=environment.get('tree');
+  if(art){
+    const f=art.bounds,ratio=Math.min(176/f.height,146/f.width),w=f.width*ratio,h=f.height*ratio;
+    c.drawImage(art.image,f.x,f.y,f.width,f.height,-w/2,20-h,w,h);
+  }else{
+    // A face-free ancient oak remains available while local artwork loads.
+    for(const side of [-1,1]){line(c,[[0,-32],[side*16,2],[side*47,16]],'#292a1d',13);line(c,[[0,-32],[side*16,2],[side*47,16]],'#685d42',7);}
+    polygon(c,[[-19,5],[-12,-85],[-32,-118],[4,-109],[24,-121],[15,-67],[22,8]],'#665638','#25291e',3);
+    for(let i=0;i<7;i++){const a=i*1.77;line(c,[[0,-64],[Math.cos(a)*25,-103],[Math.cos(a)*52,-136+Math.sin(a)*16]],'#4c4a31',7);}
+    for(let i=0;i<34;i++){const a=i*2.4,r=15+(i%7)*6;ellipse(c,Math.cos(a)*r,-119+Math.sin(a)*r*.65,12+(i%3)*3,9,'#38492a',null);}
+    line(c,[[-3,-65],[3,-42],[-2,-16],[5,8]],'#d2aa5a',2);
   }
   c.restore();
 }
@@ -243,80 +214,97 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
   }
   c.restore();
 }
-export function paintPest(c, e, clock, time = 0) {
-  const boss = e.kind === 'boss', moth = e.kind === 'moth';
-  const size = boss ? 1.85 : e.kind === 'beetle' ? 1.05 : .8;
-  const p = { termite: ['#de9854','#a75f35'], beetle: ['#ca6384','#903f65'], moth: ['#ffd582','#c18452'], blight: ['#a57fca','#654b8f'], boss: ['#a276b7','#584078'] }[e.kind];
-  c.save(); c.translate(e.x, e.y); c.scale(size, size);
-  ellipse(c, 0, 9, 20, 7, '#4b482b30');
-  const march = Math.sin(clock * 12 + e.id) * 4;
-  for (const side of [-1, 1]) for (let i = -1; i <= 1; i++) line(c, [[side * 8, i * 8], [side * 21, i * 10 + march * side]], p[1], 3);
-  if (moth) {
-    c.save(); c.scale(1, .7 + Math.abs(Math.sin(clock * 13)) * .35);
-    for (const side of [-1, 1]) {
-      ellipse(c, side * 19, -9, 19, 14, '#ffedb1', p[1], 2);
-      ellipse(c, side * 21, -8, 8, 7, '#e5998a'); ellipse(c, side * 14, 8, 13, 9, '#ffc478', p[1], 2);
-    } c.restore();
+export function paintPest(c,e,clock,time=0) {
+  const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
+  const size=boss?1.85:e.kind==='beetle'?1.12:moth?.92:.88;
+  const colors={termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
+  const ahead=Number.isFinite(e.progress)?pointAt(Math.min(PATH_LENGTH,e.progress+2)):null;
+  const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
+  c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
+  const march=Math.sin(clock*14+e.id)*3;
+  for(const side of [-1,1])for(let i=-1;i<=1;i++){
+    line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);
+    line(c,[[side*9,i*8],[side*18,i*12+march*side]],colors[0],1.4);
   }
-  ellipse(c, 0, 0, 15, 21, p[0], p[1], 3);
-  if (e.kind === 'beetle' || boss) {
-    line(c, [[0, -17], [0, 18]], p[1], 3);
-    for (const side of [-1,1]) ellipse(c, side * 7, 4, 4, 6, '#ffffff20');
+  if(moth){
+    c.save();c.scale(1,.72+Math.abs(Math.sin(clock*13))*.28);
+    for(const side of [-1,1]){
+      polygon(c,[[side*4,-10],[side*36,-24],[side*31,-4],[side*21,7],[side*34,19],[side*11,14],[side*3,5]],colors[0],colors[1],2);
+      line(c,[[side*6,-7],[side*28,-15],[side*19,0],[side*8,9]],'#655c4b',2);
+      ellipse(c,side*24,-10,4,5,'#443c35','#b7a47d',1);
+    }c.restore();
   }
-  ellipse(c, 0, -17, 15, 13, p[0], p[1], 2.5);
-  line(c, [[-9,-25],[-14,-33],[-18,-33]], p[1], 2); line(c, [[9,-25],[14,-33],[18,-33]], p[1], 2);
-  for (const side of [-1,1]) { ellipse(c, side * 6, -18, 5, 6, '#fff4d1', p[1], 1); ellipse(c, side * 6 + 1, -17, 2, 3, '#2b3038'); }
-  line(c, [[-10,-26],[-3,-24]], p[1], 2.5); line(c, [[3,-24],[10,-26]], p[1], 2.5);
-  line(c, [[-5,-8],[0,-6],[5,-8]], p[1], 2);
-  if (boss) polygon(c, [[-16,-29],[-19,-43],[-8,-36],[0,-49],[8,-36],[19,-43],[16,-29]], '#e5ba58', '#5c4560', 2);
-  if (e.poisonUntil > time) { ellipse(c, -18, 0, 4, 4, '#b269d780'); ellipse(c, 18, -8, 3, 3, '#b269d780'); }
-  if (e.slowUntil > time) { c.strokeStyle='#72d0e8';c.lineWidth=2;c.beginPath();c.ellipse(0,4,24,29,0,0,TAU);c.stroke(); }
-  if (e.hp < e.maxHp || boss) { c.fillStyle='#48413b';c.fillRect(-20,-54,40,5);c.fillStyle='#dc7a67';c.fillRect(-20,-54,40*Math.max(0,e.hp/e.maxHp),5); }
+  const shell=c.createLinearGradient(-15,0,15,0);shell.addColorStop(0,colors[1]);shell.addColorStop(.35,colors[0]);shell.addColorStop(1,colors[1]);
+  ellipse(c,0,5,moth?5:12,19,shell,'#182019',2);
+  for(let i=0;i<5;i++)line(c,[[-8,1+i*4],[0,3+i*4],[8,1+i*4]],'#1b241d90',1.5);
+  if(e.kind==='beetle'||boss){line(c,[[0,-10],[0,22]],'#111b16',2);line(c,[[-7,-7],[-9,12]],'#b1b79870',1.5);}
+  ellipse(c,0,-10,boss?14:8,10,shell,'#1b241c',2);ellipse(c,0,-23,boss?10:7,7,colors[1],'#121a14',2);
+  for(const side of [-1,1]){
+    line(c,[[side*4,-26],[side*11,-33],[side*14,-39]],colors[0],1.5);
+    polygon(c,[[side*3,-28],[side*10,-37],[side*6,-29],[side*2,-27]],'#cfb879','#1c2319',1);
+    ellipse(c,side*5,-25,1.4,1.8,blight?'#d699c6':'#d5aa5e');
+  }
+  if(blight||boss)for(const side of [-1,1])for(let i=0;i<4;i++){
+    polygon(c,[[side*8,-8+i*7],[side*(18+(boss?4:0)),-15+i*7],[side*11,1+i*7]],boss?'#877355':'#8a6588','#1e261e',1.5);
+  }
+  if(boss){
+    for(const side of [-1,1])polygon(c,[[side*6,-20],[side*22,-38],[side*19,-53],[side*12,-43],[side*13,-35],[side*3,-24]],'#b5a073','#272d24',2);
+    line(c,[[-6,-9],[-3,16]],'#ba965370',3);
+  }
+  if(e.poisonUntil>time){ellipse(c,-18,0,4,4,'#ae79bf80');ellipse(c,18,-8,3,3,'#ae79bf80');}
+  if(e.slowUntil>time){c.strokeStyle='#a3d2c0';c.lineWidth=2;c.beginPath();c.ellipse(0,4,25,30,0,0,TAU);c.stroke();}
   c.restore();
+  if(e.hp<e.maxHp||boss){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-45*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-45*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
 }
 function cottage(c, x, y) {
   ellipse(c,x,y+14,58,16,'#38533625');
-  polygon(c,[[x-33,y-28],[x+30,y-28],[x+30,y+12],[x-33,y+12]],'#f4dc99','#59664b',3);
-  polygon(c,[[x-45,y-24],[x-7,y-62],[x+44,y-25]],'#d87c51','#744d3e',3);
-  line(c,[[x-32,y-28],[x-7,y-52],[x+28,y-29]],'#f2ae70',4);
+  polygon(c,[[x-33,y-28],[x+30,y-28],[x+30,y+12],[x-33,y+12]],'#7a7158','#363e31',3);
+  polygon(c,[[x-45,y-24],[x-7,y-62],[x+44,y-25]],'#555b4b','#2c382e',3);
+  line(c,[[x-32,y-28],[x-7,y-52],[x+28,y-29]],'#98997a',2);
   polygon(c,[[x-4,y-7],[x+9,y-7],[x+9,y+12],[x-4,y+12]],'#76543a','#59664b',2);
-  ellipse(c,x-18,y-7,7,8,'#9ebfce','#59664b',2);
+  for(let i=0;i<8;i++)line(c,[[x-29+i*8,y-23],[x-29+i*8,y+10]],'#3a423280',1);
+  for(let i=0;i<4;i++)line(c,[[x-26+i*6,y-29-i*5],[x+27-i*7,y-29-i*5]],'#b2ad8150',1);
+  ellipse(c,x-18,y-7,7,8,'#b1ad79','#363e31',2);
   line(c,[[x+25,y-54],[x+25,y-83]],'#70533a',3);
-  polygon(c,[[x+25,y-82],[x+51,y-76],[x+25,y-65]],'#bdd684','#5f754d',2);
+  polygon(c,[[x+25,y-82],[x+51,y-76],[x+25,y-65]],'#9d9160','#38432f',2);
 }
-export function paintBackdrop(c, chapter = 0, rank = 0) {
-  const biome=CHAPTERS[chapter]; let seed=89+chapter*100;
-  const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  c.clearRect(0,0,WIDTH,HEIGHT);
-  const gradient=c.createLinearGradient(0,0,0,HEIGHT);gradient.addColorStop(0,biome.terrain);gradient.addColorStop(1,biome.grass);c.fillStyle=gradient;c.fillRect(0,0,WIDTH,HEIGHT);
-  // Soft patches, grass tufts and flowers give the meadow a hand-painted texture.
-  for(let i=0;i<160;i++)ellipse(c,rand()*WIDTH,rand()*HEIGHT,10+rand()*45,7+rand()*20, i%2?'#f3edba16':'#5985440c');
-  for(let i=0;i<210;i++){const x=rand()*WIDTH,y=rand()*HEIGHT;line(c,[[x-3,y],[x-2,y-4],[x,y],[x+2,y-5],[x+3,y]],'#57854435',1.3);}
-  c.lineJoin='round';c.lineCap='round';c.beginPath();PATH.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));
-  c.strokeStyle='#6f9657';c.lineWidth=80;c.stroke();c.strokeStyle='#8caf6420';c.lineWidth=90;c.stroke();
-  c.strokeStyle='#b39c71';c.lineWidth=67;c.stroke();c.strokeStyle=biome.path;c.lineWidth=60;c.stroke();
-  c.strokeStyle='#fff0c630';c.lineWidth=35;c.stroke();
-  for(let i=0;i<150;i++){
-    const x=rand()*WIDTH,y=rand()*HEIGHT;
-    const near=PATH.slice(1).some(([px,py],j)=>{const[ax,ay]=PATH[j],vx=px-ax,vy=py-ay;const t=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy)));return Math.hypot(x-ax-t*vx,y-ay-t*vy)<53;});
-    if(near||PADS.some(([px,py])=>Math.hypot(x-px,y-py)<57)||Math.hypot(x-930,y-640)<100)continue;
-    if(i%6===0)flower(c,x,y,chapter===1?'#eea9b4':chapter===2?'#c5b4e6':'#fff0b9',.8);
-    else if(i%7===0)ellipse(c,x,y,8,5,'#99a985','#70815c',1.5);
+export function paintBuildSite(c,x,y,{selected=false,hovered=false,recommended=false,occupied=false,number=0}={}) {
+  c.save();c.translate(x,y);
+  ellipse(c,0,17,39,17,'#10191290');ellipse(c,0,12,34,20,'#353c32','#222b22',3);
+  ellipse(c,0,9,32,18,occupied?'#444a3a':'#56594a',selected||hovered?'#d0b06c':'#858774',2);
+  ellipse(c,0,9,25,13,'#343d3050','#252e2570',1);
+  for(let i=0;i<6;i++){const a=i*TAU/6;line(c,[[Math.cos(a)*26,9+Math.sin(a)*15],[Math.cos(a)*31,9+Math.sin(a)*18]],'#202a2280',1.5);}
+  if(recommended){c.strokeStyle='#e6c27a';c.lineWidth=3;c.beginPath();c.ellipse(0,10,40,24,0,0,TAU);c.stroke();}
+  if(!occupied){c.fillStyle='#e1d8ae';c.font='bold 19px Arial';c.textAlign='center';c.fillText('+',0,16);c.fillStyle='#eee6cc';c.font='bold 10px Arial';c.strokeStyle='#101c16';c.lineWidth=3;c.strokeText(number,0,42);c.fillText(number,0,42);}
+  c.restore();
+}
+export function paintBackdrop(c,chapter=0,rank=0) {
+  let seed=89+chapter*100;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+  c.save();c.clearRect(0,0,WIDTH,HEIGHT);
+  const terrain=environment.get('terrain');
+  if(terrain)c.drawImage(terrain.image,0,0,WIDTH,HEIGHT);
+  else{const gradient=c.createLinearGradient(0,0,0,HEIGHT);gradient.addColorStop(0,'#48513a');gradient.addColorStop(1,'#293d2c');c.fillStyle=gradient;c.fillRect(0,0,WIDTH,HEIGHT);
+    for(let i=0;i<500;i++)ellipse(c,rand()*WIDTH,rand()*HEIGHT,2+rand()*9,1+rand()*4,i%2?'#a19c6525':'#152c2540');}
+  if(chapter){c.fillStyle=chapter===1?'#b6954124':'#365c8155';c.fillRect(0,0,WIDTH,HEIGHT);}
+  const road=environment.get('road');
+  c.lineJoin='round';c.lineCap='butt';c.beginPath();PATH.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));
+  c.strokeStyle='#242c2070';c.lineWidth=70;c.stroke();
+  c.strokeStyle=road?c.createPattern(road.texture,'repeat'):'#8a7d63b0';c.lineWidth=58;c.stroke();
+  for(let i=0;i<(road?0:850);i++){
+    const d=rand()*(PATH_LENGTH-3),p=pointAt(d),ahead=pointAt(d+2),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),offset=(rand()-.5)*50;
+    const x=p.x-Math.sin(angle)*offset,y=p.y+Math.cos(angle)*offset,w=1+rand()*5,h=1+rand()*2;
+    ellipse(c,x,y,w,h,['#4b4a3b90','#b9ad8b85','#65665370','#ddd0ac50'][i%4]);
+    if(i%29===0)line(c,[[x-5,y-2],[x,y],[x+4,y+4]],'#393c3180',1);
   }
-  // Lush border bushes frame the playable ground without covering planting sites.
-  for(let i=0;i<23;i++){
-    const x=i*49-15,y=-5+rand()*13;
-    ellipse(c,x,y,36,27,'#698f52','#4d7848',3);ellipse(c,x-8,y-10,18,17,'#87ad60');
+  for(let i=0;i<280;i++){
+    const d=rand()*(PATH_LENGTH-3),p=pointAt(d),ahead=pointAt(d+2),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),side=i%2?1:-1;
+    const x=p.x-Math.sin(angle)*(29+rand()*6)*side,y=p.y+Math.cos(angle)*(29+rand()*6)*side;
+    ellipse(c,x,y,2+rand()*4,1+rand()*3,i%3?'#313c2c80':'#766d5050');
   }
-  for(let i=0;i<8;i++){const x=i*143+20;ellipse(c,x,HEIGHT+8,62,25,'#6d984f','#4d7848',3);}
-  // A broken stump at the entrance, and permanent settlements earned through play.
-  ellipse(c,38,183,21,8,'#87694b','#655b3c',2);polygon(c,[[18,154],[55,154],[57,181],[18,181]],'#9b7651','#655b3c',2);ellipse(c,37,153,20,7,'#c19a6b','#655b3c',2);
   if(rank>=1)cottage(c,885,90);
-  if(rank>=2){for(let i=0;i<9;i++)flower(c,400+i*13,82+(i%3)*12,['#f5a7b0','#fff1a5','#b2afe7'][i%3]);line(c,[[386,110],[524,110]],'#996f4d',4);}
-  if(rank>=3){ellipse(c,882,261,54,25,'#6aafa6','#6b975c',5);ellipse(c,883,256,41,13,'#93cbb4');flower(c,865,258,'#f4c4d9');}
-  for(const [x,y] of [[25,314],[960,80],[30,580]]){
-    line(c,[[x,y+13],[x,y-20]],'#8c744e',4);polygon(c,[[x,y-23],[x+22,y-19],[x,y-5]],chapter===2?'#c7b4e6':'#eeac71','#776143',2);
-  }
+  if(rank>=2){polygon(c,[[386,75],[514,75],[524,111],[380,111]],'#343b2790','#726d4b',2);for(let i=0;i<18;i++)flower(c,391+i*6,84+(i%3)*8,['#ad8980','#b5a66c','#7e818f'][i%3],.55);}
+  if(rank>=3){ellipse(c,882,261,55,26,'#455747','#273d32',4);ellipse(c,882,257,48,20,'#4b6e69');line(c,[[850,250],[885,248],[909,253]],'#b3c0a34d',1.5);ellipse(c,865,260,9,4,'#79866b');}
+  const vignette=c.createRadialGradient(WIDTH/2,HEIGHT/2,230,WIDTH/2,HEIGHT/2,650);vignette.addColorStop(0,'#06120a00');vignette.addColorStop(1,'#06120a60');c.fillStyle=vignette;c.fillRect(0,0,WIDTH,HEIGHT);c.restore();
 }
 export function paintShot(c, shot) {
   const t=Math.max(0,Math.min(1,1-shot.life/.32)),p=STYLES[shot.style];

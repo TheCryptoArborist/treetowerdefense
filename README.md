@@ -30,15 +30,18 @@ The direct Node command also works when PowerShell blocks `npm.ps1`. Stop the ru
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Guided playtest build · v0.4
+## Fantasy forest build · v0.5
 
+- Mature fantasy forest terrain, a textured stone route, engraved build foundations, and an ancient Tree of Life with no face.
+- Segmented insect pests with armor, mandibles, wings, and a horned Blight King. They turn with the route; combat statistics are unchanged.
+- Larger guardian portraits and battlefield silhouettes, a restrained UI palette, and clearer text against textured terrain.
 - A four-step guided start with suggested Pine/Oak placements, highlighted sites, optional skip, and restart from Field Guide. The recommended first wave uses earned Sap only.
 - Next-wave scouting with pest portraits, counts, traits, and defense tips; its forecast shares the exact battle lineup.
 - Purchase reviews for every TREE upgrade, supply, and continue, showing effect, cost, and remaining balance before confirmation. Canceling never charges. Battle time waits during review.
 - Three campaign chapters: **Emerald Crossing**, **Sunpetal Meadow**, and **Moonlit Marsh**. The winding route is shared; each chapter changes the biome and pest difficulty.
 - Ten waves per chapter, four expressive pest types, and a final **Blight King** boss.
 - Five defenders: Oak splash damage, Pine rapid fire, Palm slowing, Cypress piercing, Mushroom poison.
-- A larger bright meadow battlefield with NFTree-style stump warriors, idle movement and attack recoil, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
+- A prominent textured forest battlefield with NFTree-style stump warriors, idle movement and attack recoil, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
 - Planting sites, automatic targeting, range previews, three permanent species levels, supplies, victory, and defeat.
 - Grow each defender species from **Sapling → Guardian → Ancient**. A TREE upgrade improves every current and future defender of that species.
 - Chapters unlock in order. Earn 1–3 stars from remaining health, grow the Tree of Life, and add permanent landmarks: an arborist cottage, flower garden, and lily pond.
@@ -109,11 +112,20 @@ npm run check
 
 The 30 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes.
 
-Validation for v0.4: all 30 game and purchase-review tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
+Validation for v0.5: all 30 game and purchase-review tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
 
 See [guided playtest notes and remaining manual checks](docs/playtest-notes.md). Existing v1/v2 game saves and permanent progress are preserved; the guide preference is stored separately. Upgrading an existing played save does not automatically show the guide.
 
 ## Art preview
+
+The mature forest artwork is integrated into the game. These images use its actual drawing functions and local assets; they are not browser screenshots.
+
+![Fantasy forest battlefield](docs/forest-battle-v05.jpg)
+
+![Starting forest and build sites](docs/forest-empty-v05.jpg)
+
+[Environment assets, generation prompts, and verification notes](docs/environment-art.md). The route and build-site coordinates are unchanged. All three chapters share one terrain plate with biome color treatments.
+
 
 The character sheet below is rendered from the game’s actual drawing code; it is not a browser screenshot.
 

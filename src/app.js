@@ -1,6 +1,6 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintPest, paintBackdrop, paintShot, loadDefenderArt, getDefenderArtStatus } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintPest, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus } from './art.js';
 import { scoutWave, starterTip, PurchaseReview } from './playtest.js';
 
 const $ = id => document.getElementById(id);
@@ -69,9 +69,9 @@ for (const [i, type] of Object.keys(TOWERS).entries()) {
   const d = TOWERS[type]; const button = document.createElement('button');
   button.className = 'tower-card'; button.dataset.tower = type;
   button.setAttribute('aria-label', `${d.name}: ${d.role}, ${d.cost} Sap. ${d.description}`);
-  button.innerHTML = `<span class="tree-icon"><canvas width="106" height="122" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small>${GROWTH_NAMES[game.forest.levels[type] - 1]}</small><b>${d.cost} SAP</b></span><kbd>${i + 1}</kbd>`;
+  button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small>${GROWTH_NAMES[game.forest.levels[type] - 1]}</small><b>${d.cost} SAP</b></span><kbd>${i + 1}</kbd>`;
   button.addEventListener('click', () => { selectedType = type; selectedTower = null; game.message = `${d.name} selected. Choose an empty build site (${d.cost} Sap).`; renderUI(); });
-  shapeTree(button.querySelector('canvas').getContext('2d'), type, 53, 102, .76, 0, game.forest.levels[type]);
+  shapeTree(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
   $('tower-cards').append(button);
 }
 for (const [i, style] of STYLES.entries()) {
@@ -194,6 +194,7 @@ function tone(frequency, duration = .08) {
   oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(); oscillator.stop(audio.currentTime + duration);
 }
 let cardSignature = '';
+loadEnvironmentArt();
 loadDefenderArt().then(status => {
   cardSignature = ''; inspectorSignature = null;
   document.querySelectorAll('[data-style]').forEach(button => {
@@ -221,7 +222,7 @@ function renderUI() {
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
       const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.forest.levels[type];
-      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,53,102,.76,0,level); button.querySelector('small').textContent = GROWTH_NAMES[level-1];
+      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level); button.querySelector('small').textContent = GROWTH_NAMES[level-1];
     }); cardSignature = nextCards;
   }
   if (!tower) selectedTower = null;
@@ -270,7 +271,7 @@ function renderUI() {
     $('remove-button').disabled = !active;
     $('remove-button').addEventListener('click', () => act(() => { game.sell(tower.id); selectedTower = null; selectedType = tower.type; }));
   } else {
-    $('inspector').innerHTML = '<span class="eyebrow">GROW A LITTLE. GUARD A LOT.</span><h3>Meet your guardians.</h3><p>Plant a defender, then select it to grow its whole species. TREE upgrades stay with you across runs.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE grows their species</span></div>';
+    $('inspector').innerHTML = '<span class="eyebrow">ROOTED IN STRENGTH.</span><h3>Choose your defenders.</h3><p>Plant a defender, then select it to grow its whole species. TREE upgrades stay with you across runs.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE grows their species</span></div>';
   }
   inspectorSignature = nextInspector;
   }
@@ -314,7 +315,7 @@ function renderScout() {
   for (const group of scout.groups) {
     const card = document.createElement('div'); card.className = 'scout-pest';
     card.innerHTML = `<canvas width="96" height="92" aria-hidden="true"></canvas><strong>${group.name} <b>×${group.count}</b></strong><small>${group.trait}</small>`;
-    const c = card.querySelector('canvas').getContext('2d'); c.translate(48,55); c.scale(.65,.65);
+    const c = card.querySelector('canvas').getContext('2d'), scale = group.kind === 'boss' ? .5 : .65; c.translate(48,59); c.scale(scale,scale);
     paintPest(c,{kind:group.kind,x:0,y:0,id:0,hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0);
     $('scout-pests').append(card);
   }
@@ -329,15 +330,15 @@ let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
   const visualClock = reducedMotion ? 0 : clock;
-  const key = `${game.chapter}:${game.forestRank}`;
+  const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}`;
   if (key !== backdropKey) { paintBackdrop(bg, game.chapter, game.forestRank); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
-  aura.addColorStop(0, '#fff6a940'); aura.addColorStop(1, '#fff6a900'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
+  aura.addColorStop(0, '#d8ad6230'); aura.addColorStop(1, '#d8ad6200'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
   // Earning chapter landmarks grows the Tree of Life's visible silhouette.
-  paintLifeTree(ctx, 'oak', 900, 652, 1.22 + game.forestRank * .13, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
-  ctx.save();ctx.fillStyle='#2c5334';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.fillText('TREE OF LIFE',900,704);ctx.restore();
-  if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(900,608,65,84,0,0,Math.PI*2);ctx.stroke(); }
+  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
+  ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
+  if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(885,606,75,90,0,0,Math.PI*2);ctx.stroke(); }
   const pulse = reducedMotion ? 1 : .6 + Math.sin(clock * 2) * .3;
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
   for (let i = 0; i < PADS.length; i++) {
@@ -347,17 +348,10 @@ function draw(clock, dt) {
       const range = selected ? TOWERS[tower.type].range + (tower.level-1)*18 : TOWERS[selectedType].range;
       ctx.fillStyle='#f7ffcf28';ctx.strokeStyle='#365d3980';ctx.lineWidth=2;ctx.setLineDash([6,7]);ctx.beginPath();ctx.arc(x,y,range,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.setLineDash([]);
     }
-    ctx.fillStyle = tower ? '#c0b57e' : '#d6cc99';ctx.strokeStyle=selected||hoveredPad===i?'#fff5b7':'#839957';ctx.lineWidth=selected?4:3;
-    ctx.beginPath();ctx.ellipse(x,y+12,32,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
-    if (suggestedPad === i && !tower) {
-      ctx.strokeStyle='#fff4ad';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(x,y+12,40,25,0,0,Math.PI*2);ctx.stroke();
-    }
-    if (!tower) {
-      ctx.globalAlpha=.6+pulse*.3;ctx.fillStyle='#526d3d';ctx.font='bold 23px Arial';ctx.textAlign='center';ctx.fillText('+',x,y+20);ctx.globalAlpha=1;
-      ctx.fillStyle='#35532f';ctx.font='bold 10px Arial';ctx.fillText(i+1,x,y+40);
-    } else {
-      shapeTree(ctx,tower.type,x,y,.92,tower.style,tower.level,visualClock, game.phase==='running' && tower.cooldown>TOWERS[tower.type].interval-.15);
-      ctx.fillStyle='#fff8cd';ctx.strokeStyle='#445b3a';ctx.lineWidth=2;
+    paintBuildSite(ctx,x,y,{selected,hovered:hoveredPad===i,recommended:suggestedPad===i,occupied:!!tower,number:i+1});
+    if (tower) {
+      shapeTree(ctx,tower.type,x,y,1.04,tower.style,tower.level,visualClock, game.phase==='running' && tower.cooldown>TOWERS[tower.type].interval-.15);
+      ctx.fillStyle='#d9c592';ctx.strokeStyle='#283d2e';ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(x+29,y+7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#435b39';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText(tower.level,x+29,y+10);
     }
   }
@@ -368,8 +362,8 @@ function draw(clock, dt) {
   for (const event of game.events.splice(0)) {
     const n=event.type==='storm'?65:event.type==='victory'?80:14;
     for(let i=0;i<n;i++) particles.push({x:event.type==='storm'?random()*WIDTH:event.x,y:event.type==='storm'?random()*HEIGHT:event.y,vx:(random()-.5)*(event.type==='victory'?250:100),vy:-30-random()*90,life:event.type==='victory'?1.5:.65,max:event.type==='victory'?1.5:.65,color:event.type==='leak'?'#e88068':event.type==='upgrade'?'#f9e5a0':'#fff4b4'});
-    if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#315b35',life:1});
-    if(event.type==='upgrade') {floaters.push({x:event.x,y:event.y-82,text:'GROWN!',color:'#664a21',life:1.2});tone(660,.2);}
+    if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#dbd9b4',life:1});
+    if(event.type==='upgrade') {floaters.push({x:event.x,y:event.y-82,text:'GROWN!',color:'#eed3a3',life:1.2});tone(660,.2);}
     if(event.type==='plant')tone(340,.12);
     if(event.type==='leak')tone(130,.2);
     if(event.type==='storm')tone(240,.3);
@@ -379,11 +373,11 @@ function draw(clock, dt) {
   if(floaters.length>40)floaters=floaters.slice(-40);
   for(const p of particles){if(!reducedMotion){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=90*dt;}p.life-=dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(p.x,p.y,3,5,.5,0,Math.PI*2);ctx.fill();}
   particles=particles.filter(p=>p.life>0);ctx.globalAlpha=1;
-  for(const f of floaters){if(!reducedMotion)f.y-=22*dt;f.life-=dt;ctx.globalAlpha=Math.max(0,Math.min(1,f.life*2));ctx.fillStyle=f.color;ctx.font='bold 13px Trebuchet MS, Arial';ctx.strokeStyle='#fff5d6';ctx.lineWidth=3;ctx.strokeText(f.text,f.x-22,f.y);ctx.fillText(f.text,f.x-22,f.y);}
+  for(const f of floaters){if(!reducedMotion)f.y-=22*dt;f.life-=dt;ctx.globalAlpha=Math.max(0,Math.min(1,f.life*2));ctx.fillStyle=f.color;ctx.font='bold 13px Trebuchet MS, Arial';ctx.strokeStyle='#182419';ctx.lineWidth=3;ctx.strokeText(f.text,f.x-22,f.y);ctx.fillText(f.text,f.x-22,f.y);}
   floaters=floaters.filter(f=>f.life>0);ctx.globalAlpha=1;
-  if(game.boostUntil>game.time){ctx.fillStyle='#325632';ctx.font='bold 12px Arial';ctx.fillText(`FERTILIZER · ${Math.ceil(game.boostUntil-game.time)}s`,25,55);}
+  if(game.boostUntil>game.time){ctx.fillStyle='#e8dbab';ctx.font='bold 12px Arial';ctx.fillText(`FERTILIZER · ${Math.ceil(game.boostUntil-game.time)}s`,25,55);}
   if(game.phase==='paused'){
-    ctx.fillStyle='#28493470';ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textAlign='center';ctx.fillStyle='#fff3c8';ctx.strokeStyle='#284832';ctx.lineWidth=5;ctx.font='bold 36px Georgia';ctx.strokeText('A little forest breather.',WIDTH/2,HEIGHT/2);ctx.fillText('A little forest breather.',WIDTH/2,HEIGHT/2);ctx.font='bold 14px Arial';ctx.fillText('Press Resume to keep growing.',WIDTH/2,HEIGHT/2+32);ctx.textAlign='left';
+    ctx.fillStyle='#28493470';ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textAlign='center';ctx.fillStyle='#fff3c8';ctx.strokeStyle='#284832';ctx.lineWidth=5;ctx.font='bold 36px Georgia';ctx.strokeText('Battle paused.',WIDTH/2,HEIGHT/2);ctx.fillText('Battle paused.',WIDTH/2,HEIGHT/2);ctx.font='bold 14px Arial';ctx.fillText('Resume to hold the line.',WIDTH/2,HEIGHT/2+32);ctx.textAlign='left';
   }
 }
 function frame(now) {
