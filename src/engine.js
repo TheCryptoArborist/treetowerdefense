@@ -19,6 +19,12 @@ export const TOWERS = {
   mushroom: { name: 'Mushroom', role: 'Spore cloud', cost: 100, range: 155, damage: 10, interval: 1.0, color: '#c58bce', icon: '●', description: 'Poisons nearby pests for damage over time.' },
 };
 export const PRICES = Object.freeze({ shield: 3000, fertilizer: 5000, storm: 8000, continue: 20000 });
+export const CHAPTERS = [
+  { name: 'Emerald Crossing', subtitle: 'A small forest. A big beginning.', terrain: '#b5d87b', grass: '#a4c765', path: '#e1c998', difficulty: 1 },
+  { name: 'Sunpetal Meadow', subtitle: 'Bring the meadow back to bloom.', terrain: '#d2db86', grass: '#a9c978', path: '#ead6a3', difficulty: 1.2 },
+  { name: 'Moonlit Marsh', subtitle: 'Let your ancient forest shine.', terrain: '#9fc4b1', grass: '#7eafa4', path: '#c6cbb0', difficulty: 1.4 },
+];
+export const GROWTH_NAMES = ['Sapling', 'Guardian', 'Ancient'];
 const segments = PATH.slice(1).map((p, i) => Math.hypot(p[0] - PATH[i][0], p[1] - PATH[i][1]));
 export const PATH_LENGTH = segments.reduce((a, b) => a + b, 0);
 export function pointAt(distance) {
@@ -36,11 +42,13 @@ const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 export class Game {
   constructor() {
-    this.version = 1;
+    this.version = 2;
     this.tree = 150000; // Simulation balance only. Never a Sui balance.
     this.rarity = 0;
     this.style = 0;
     this.access = false;
+    this.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, 1])), stars: CHAPTERS.map(() => 0) };
+    this.chapter = 0;
     this.newRun();
   }
   newRun() {
@@ -50,6 +58,17 @@ export class Game {
     this.towers = []; this.enemies = []; this.queue = []; this.shots = [];
     this.spawnTimer = 0; this.boostUntil = 0; this.nextId = 1;
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
+  }
+  get unlockedChapter() {
+    const first = this.forest.stars.findIndex(stars => stars === 0);
+    return first === -1 ? CHAPTERS.length - 1 : first;
+  }
+  get forestRank() { return this.forest.stars.filter(stars => stars > 0).length; }
+  chooseChapter(chapter) {
+    if (!this.access || !Number.isInteger(chapter) || chapter < 0 || chapter >= CHAPTERS.length || chapter > this.unlockedChapter) return false;
+    this.chapter = chapter; this.newRun();
+    this.message = `${CHAPTERS[chapter].name}: your permanent defender growth carries with you.`;
+    return true;
   }
   allowPreview(rarity = 0) {
     if (!Number.isInteger(rarity) || rarity < 0 || rarity >= RARITIES.length) return false;
@@ -73,8 +92,9 @@ export class Game {
     if (this.sap < definition.cost) { this.message = 'Earn more Sap by defeating pests.'; return false; }
     this.sap -= definition.cost;
     const [x, y] = PADS[pad];
-    const tower = { id: this.nextId++, type, pad, x, y, level: 1, cooldown: 0, style: this.style };
+    const tower = { id: this.nextId++, type, pad, x, y, level: this.forest.levels[type], cooldown: 0, style: this.style };
     this.towers.push(tower); this.message = `${definition.name} planted. Ready to defend.`;
+    this.events.push({ type: 'plant', x, y });
     return tower;
   }
   upgradeCost(tower) { return tower.level === 1 ? 5000 : 10000; }
@@ -87,8 +107,11 @@ export class Game {
     const tower = this.towers.find(t => t.id === id);
     if (!tower || tower.level >= 3) return false;
     if (!this.spend(this.upgradeCost(tower))) { this.message = 'Not enough preview TREE.'; return false; }
-    tower.level++; this.message = `${TOWERS[tower.type].name} upgraded to level ${tower.level}.`;
-    this.events.push({ type: 'upgrade', x: tower.x, y: tower.y });
+    this.forest.levels[tower.type] = tower.level + 1;
+    for (const same of this.towers.filter(t => t.type === tower.type)) {
+      same.level = this.forest.levels[tower.type]; this.events.push({ type: 'upgrade', x: same.x, y: same.y });
+    }
+    this.message = `All ${TOWERS[tower.type].name} defenders grew to ${GROWTH_NAMES[tower.level - 1]}. This upgrade stays for future runs.`;
     return true;
   }
   sell(id) {
@@ -97,7 +120,7 @@ export class Game {
     if (!tower) return false;
     this.sap += Math.floor(TOWERS[tower.type].cost * 0.6);
     this.towers = this.towers.filter(t => t.id !== id);
-    this.message = 'Defender removed. 60% of planting Sap returned; TREE upgrades are consumed.';
+    this.message = 'Defender removed. 60% of planting Sap returned; permanent species growth is kept.';
     return true;
   }
   startWave() {
@@ -105,7 +128,7 @@ export class Game {
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
     const count = 6 + this.wave * 2;
     this.queue = Array.from({ length: count }, (_, i) => {
-      const kind = this.wave >= 3 && i % 5 === 0 ? 'beetle' : this.wave >= 2 && i % 4 === 0 ? 'moth' : this.wave >= 5 && i % 7 === 0 ? 'blight' : 'termite';
+      const kind = this.wave >= 3 && i % 5 === 0 ? 'beetle' : this.wave >= 2 && i % 4 === 0 ? 'moth' : this.wave >= (this.chapter > 0 ? 3 : 5) && i % 7 === 0 ? 'blight' : 'termite';
       return kind;
     });
     if (this.wave === 10) this.queue.push('boss');
@@ -113,8 +136,8 @@ export class Game {
     return true;
   }
   spawn(kind) {
-    const base = 45 + this.wave * 18;
-    const hp = kind === 'boss' ? 2100 : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
+    const base = (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
+    const hp = kind === 'boss' ? 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
       slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: PATH[0][0], y: PATH[0][1] };
     this.enemies.push(e); return e;
@@ -187,7 +210,7 @@ export class Game {
       if (tower.type === 'palm') target.slowUntil = this.time + 2;
       if (tower.type === 'cypress' && targets[1]) targets[1].hp -= damage * 0.5;
       if (tower.type === 'mushroom') this.enemies.filter(e => distance(e, target) < 65).forEach(e => { e.poisonUntil = this.time + 3; e.poisonDamage = 14 * tower.level; });
-      this.shots.push({ x: tower.x, y: tower.y, tx: target.x, ty: target.y, type: tower.type, style: tower.style, life: 0.25 });
+      this.shots.push({ x: tower.x, y: tower.y, tx: target.x, ty: target.y, type: tower.type, style: tower.style, life: 0.32 });
       this.resolveKills();
     }
     this.shots.forEach(shot => { shot.life -= dt; }); this.shots = this.shots.filter(shot => shot.life > 0);
@@ -195,6 +218,11 @@ export class Game {
       this.sap += 85; this.score += this.health * 5;
       this.shots = [];
       this.phase = this.wave === 10 ? 'victory' : 'build';
+      if (this.phase === 'victory') {
+        const stars = this.health >= 80 ? 3 : this.health >= 40 ? 2 : 1;
+        this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
+        this.events.push({ type: 'victory', x: 940, y: 640 });
+      }
       this.message = this.phase === 'victory' ? 'The Tree of Life stands. You defeated the Blight King!' : `Wave ${this.wave} cleared. +85 Sap. Prepare your next defense.`;
     }
   }
@@ -203,7 +231,7 @@ export class Game {
     return JSON.parse(JSON.stringify(state));
   }
   static restore(data) {
-    if (!data || data.version !== 1 || !['build', 'running', 'paused', 'defeat', 'victory'].includes(data.phase)) return null;
+    if (!data || ![1, 2].includes(data.version) || !['build', 'running', 'paused', 'defeat', 'victory'].includes(data.phase)) return null;
     const validNumber = x => Number.isFinite(x) && x >= 0;
     if (!['tree', 'sap', 'health', 'shield', 'score', 'kills', 'time', 'wave', 'nextId', 'boostUntil'].every(k => validNumber(data[k]))) return null;
     if (data.health > 100 || data.shield > 50 || !Number.isInteger(data.wave) || data.wave > 10 || typeof data.access !== 'boolean') return null;
@@ -212,17 +240,34 @@ export class Game {
     const kinds = ['termite', 'beetle', 'moth', 'blight', 'boss'];
     const used = new Set();
     for (const t of data.towers) {
+      if (!t || typeof t !== 'object') return null;
       if (!Object.hasOwn(TOWERS, t.type) || !Number.isInteger(t.pad) || !PADS[t.pad] || used.has(t.pad) || !Number.isInteger(t.level) || t.level < 1 || t.level > 3 || !Number.isInteger(t.style) || t.style < 0 || t.style > data.rarity || !validNumber(t.id) || !Number.isFinite(t.cooldown)) return null;
       used.add(t.pad);
     }
     for (const e of data.enemies) {
+      if (!e || typeof e !== 'object') return null;
       if (!kinds.includes(e.kind) || !['id', 'progress', 'hp', 'maxHp', 'speed', 'slowUntil', 'poisonUntil', 'poisonDamage'].every(k => validNumber(e[k])) || e.hp <= 0 || e.progress >= PATH_LENGTH || e.speed <= 0) return null;
     }
     if (!data.queue.every(k => kinds.includes(k)) || !Number.isFinite(data.spawnTimer)) return null;
     const game = new Game();
+    if (data.version === 2) {
+      if (!data.forest || !data.forest.levels || !Array.isArray(data.forest.stars) || data.forest.stars.length !== CHAPTERS.length) return null;
+      if (!Object.keys(TOWERS).every(type => Number.isInteger(data.forest.levels[type]) && data.forest.levels[type] >= 1 && data.forest.levels[type] <= 3)) return null;
+      if (!data.forest.stars.every(stars => Number.isInteger(stars) && stars >= 0 && stars <= 3)) return null;
+      let gap = false;
+      for (const stars of data.forest.stars) { if (!stars) gap = true; else if (gap) return null; }
+      game.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, data.forest.levels[type]])), stars: [...data.forest.stars] };
+      if (!Number.isInteger(data.chapter) || data.chapter < 0 || data.chapter > game.unlockedChapter) return null;
+      game.chapter = data.chapter;
+      if (data.towers.some(t => t.level !== game.forest.levels[t.type])) return null;
+    } else {
+      // Carry upgrades already purchased in the original preview into permanent growth.
+      for (const tower of data.towers) game.forest.levels[tower.type] = Math.max(game.forest.levels[tower.type], tower.level);
+      if (data.phase === 'victory') game.forest.stars[0] = data.health >= 80 ? 3 : data.health >= 40 ? 2 : 1;
+    }
     // Explicit fields only: browser saves are editable development data, never an entitlement proof.
     for (const key of ['phase', 'wave', 'health', 'shield', 'sap', 'score', 'kills', 'time', 'tree', 'rarity', 'style', 'access', 'spawnTimer', 'boostUntil', 'nextId']) game[key] = data[key];
-    game.towers = data.towers.map(t => ({ ...t, x: PADS[t.pad][0], y: PADS[t.pad][1] }));
+    game.towers = data.towers.map(t => ({ ...t, level: game.forest.levels[t.type], x: PADS[t.pad][0], y: PADS[t.pad][1] }));
     game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress) })); game.queue = [...data.queue];
     game.message = 'Preview save restored. Continue your defense.';
     if (game.phase === 'running') game.phase = 'paused';

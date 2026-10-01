@@ -1,16 +1,22 @@
-import { Game, WIDTH, HEIGHT, PATH, PADS, TOWERS, RARITIES, STYLES, PRICES } from './engine.js';
+import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES } from './engine.js';
+
+import { paintTree as shapeTree, paintPest, paintBackdrop, paintShot } from './art.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'canopy-defense-preview-v1';
 let game = new Game();
 let storageAvailable = true;
+let saved = null;
 try {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  saved = localStorage.getItem(STORAGE_KEY);
+} catch { storageAvailable = false; }
+try {
   if (saved) {
     const restored = Game.restore(JSON.parse(saved));
     if (restored) game = restored;
+    else game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.';
   }
-} catch { storageAvailable = false; }
+} catch { game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.'; }
 let selectedType = 'pine';
 let selectedTower = null;
 let hoveredPad = null;
@@ -30,77 +36,20 @@ function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(game.snapshot())); $('save-status').textContent = 'Preview saved on this device'; }
   catch { storageAvailable = false; $('save-status').textContent = 'Save unavailable · keep this tab open'; }
 }
-function shapeTree(context, type, x, y, scale, style, level = 1, clock = 0) {
-  const palette = STYLES[style];
-  context.save(); context.translate(x, y); context.scale(scale, scale);
-  context.fillStyle = '#06130c55'; context.beginPath(); context.ellipse(0, 21, 32, 12, 0, 0, Math.PI * 2); context.fill();
-  if (style >= 2) {
-    context.strokeStyle = palette.accent + '77'; context.lineWidth = 1.5;
-    context.beginPath(); context.ellipse(0, 19, 30, 10, 0, 0, Math.PI * 2); context.stroke();
-  }
-  context.strokeStyle = palette.bark; context.lineWidth = type === 'oak' ? 11 : 7; context.lineCap = 'round';
-  context.beginPath(); context.moveTo(0, 19); context.lineTo(0, -14); context.stroke();
-  for (const root of [-1, 1]) { context.beginPath(); context.moveTo(0, 13); context.quadraticCurveTo(root * 8, 23, root * 21, 22); context.stroke(); }
-  const glow = style >= 2 && !reducedMotion;
-  if (glow) { context.shadowColor = palette.accent; context.shadowBlur = 7; }
-  context.fillStyle = palette.canopy;
-  if (type === 'pine' || type === 'cypress') {
-    for (let i = 0; i < 3; i++) {
-      const w = (type === 'cypress' ? 16 : 24) - i * 5;
-      context.beginPath(); context.moveTo(0, -51 - i * 7); context.lineTo(-w, -8 - i * 14); context.lineTo(w, -8 - i * 14); context.closePath(); context.fill();
-    }
-  } else if (type === 'palm') {
-    context.strokeStyle = palette.canopy; context.lineWidth = 8;
-    for (const [dx, dy] of [[-30, -26], [30, -26], [-20, -50], [20, -50], [0, -57]]) {
-      context.beginPath(); context.moveTo(0, -30); context.quadraticCurveTo(dx * 0.5, dy - 18, dx, dy); context.stroke();
-    }
-  } else if (type === 'mushroom') {
-    context.fillStyle = palette.bark; context.fillRect(-7, -19, 14, 37);
-    context.fillStyle = palette.canopy; context.beginPath(); context.ellipse(0, -24, 29, 19, 0, Math.PI, Math.PI * 2); context.lineTo(29, -16); context.quadraticCurveTo(0, -6, -29, -16); context.closePath(); context.fill();
-    context.fillStyle = palette.accent;
-    for (const [dx, dy] of [[-12, -27], [5, -33], [17, -23]]) { context.beginPath(); context.arc(dx, dy, 3.5, 0, Math.PI * 2); context.fill(); }
-  } else {
-    for (const [dx, dy, r] of [[-18, -23, 19], [18, -23, 19], [0, -42, 24], [0, -18, 21]]) {
-      context.beginPath(); context.arc(dx, dy, r, 0, Math.PI * 2); context.fill();
-    }
-  }
-  context.shadowBlur = 0; context.fillStyle = palette.accent + '99';
-  if (type !== 'mushroom') for (let i = 0; i < (style ? 5 : 2); i++) {
-    const dx = Math.sin(i * 5 + style) * 16, dy = -22 - i * 5;
-    context.beginPath(); context.ellipse(dx, dy, style === 1 ? 3.5 : 2, 2, i, 0, Math.PI * 2); context.fill();
-  }
-  if (style >= 3) {
-    context.fillStyle = palette.accent;
-    for (let i = 0; i < (style >= 4 ? 4 : 2); i++) {
-      const angle = i * Math.PI / 2 + (reducedMotion ? 0 : clock * 0.6);
-      const dx = Math.cos(angle) * 30, dy = -20 + Math.sin(angle) * 28;
-      context.beginPath(); context.moveTo(dx, dy - 4); context.lineTo(dx + 3, dy); context.lineTo(dx, dy + 4); context.lineTo(dx - 3, dy); context.closePath(); context.fill();
-    }
-  }
-  if (level > 1) {
-    context.fillStyle = '#e4d08d';
-    for (let i = 0; i < level; i++) { context.beginPath(); context.arc((i - (level - 1) / 2) * 8, 34, 2.5, 0, Math.PI * 2); context.fill(); }
-  }
-  context.restore();
-}
-function towerIcon(type) {
-  const d = TOWERS[type];
-  const foliage = type === 'pine' || type === 'cypress' ? '<path d="M20 3 6 26h8L8 34h24l-6-8h8Z"/>' : type === 'mushroom' ? '<path d="M4 23c0-20 32-20 32 0Z"/><circle cx="13" cy="16" r="2" fill="#eeeede"/><circle cx="26" cy="16" r="2" fill="#eeeede"/>' : type === 'palm' ? '<path d="M20 19Q2 1 3 26Q11 19 20 19Q37 1 37 26Q28 19 20 19Q19 0 14 3Q14 11 20 19Z"/>' : '<circle cx="12" cy="20" r="9"/><circle cx="28" cy="20" r="9"/><circle cx="20" cy="12" r="11"/>';
-  return `<svg viewBox="0 0 40 46" aria-hidden="true"><path d="M18 19h4v21h-4Z" fill="#a48b65"/><g fill="${d.color}">${foliage}</g><ellipse cx="20" cy="41" rx="13" ry="3" fill="#abc38233"/></svg>`;
-}
 for (const [i, type] of Object.keys(TOWERS).entries()) {
   const d = TOWERS[type]; const button = document.createElement('button');
   button.className = 'tower-card'; button.dataset.tower = type;
   button.setAttribute('aria-label', `${d.name}: ${d.role}, ${d.cost} Sap. ${d.description}`);
-  button.innerHTML = `<span class="tree-icon">${towerIcon(type)}</span><span><strong>${d.name}</strong><small>${d.role}</small><b>${d.cost} SAP</b></span><kbd>${i + 1}</kbd>`;
+  button.innerHTML = `<span class="tree-icon"><canvas width="106" height="122" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small>${GROWTH_NAMES[game.forest.levels[type] - 1]}</small><b>${d.cost} SAP</b></span><kbd>${i + 1}</kbd>`;
   button.addEventListener('click', () => { selectedType = type; selectedTower = null; game.message = `${d.name} selected. Choose an empty build site (${d.cost} Sap).`; renderUI(); });
+  shapeTree(button.querySelector('canvas').getContext('2d'), type, 53, 102, .76, 0, game.forest.levels[type]);
   $('tower-cards').append(button);
 }
 for (const [i, style] of STYLES.entries()) {
   const button = document.createElement('button'); button.className = 'style-card'; button.dataset.style = i;
   button.setAttribute('aria-label', `${RARITIES[i]}: ${style.name}. ${style.detail}`);
   button.innerHTML = `<canvas width="128" height="128" aria-hidden="true"></canvas><strong>${style.name}</strong><small>${RARITIES[i]}</small><span class="lock" aria-hidden="true">◆</span>`;
-  shapeTree(button.querySelector('canvas').getContext('2d'), 'oak', 64, 86, 1.25, i);
+  shapeTree(button.querySelector('canvas').getContext('2d'), 'oak', 64, 100, 1, i);
   button.addEventListener('click', () => {
     if (game.setStyle(i, selectedTower)) { game.message = `${style.name} appearance selected. Combat stats stay the same.`; save(); renderUI(); }
   }); $('style-grid').append(button);
@@ -109,11 +58,12 @@ for (let i = 0; i < PADS.length; i++) {
   const button = document.createElement('button'); button.dataset.pad = i;
   button.addEventListener('click', () => choosePad(i)); $('pad-buttons').append(button);
 }
+function dName(tower) { return TOWERS[tower.type].name; }
 function choosePad(pad) {
   if (!game.access) { accessDialog.showModal(); return; }
   const existing = game.towers.find(t => t.pad === pad);
   if (existing) { selectedTower = existing.id; selectedType = null; game.message = `${TOWERS[existing.type].name} selected. Upgrade or choose a new appearance.`; }
-  else if (selectedType) { const tower = game.place(selectedType, pad); if (tower) selectedTower = null; }
+  else if (selectedType) { const tower = game.place(selectedType, pad); if (tower) { selectedTower = tower.id; game.message = `${dName(tower)} planted. Grow this species or choose another site.`; } }
   else game.message = 'Choose a defender from the planting menu first.';
   save(); renderUI();
 }
@@ -136,14 +86,14 @@ $('enter-preview').addEventListener('click', () => { game.allowPreview($('rarity
 $('help-button').addEventListener('click', () => { if (game.phase === 'running') game.pause(); helpDialog.showModal(); renderUI(); });
 $('continue-button').addEventListener('click', () => act(() => game.continueRun()));
 function newRun() {
-  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Consumed preview TREE is not refunded.')) return;
-  game.newRun(); selectedTower = null; selectedType = 'pine'; particles = []; save(); renderUI();
+  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return;
+  game.newRun(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; save(); renderUI();
 }
 $('new-run-button').addEventListener('click', newRun);
 $('outcome-new-run').addEventListener('click', newRun);
 $('reset-button').addEventListener('click', () => {
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
-  game = new Game(); selectedTower = null; selectedType = 'pine'; particles = []; save(); renderUI(); accessDialog.showModal();
+  game = new Game(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
   if (accessDialog.open || helpDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
@@ -157,8 +107,54 @@ document.addEventListener('keydown', event => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
 window.addEventListener('pagehide', save);
 
+for (const [i, chapter] of CHAPTERS.entries()) {
+  const button = document.createElement('button'); button.className = 'chapter-button'; button.dataset.chapter = i;
+  button.innerHTML = `<span class="chapter-number">${i + 1}</span><span><strong>${chapter.name}</strong><small>${chapter.subtitle}</small></span><span class="chapter-stars">☆☆☆</span>`;
+  button.addEventListener('click', () => selectChapter(i)); $('chapter-trail').append(button);
+}
+function selectChapter(i) {
+  if (game.wave > 0 && !['defeat', 'victory'].includes(game.phase) && !confirm('Travel to another chapter? Your current battle resets. Permanent growth and forest progress are kept.')) return;
+  if (game.chooseChapter(i)) { selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; save(); renderUI(); }
+}
+$('next-chapter').addEventListener('click', () => selectChapter(game.chapter + 1));
+let sound = false, audio = null, lastTone = 0;
+$('sound-button').addEventListener('click', () => {
+  try {
+    sound = !sound;
+    if (sound) { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); }
+    $('sound-button').textContent = sound ? 'Sound on' : 'Sound off'; $('sound-button').setAttribute('aria-pressed', String(sound));
+    if (sound) tone(420, .15);
+  } catch { sound = false; $('sound-button').textContent = 'Sound unavailable'; $('sound-button').disabled = true; }
+});
+function tone(frequency, duration = .08) {
+  if (!sound || !audio || audio.state !== 'running' || document.hidden) return;
+  const oscillator = audio.createOscillator(), gain = audio.createGain();
+  oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(frequency, audio.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(frequency * .6, audio.currentTime + duration);
+  gain.gain.setValueAtTime(.035, audio.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
+  oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(); oscillator.stop(audio.currentTime + duration);
+}
+let cardSignature = '';
 function renderUI() {
   const tower = game.towers.find(t => t.id === selectedTower);
+  $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
+  const starCount = game.forest.stars.reduce((a,b) => a+b,0);
+  $('forest-summary').textContent = game.forestRank ? `${starCount}/9 stars · permanent defender growth saved` : 'Clear a chapter to build your first landmark.';
+  $('map-name').textContent = CHAPTERS[game.chapter].name.toUpperCase();
+  document.querySelectorAll('[data-chapter]').forEach(button => {
+    const i = Number(button.dataset.chapter), stars = game.forest.stars[i];
+    button.disabled = !game.access || i > game.unlockedChapter;
+    button.classList.toggle('active', i === game.chapter); button.setAttribute('aria-pressed', String(i === game.chapter));
+    button.querySelector('.chapter-stars').textContent = i > game.unlockedChapter ? 'Locked' : '★'.repeat(stars) + '☆'.repeat(3-stars);
+    button.setAttribute('aria-label', `${CHAPTERS[i].name}: ${i > game.unlockedChapter ? 'locked' : `${stars} of 3 stars`}`);
+  });
+  const nextCards = Object.values(game.forest.levels).join(':');
+  if (nextCards !== cardSignature) {
+    document.querySelectorAll('[data-tower]').forEach(button => {
+      const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.forest.levels[type];
+      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,53,102,.76,0,level); button.querySelector('small').textContent = GROWTH_NAMES[level-1];
+    }); cardSignature = nextCards;
+  }
   if (!tower) selectedTower = null;
   const active = game.access && ['build', 'running', 'paused'].includes(game.phase);
   $('health-value').innerHTML = `${game.health}<span> / 100</span>`;
@@ -198,13 +194,14 @@ function renderUI() {
   if (nextInspector !== inspectorSignature) {
   if (tower) {
     const d = TOWERS[tower.type];
-    $('inspector').innerHTML = `<span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name} <small>Lv. ${tower.level}</small></h3><p>${d.description}</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><button id="upgrade-button" class="primary">${tower.level === 3 ? 'Maximum level reached' : `Upgrade · ${game.upgradeCost(tower).toLocaleString()} preview TREE`}</button><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
+    $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">Growth applies to every ${d.name}, now and in future runs.</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><button id="upgrade-button" class="primary">${tower.level === 3 ? 'Ancient growth reached ✓' : `Grow all ${d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
+    shapeTree($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
     $('upgrade-button').disabled = !active || tower.level >= 3 || game.tree < game.upgradeCost(tower);
     $('upgrade-button').addEventListener('click', () => act(() => game.upgrade(tower.id)));
     $('remove-button').disabled = !active;
     $('remove-button').addEventListener('click', () => act(() => { game.sell(tower.id); selectedTower = null; selectedType = tower.type; }));
   } else {
-    $('inspector').innerHTML = '<span class="eyebrow">YOUR STRATEGY STARTS HERE</span><h3>Roots before riches.</h3><p>Plant defenders along the path. Select a planted tower to upgrade it or change its appearance.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE upgrades them</span></div>';
+    $('inspector').innerHTML = '<span class="eyebrow">GROW A LITTLE. GUARD A LOT.</span><h3>Meet your guardians.</h3><p>Plant a defender, then select it to grow its whole species. TREE upgrades stay with you across runs.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE grows their species</span></div>';
   }
   inspectorSignature = nextInspector;
   }
@@ -213,89 +210,74 @@ function renderUI() {
     const won = game.phase === 'victory';
     $('outcome-label').textContent = won ? 'THE FOREST REMEMBERS' : 'ROOTS CAN RISE AGAIN';
     $('outcome-title').textContent = won ? 'The Tree of Life stands.' : 'The Tree of Life has fallen.';
-    $('outcome-description').textContent = won ? `All ten waves cleared. ${game.score.toLocaleString()} points. This preview awards no tokens or cash.` : 'Continue to restore health and keep your towers and current wave. Preview prices only.';
+    const stars = game.health >= 80 ? 3 : game.health >= 40 ? 2 : 1;
+    $('outcome-stars').textContent = won ? '★'.repeat(stars) + '☆'.repeat(3-stars) : '';
+    $('next-chapter').hidden = !won || game.chapter >= CHAPTERS.length-1;
+    $('outcome-description').textContent = won ? `${CHAPTERS[game.chapter].name} protected. ${stars}/3 stars. Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : 'Continue to restore health and keep your towers and current wave. Preview prices only.';
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
   }
 }
 
-// Locally rendered art: no external assets, fonts, CDN, wallet, or network dependency.
+// Procedural original characters and scenery; no external art or font downloads.
 const backdrop = document.createElement('canvas'); backdrop.width = WIDTH; backdrop.height = HEIGHT;
 const bg = backdrop.getContext('2d');
+let backdropKey = '', floaters = [];
 let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-function drawBackdrop() {
-  const gradient = bg.createLinearGradient(0, 0, 1000, 720); gradient.addColorStop(0, '#243e32'); gradient.addColorStop(1, '#132d25'); bg.fillStyle = gradient; bg.fillRect(0, 0, WIDTH, HEIGHT);
-  for (let i = 0; i < 1600; i++) { const x = random() * WIDTH, y = random() * HEIGHT; bg.fillStyle = random() > .5 ? '#b6d79108' : '#03120c15'; bg.fillRect(x, y, random() * 4 + 1, random() * 4 + 1); }
-  bg.strokeStyle = '#11251d'; bg.lineWidth = 78; bg.lineJoin = 'round'; bg.lineCap = 'round';
-  bg.beginPath(); PATH.forEach(([x, y], i) => i ? bg.lineTo(x, y) : bg.moveTo(x, y)); bg.stroke();
-  bg.strokeStyle = '#6c7955'; bg.lineWidth = 62; bg.stroke();
-  bg.strokeStyle = '#8b947022'; bg.lineWidth = 46; bg.stroke();
-  bg.strokeStyle = '#b9c88e25'; bg.lineWidth = 2; bg.setLineDash([3, 13]); bg.stroke(); bg.setLineDash([]);
-  for (let i = 0; i < 60; i++) {
-    const x = random() * WIDTH, y = random() * HEIGHT;
-    const closeToPath = PATH.slice(1).some(([px, py], j) => {
-      const [ax, ay] = PATH[j]; const vx = px - ax, vy = py - ay;
-      const t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy)));
-      return Math.hypot(x - ax - t * vx, y - ay - t * vy) < 58;
-    });
-    if (!closeToPath && !PADS.some(([px, py]) => Math.hypot(x - px, y - py) < 56)) {
-      bg.globalAlpha = .4; shapeTree(bg, i % 3 === 0 ? 'pine' : 'oak', x, y, .55 + random() * .3, 0); bg.globalAlpha = 1;
-    }
-  }
-  bg.fillStyle = '#b0c39499'; bg.font = '10px Arial'; bg.fillText('THE BLIGHT ENTERS', 20, 263);
-  bg.fillStyle = '#d9c791'; bg.font = '12px Georgia'; bg.textAlign = 'center'; bg.fillText('TREE OF LIFE', 923, 712); bg.textAlign = 'left';
-  bg.strokeStyle = '#61705288'; bg.strokeRect(12, 12, WIDTH - 24, HEIGHT - 24);
-}
-drawBackdrop();
-function drawEnemy(e, clock) {
-  const boss = e.kind === 'boss'; const r = boss ? 25 : e.kind === 'beetle' ? 13 : 10;
-  const color = { termite: '#c69b6e', beetle: '#b07e63', moth: '#d9c890', blight: '#9a79b0', boss: '#b77381' }[e.kind];
-  ctx.save(); ctx.translate(e.x, e.y);
-  ctx.fillStyle = '#030c0c55'; ctx.beginPath(); ctx.ellipse(0, r * .7, r * 1.2, r * .5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#302927'; ctx.lineWidth = boss ? 4 : 2;
-  for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(-r * .4, i * r * .6); ctx.lineTo(-r * 1.4, i * r * .8 + Math.sin(clock * 10 + i) * 2); ctx.moveTo(r * .4, i * r * .6); ctx.lineTo(r * 1.4, i * r * .8 - Math.sin(clock * 10 + i) * 2); ctx.stroke(); }
-  ctx.fillStyle = color; ctx.beginPath(); ctx.ellipse(0, 0, r * .8, r, 0, 0, Math.PI * 2); ctx.fill();
-  if (e.kind === 'moth') { ctx.globalAlpha = .65; for (const side of [-1, 1]) { ctx.beginPath(); ctx.ellipse(side * 11, -2, 10, 6, side * .3, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
-  ctx.fillStyle = '#ecdfbc'; for (const side of [-1, 1]) { ctx.beginPath(); ctx.arc(side * r * .3, -r * .45, boss ? 3 : 1.5, 0, Math.PI * 2); ctx.fill(); }
-  if (boss) { ctx.strokeStyle = '#f2c17c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-15, -26); ctx.lineTo(-12, -38); ctx.lineTo(0, -29); ctx.lineTo(12, -38); ctx.lineTo(15, -26); ctx.stroke(); }
-  ctx.fillStyle = '#08120c'; ctx.fillRect(-r, -r - 10, r * 2, 3); ctx.fillStyle = e.poisonUntil > game.time ? '#c59cde' : '#d2bd83'; ctx.fillRect(-r, -r - 10, Math.max(0, e.hp / e.maxHp) * r * 2, 3);
-  if (e.slowUntil > game.time) { ctx.strokeStyle = '#9ed9e4'; ctx.beginPath(); ctx.arc(0, 0, r + 4, 0, Math.PI * 2); ctx.stroke(); }
-  ctx.restore();
-}
 function draw(clock, dt) {
+  const visualClock = reducedMotion ? 0 : clock;
+  const key = `${game.chapter}:${game.forestRank}`;
+  if (key !== backdropKey) { paintBackdrop(bg, game.chapter, game.forestRank); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
-  const pulse = reducedMotion ? 1 : .7 + Math.sin(clock * 2) * .3;
-  const aura = ctx.createRadialGradient(935, 615, 15, 935, 615, 115); aura.addColorStop(0, '#d8df8940'); aura.addColorStop(1, '#d8df8900'); ctx.fillStyle = aura; ctx.fillRect(810, 480, 190, 230);
-  shapeTree(ctx, 'oak', 930, 638, 1.8, 0, 1, clock);
-  if (game.shield > 0) { ctx.strokeStyle = '#a1dcceaa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(930, 600, 59, 75, 0, 0, Math.PI * 2); ctx.stroke(); }
+  const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
+  aura.addColorStop(0, '#fff6a940'); aura.addColorStop(1, '#fff6a900'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
+  // Earning chapter landmarks grows the Tree of Life's visible silhouette.
+  shapeTree(ctx, 'oak', 900, 652, 1.22 + game.forestRank * .13, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
+  ctx.save();ctx.fillStyle='#2c5334';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.fillText('TREE OF LIFE',900,704);ctx.restore();
+  if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(900,608,65,84,0,0,Math.PI*2);ctx.stroke(); }
+  const pulse = reducedMotion ? 1 : .6 + Math.sin(clock * 2) * .3;
   for (let i = 0; i < PADS.length; i++) {
-    const [x, y] = PADS[i]; const tower = game.towers.find(t => t.pad === i);
+    const [x,y] = PADS[i], tower = game.towers.find(t => t.pad === i);
     const selected = tower && tower.id === selectedTower;
     if (selected || hoveredPad === i && selectedType && !tower) {
-      const range = selected ? TOWERS[tower.type].range + (tower.level - 1) * 18 : TOWERS[selectedType].range;
-      ctx.fillStyle = '#b5d29012'; ctx.strokeStyle = '#b5d29055'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, range, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      const range = selected ? TOWERS[tower.type].range + (tower.level-1)*18 : TOWERS[selectedType].range;
+      ctx.fillStyle='#f7ffcf28';ctx.strokeStyle='#365d3980';ctx.lineWidth=2;ctx.setLineDash([6,7]);ctx.beginPath();ctx.arc(x,y,range,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.setLineDash([]);
     }
-    ctx.fillStyle = '#142b23'; ctx.strokeStyle = selected || hoveredPad === i ? '#e3d09b' : `rgba(168,194,137,${.35 + pulse * .3})`; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(x, y + 9, 31, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    if (!tower) { ctx.fillStyle = '#bccd9366'; ctx.font = '19px Arial'; ctx.textAlign = 'center'; ctx.fillText('+', x, y + 13); ctx.font = '9px Arial'; ctx.fillText(i + 1, x, y + 39); }
-    else shapeTree(ctx, tower.type, x, y, .95 + (tower.level - 1) * .06, tower.style, tower.level, clock);
+    ctx.fillStyle = tower ? '#c0b57e' : '#d6cc99';ctx.strokeStyle=selected||hoveredPad===i?'#fff5b7':'#839957';ctx.lineWidth=selected?4:3;
+    ctx.beginPath();ctx.ellipse(x,y+12,32,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    if (!tower) {
+      ctx.globalAlpha=.6+pulse*.3;ctx.fillStyle='#526d3d';ctx.font='bold 23px Arial';ctx.textAlign='center';ctx.fillText('+',x,y+20);ctx.globalAlpha=1;
+      ctx.fillStyle='#35532f';ctx.font='bold 10px Arial';ctx.fillText(i+1,x,y+40);
+    } else {
+      shapeTree(ctx,tower.type,x,y,.92,tower.style,tower.level,visualClock, game.phase==='running' && tower.cooldown>TOWERS[tower.type].interval-.15);
+      ctx.fillStyle='#fff8cd';ctx.strokeStyle='#445b3a';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(x+29,y+7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#435b39';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText(tower.level,x+29,y+10);
+    }
   }
-  ctx.textAlign = 'left';
-  for (const e of game.enemies) drawEnemy(e, clock);
-  for (const shot of game.shots) {
-    ctx.globalAlpha = Math.max(0, shot.life / .25); ctx.strokeStyle = STYLES[shot.style].accent; ctx.lineWidth = shot.type === 'cypress' ? 3 : 2;
-    ctx.beginPath(); ctx.moveTo(shot.x, shot.y - 25); ctx.lineTo(shot.tx, shot.ty); ctx.stroke(); ctx.globalAlpha = 1;
-    if (shot.type === 'oak' || shot.type === 'mushroom') { ctx.strokeStyle = STYLES[shot.style].accent + '66'; ctx.beginPath(); ctx.arc(shot.tx, shot.ty, (1 - shot.life / .25) * 55, 0, Math.PI * 2); ctx.stroke(); }
-  }
+  ctx.textAlign='left';
+  for (const e of game.enemies) paintPest(ctx,e, game.phase==='paused' ? game.time : visualClock,game.time);
+  for (const shot of game.shots) paintShot(ctx,shot);
+  if (game.phase==='running' && game.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of game.events.splice(0)) {
-    if (event.type === 'storm') { for (let i = 0; i < 100; i++) particles.push({ x: random() * WIDTH, y: random() * HEIGHT, vx: 100 + random() * 90, vy: 50 + random() * 60, life: .7, color: '#c3dd91' }); }
-    else for (let i = 0; i < 9; i++) particles.push({ x: event.x, y: event.y, vx: (random() - .5) * 80, vy: (random() - .5) * 80, life: .55, color: event.type === 'leak' ? '#df8c82' : '#d7d89b' });
+    const n=event.type==='storm'?65:event.type==='victory'?80:14;
+    for(let i=0;i<n;i++) particles.push({x:event.type==='storm'?random()*WIDTH:event.x,y:event.type==='storm'?random()*HEIGHT:event.y,vx:(random()-.5)*(event.type==='victory'?250:100),vy:-30-random()*90,life:event.type==='victory'?1.5:.65,max:event.type==='victory'?1.5:.65,color:event.type==='leak'?'#e88068':event.type==='upgrade'?'#f9e5a0':'#fff4b4'});
+    if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#315b35',life:1});
+    if(event.type==='upgrade') {floaters.push({x:event.x,y:event.y-82,text:'GROWN!',color:'#664a21',life:1.2});tone(660,.2);}
+    if(event.type==='plant')tone(340,.12);
+    if(event.type==='leak')tone(130,.2);
+    if(event.type==='storm')tone(240,.3);
+    if(event.type==='victory')tone(880,.4);
   }
-  if (particles.length > 500) particles = particles.slice(-500);
-  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); }
-  particles = particles.filter(p => p.life > 0); ctx.globalAlpha = 1;
-  if (game.boostUntil > game.time) { ctx.fillStyle = '#d6df9a'; ctx.font = '12px Arial'; ctx.fillText(`FERTILIZER ACTIVE · ${Math.ceil(game.boostUntil - game.time)}s`, 24, 40); }
-  if (game.phase === 'paused') { ctx.fillStyle = '#05100866'; ctx.fillRect(0, 0, WIDTH, HEIGHT); ctx.fillStyle = '#e9e8cb'; ctx.textAlign = 'center'; ctx.font = '32px Georgia'; ctx.fillText('The forest waits.', WIDTH / 2, HEIGHT / 2); ctx.font = '14px Arial'; ctx.fillText('Press Resume to continue your defense', WIDTH / 2, HEIGHT / 2 + 30); ctx.textAlign = 'left'; }
+  if(particles.length>400)particles=particles.slice(-400);
+  if(floaters.length>40)floaters=floaters.slice(-40);
+  for(const p of particles){if(!reducedMotion){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=90*dt;}p.life-=dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(p.x,p.y,3,5,.5,0,Math.PI*2);ctx.fill();}
+  particles=particles.filter(p=>p.life>0);ctx.globalAlpha=1;
+  for(const f of floaters){if(!reducedMotion)f.y-=22*dt;f.life-=dt;ctx.globalAlpha=Math.max(0,Math.min(1,f.life*2));ctx.fillStyle=f.color;ctx.font='bold 13px Trebuchet MS, Arial';ctx.strokeStyle='#fff5d6';ctx.lineWidth=3;ctx.strokeText(f.text,f.x-22,f.y);ctx.fillText(f.text,f.x-22,f.y);}
+  floaters=floaters.filter(f=>f.life>0);ctx.globalAlpha=1;
+  if(game.boostUntil>game.time){ctx.fillStyle='#325632';ctx.font='bold 12px Arial';ctx.fillText(`FERTILIZER · ${Math.ceil(game.boostUntil-game.time)}s`,25,55);}
+  if(game.phase==='paused'){
+    ctx.fillStyle='#28493470';ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textAlign='center';ctx.fillStyle='#fff3c8';ctx.strokeStyle='#284832';ctx.lineWidth=5;ctx.font='bold 36px Georgia';ctx.strokeText('A little forest breather.',WIDTH/2,HEIGHT/2);ctx.fillText('A little forest breather.',WIDTH/2,HEIGHT/2);ctx.font='bold 14px Arial';ctx.fillText('Press Resume to keep growing.',WIDTH/2,HEIGHT/2+32);ctx.textAlign='left';
+  }
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;

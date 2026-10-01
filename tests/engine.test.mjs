@@ -84,3 +84,47 @@ test('appearance tier has identical simulated battle outcomes', () => {
   for (let i = 0; i < 2500; i++) { a.step(.05); b.step(.05); }
   assert.equal(a.health, b.health); assert.equal(a.score, b.score); assert.equal(a.sap, b.sap); assert.equal(a.kills, b.kills);
 });
+
+test('species growth upgrades existing and future defenders permanently for one charge', () => {
+  const g=preview();const a=g.place('pine',0), b=g.place('pine',1), oak=g.place('oak',2);
+  assert.equal(g.upgrade(a.id),true);assert.equal(a.level,2);assert.equal(b.level,2);assert.equal(oak.level,1);assert.equal(g.tree,145000);
+  assert.equal(g.forest.levels.pine,2);const balance=g.tree;g.sell(b.id);g.newRun();
+  const fresh=g.place('pine',0);assert.equal(fresh.level,2);assert.equal(g.tree,balance);assert.equal(g.upgrade(fresh.id),true);assert.equal(g.tree,balance-10000);
+  assert.equal(Game.restore(g.snapshot()).forest.levels.pine,3);
+});
+test('chapters unlock in order; repeated wins improve stars without erasing progress', () => {
+  const g=preview();assert.equal(g.chooseChapter(1),false);assert.equal(g.chapter,0);assert.equal(g.tree,150000);
+  function finish(health){g.wave=10;g.phase='running';g.queue=[];g.enemies=[];g.health=health;g.step(.05);assert.equal(g.phase,'victory');}
+  finish(39);assert.deepEqual(g.forest.stars,[1,0,0]);assert.equal(g.forestRank,1);assert.equal(g.unlockedChapter,1);
+  g.newRun();finish(80);assert.deepEqual(g.forest.stars,[3,0,0]);
+  assert.equal(g.chooseChapter(1),true);finish(40);assert.deepEqual(g.forest.stars,[3,2,0]);assert.equal(g.forestRank,2);
+  assert.equal(g.chooseChapter(2),true);finish(95);assert.deepEqual(g.forest.stars,[3,2,3]);assert.equal(g.forestRank,3);assert.equal(g.unlockedChapter,2);
+  assert.equal(g.chooseChapter(3),false);assert.equal(g.tree,150000);assert.equal(g.chooseChapter(0),true);finish(20);assert.deepEqual(g.forest.stars,[3,2,3]);
+  const restored=Game.restore(g.snapshot());assert.equal(restored.forestRank,3);assert.deepEqual(restored.forest.stars,[3,2,3]);
+});
+test('old preview saves migrate purchased growth and ownership without resetting funds', () => {
+  const g=preview(4);const a=g.place('pine',0);g.upgrade(a.id);const old=g.snapshot();old.version=1;delete old.forest;delete old.chapter;
+  old.towers.push({...a,id:99,pad:1,level:1});
+  const migrated=Game.restore(old);assert.ok(migrated);assert.equal(migrated.version,2);assert.equal(migrated.tree,145000);assert.equal(migrated.access,true);assert.equal(migrated.rarity,4);
+  assert.equal(migrated.forest.levels.pine,2);assert.equal(migrated.towers[1].level,2);
+  migrated.newRun();assert.equal(migrated.place('pine',0).level,2);
+});
+test('invalid forest saves cannot select locked chapters or invalid growth', () => {
+  const g=preview();const invalid=g.snapshot();invalid.forest.levels.pine=4;assert.equal(Game.restore(invalid),null);
+  const locked=g.snapshot();locked.chapter=2;assert.equal(Game.restore(locked),null);
+  const gap=g.snapshot();gap.forest.stars=[0,3,0];assert.equal(Game.restore(gap),null);
+  const inconsistent=g.snapshot();g.place('pine',0);inconsistent.towers=g.snapshot().towers;inconsistent.towers[0].level=3;assert.equal(Game.restore(inconsistent),null);
+});
+test('three increasingly difficult chapters are playable with carried species growth', () => {
+  const g=preview(5);const order=[0,1,2,4,5,6,11,8,7,9,10,3];
+  for(let chapter=0;chapter<3;chapter++){
+    assert.equal(g.chooseChapter(chapter),true);
+    for(let wave=1;wave<=10;wave++){
+      for(const pad of order)if(!g.towers.some(t=>t.pad===pad)&&g.sap>=TOWERS.pine.cost)g.place('pine',pad);
+      for(const tower of g.towers)while(tower.level<3&&g.tree>=g.upgradeCost(tower))g.upgrade(tower.id);
+      playWave(g);assert.notEqual(g.phase,'defeat',`Chapter ${chapter+1}, wave ${wave} should be winnable`);
+    }
+    assert.equal(g.phase,'victory');assert.ok(g.forest.stars[chapter]>0);
+  }
+  assert.equal(g.forestRank,3);assert.equal(g.forest.levels.pine,3);assert.equal(g.tree,135000);
+});

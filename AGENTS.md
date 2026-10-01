@@ -9,6 +9,9 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Earned Sap is the ordinary run resource for planting defenders. Avoid confusing Sap with transferable TREE.
 - The developer does not sell received TREE. Do not introduce treasury swaps, reward splits, burns, or cash payouts without explicit authorization.
 - Rarity privileges are cosmetic. Higher tiers unlock lower appearances. Per-tower styles must not change combat statistics.
+- Tower growth is permanent by species (Sapling → Guardian → Ancient). One TREE upgrade improves all current and future defenders of that species. A fresh run keeps species growth, best chapter stars, and landmarks.
+- Preserve migration of original v1 preview saves: keep ownership choices and TREE balance, and carry the highest purchased level of each species into permanent growth. All saved progress remains a local simulation.
+- Original expressive forest characters, visible tower growth, and a prominent battlefield follow the user's preferences for Plants vs. Zombies and Clash of Clans.
 - This is a development preview. Keep simulated NFTree ownership, TREE funds, and purchase prices prominently labeled. Do not silently present fake ownership or payments as mainnet behavior.
 - Client-side saved state is editable. Never use it as production payment proof, ownership proof, or prize eligibility.
 - Preserve mobile touch access and keyboard alternatives. Use labeled build-site buttons as an alternative to canvas input.
