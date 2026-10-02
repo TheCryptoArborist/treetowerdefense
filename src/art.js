@@ -214,13 +214,14 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
   }
   c.restore();
 }
-export function paintPest(c,e,clock,time=0) {
+export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const size=boss?1.85:e.kind==='beetle'?1.12:moth?.92:.88;
-  const colors={termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
+  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
   const ahead=Number.isFinite(e.progress)?pointAt(Math.min(PATH_LENGTH,e.progress+2)):null;
   const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
   c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
+  if(!reducedMotion&&hit>0)c.translate(0,hit*3);
   const march=Math.sin(clock*14+e.id)*3;
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
     line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);
@@ -254,7 +255,25 @@ export function paintPest(c,e,clock,time=0) {
   if(e.poisonUntil>time){ellipse(c,-18,0,4,4,'#ae79bf80');ellipse(c,18,-8,3,3,'#ae79bf80');}
   if(e.slowUntil>time){c.strokeStyle='#a3d2c0';c.lineWidth=2;c.beginPath();c.ellipse(0,4,25,30,0,0,TAU);c.stroke();}
   c.restore();
-  if(e.hp<e.maxHp||boss){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-45*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-45*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
+  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-45*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-45*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
+}
+export function paintCombatEffects(c,feedback,reducedMotion=false) {
+  for(const defeat of feedback.defeats){
+    const t=1-defeat.life/defeat.max;
+    c.save();c.globalAlpha=Math.max(0,(1-t)*.8);
+    if(!reducedMotion){c.translate(defeat.x,defeat.y+5*t);c.scale(1-t*.18,1-t*.32);c.translate(-defeat.x,-defeat.y);}
+    paintPest(c,{...defeat,hp:1,maxHp:1,slowUntil:0,poisonUntil:0},0,0,{healthBar:false,reducedMotion:true});
+    c.restore();
+  }
+  // Reduced-motion mode keeps health bars and text, omitting animated impact rings.
+  if(reducedMotion)return;
+  for(const impact of feedback.impacts){
+    const t=1-impact.life/impact.max, color={oak:'#c9ac70',pine:'#c1d49f',palm:'#afd6c4',cypress:'#bbad8c',mushroom:'#ba8dc1',storm:'#d8d4a2'}[impact.source]||'#c9ac70';
+    c.save();c.globalAlpha=Math.max(0,1-t);c.strokeStyle=color;c.lineWidth=2*(1-t)+.5;
+    c.beginPath();c.ellipse(impact.x,impact.y,5+t*21,4+t*13,0,0,TAU);c.stroke();
+    for(let i=0;i<4;i++){const a=i*TAU/4+.4;line(c,[[impact.x+Math.cos(a)*(8+t*13),impact.y+Math.sin(a)*(8+t*13)],[impact.x+Math.cos(a)*(12+t*19),impact.y+Math.sin(a)*(12+t*19)]],color,1.5);}
+    c.restore();
+  }
 }
 function cottage(c, x, y) {
   ellipse(c,x,y+14,58,16,'#38533625');

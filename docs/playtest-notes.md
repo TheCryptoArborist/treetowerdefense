@@ -1,4 +1,4 @@
-# Guided playtest build · v0.4
+# Guided playtest and combat feedback · v0.6
 
 This remains a development preview: simulated NFTree ownership and TREE balances, no wallet connection, token transfer, or financial rewards.
 
@@ -20,7 +20,7 @@ Battle time is held while a review is open. Canceling returns to the existing ba
 
 ## Automated verification
 
-- All 30 Node tests pass, including the original access, currency, rarity, save migration, growth, and campaign checks.
+- All 38 Node tests pass, including the original access, currency, rarity, save migration, growth, and campaign checks.
 - New tests cover forecast accuracy for all 30 chapter/wave combinations, the recommended Sap-only first wave, alternate tutorial placements, recovery, read-only reviews, duplicate confirmation, changed prices, insufficient funds, removed access, changed runs, supply eligibility, and preservation of a continued battle.
 - JavaScript syntax checks pass. HTTP asset checks and static DOM-reference/module-path checks pass.
 
@@ -36,5 +36,6 @@ Use a desktop browser and a phone (or a mobile viewport) to check:
 4. Open and cancel each purchase. Verify no charge. Confirm an upgrade and verify all guardians of its species grow for one charge. Check supply and continue effects.
 5. Open a purchase during battle; verify pests and battle timers wait. Try Escape, Cancel, and confirmation. Switch tabs during a Leaf Storm review and verify it cannot spend while paused.
 6. Check keyboard focus and return focus around dialogs; confirm hotkeys do not act behind a modal.
+7. Follow the [combat feedback playtest](combat-feedback.md): hit/defeat effects, shield and life feedback, pause/dialog holds, wave notices, actual boss arrival, saved boss health, and reduced motion.
 
 The next launch milestone is verified NFTree ownership and TREE payment integration. The production recipient, finalized prices, current NFT ownership/rarity data, and authoritative payment verification must be settled before enabling real purchases. Existing browser saves remain editable preview data.

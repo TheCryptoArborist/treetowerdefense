@@ -1,11 +1,13 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintPest, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus } from './art.js';
 import { scoutWave, starterTip, PurchaseReview } from './playtest.js';
+import { CombatFeedback, bossStatus } from './combat.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'canopy-defense-preview-v1';
 let game = new Game();
+const feedback = new CombatFeedback();
 let storageAvailable = true;
 let saved = null;
 try {
@@ -141,7 +143,7 @@ $('confirm-purchase').addEventListener('click', () => {
 });
 function newRun() {
   if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return false;
-  game.newRun(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
+  game.newRun(); feedback.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
 }
 $('guided-run-button').addEventListener('click', () => {
@@ -152,7 +154,7 @@ $('new-run-button').addEventListener('click', newRun);
 $('outcome-new-run').addEventListener('click', newRun);
 $('reset-button').addEventListener('click', () => {
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
-  game = new Game(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
+  game = new Game(); feedback.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
   if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
@@ -173,7 +175,7 @@ for (const [i, chapter] of CHAPTERS.entries()) {
 }
 function selectChapter(i) {
   if (game.wave > 0 && !['defeat', 'victory'].includes(game.phase) && !confirm('Travel to another chapter? Your current battle resets. Permanent growth and forest progress are kept.')) return;
-  if (game.chooseChapter(i)) { selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
+  if (game.chooseChapter(i)) { feedback.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
 }
 $('next-chapter').addEventListener('click', () => selectChapter(game.chapter + 1));
 let sound = false, audio = null, lastTone = 0;
@@ -205,7 +207,7 @@ loadDefenderArt().then(status => {
   if (status.failed.length) console.warn('Some guardian sprites were unavailable; matching canvas artwork is active.');
 });
 function renderUI() {
-  renderGuide(); renderScout(); renderPurchase();
+  renderGuide(); renderScout(); renderPurchase(); renderCombatUI();
   const tower = game.towers.find(t => t.id === selectedTower);
   $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
   const starCount = game.forest.stars.reduce((a,b) => a+b,0);
@@ -288,6 +290,23 @@ function renderUI() {
   }
 }
 
+function renderCombatUI() {
+  const boss = bossStatus(game), visible = boss.state !== 'hidden';
+  $('boss-panel').hidden = !visible;
+  $('boss-health').hidden = boss.state !== 'present';
+  if (visible) {
+    const text = boss.state === 'incoming' ? 'Approaching behind the escort' : `${Math.ceil(boss.hp).toLocaleString()} / ${Math.ceil(boss.maxHp).toLocaleString()} HP`;
+    if ($('boss-health-text').textContent !== text) $('boss-health-text').textContent = text;
+    if (boss.state === 'present') { $('boss-health').max = boss.maxHp; $('boss-health').value = boss.hp; }
+  }
+  const notice = feedback.notice;
+  const title = notice?.title || (game.phase === 'paused' ? 'BATTLE PAUSED' : game.phase === 'running' ? 'GUARDIANS ENGAGED' : game.phase === 'victory' ? 'FOREST PROTECTED' : game.phase === 'defeat' ? 'THE ROOTS HAVE FALLEN' : 'HOLD THE LINE');
+  const text = notice?.text || (game.phase === 'paused' ? 'Resume when you are ready.' : game.phase === 'running' ? 'Watch the route and protect the Tree of Life.' : 'Earned Sap plants guardians. TREE grows their species.');
+  $('battle-notice').dataset.tone = notice?.tone || 'normal';
+  if ($('notice-title').textContent !== title) $('notice-title').textContent = title;
+  if ($('notice-text').textContent !== text) $('notice-text').textContent = text;
+}
+
 function renderGuide() {
   const tip = starterTip(game);
   if (guideStatus === 'active' && tip.key === 'done') { guideStatus = 'complete'; showGuideCompletion = true; saveGuide(); }
@@ -330,6 +349,11 @@ let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
   const visualClock = reducedMotion ? 0 : clock;
+  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || document.hidden;
+  const effectDt = held ? 0 : dt;
+  feedback.advance(effectDt);
+  const events = game.events.splice(0);
+  feedback.consume(events);
   const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}`;
   if (key !== backdropKey) { paintBackdrop(bg, game.chapter, game.forestRank); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
@@ -339,7 +363,6 @@ function draw(clock, dt) {
   paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
   ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
   if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(885,606,75,90,0,0,Math.PI*2);ctx.stroke(); }
-  const pulse = reducedMotion ? 1 : .6 + Math.sin(clock * 2) * .3;
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
   for (let i = 0; i < PADS.length; i++) {
     const [x,y] = PADS[i], tower = game.towers.find(t => t.pad === i);
@@ -356,24 +379,26 @@ function draw(clock, dt) {
     }
   }
   ctx.textAlign='left';
-  for (const e of game.enemies) paintPest(ctx,e, game.phase==='paused' ? game.time : visualClock,game.time);
+  for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion});
+  paintCombatEffects(ctx,feedback,reducedMotion);
   for (const shot of game.shots) paintShot(ctx,shot);
-  if (game.phase==='running' && game.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
-  for (const event of game.events.splice(0)) {
+  if (!held && game.phase==='running' && game.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
+  for (const event of events) {
+    if (['hit','wave-start','wave-clear','boss-arrival'].includes(event.type)) continue;
     const n=event.type==='storm'?65:event.type==='victory'?80:14;
-    for(let i=0;i<n;i++) particles.push({x:event.type==='storm'?random()*WIDTH:event.x,y:event.type==='storm'?random()*HEIGHT:event.y,vx:(random()-.5)*(event.type==='victory'?250:100),vy:-30-random()*90,life:event.type==='victory'?1.5:.65,max:event.type==='victory'?1.5:.65,color:event.type==='leak'?'#e88068':event.type==='upgrade'?'#f9e5a0':'#fff4b4'});
+    for(let i=0;i<n;i++) particles.push({x:event.type==='storm'?random()*WIDTH:event.x,y:event.type==='storm'?random()*HEIGHT:event.y,vx:(random()-.5)*(event.type==='victory'?250:100),vy:-30-random()*90,life:event.type==='victory'?1.5:.65,max:event.type==='victory'?1.5:.65,color:event.type==='kill'?'#8d8264':event.type==='leak'?'#e88068':event.type==='upgrade'?'#f9e5a0':'#fff4b4'});
     if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#dbd9b4',life:1});
     if(event.type==='upgrade') {floaters.push({x:event.x,y:event.y-82,text:'GROWN!',color:'#eed3a3',life:1.2});tone(660,.2);}
     if(event.type==='plant')tone(340,.12);
-    if(event.type==='leak')tone(130,.2);
+    if(event.type==='leak'){floaters.push({x:875,y:550,text:event.damage?`−${event.damage} LIFE`:event.absorbed?'SHIELD HELD':'ROOTS BREACHED',color:event.damage?'#e9a68e':'#c9dcc0',life:1.2});tone(130,.2);}
     if(event.type==='storm')tone(240,.3);
     if(event.type==='victory')tone(880,.4);
   }
   if(particles.length>400)particles=particles.slice(-400);
   if(floaters.length>40)floaters=floaters.slice(-40);
-  for(const p of particles){if(!reducedMotion){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=90*dt;}p.life-=dt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(p.x,p.y,3,5,.5,0,Math.PI*2);ctx.fill();}
+  for(const p of particles){if(!reducedMotion){p.x+=p.vx*effectDt;p.y+=p.vy*effectDt;p.vy+=90*effectDt;}p.life-=effectDt;ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(p.x,p.y,3,5,.5,0,Math.PI*2);ctx.fill();}
   particles=particles.filter(p=>p.life>0);ctx.globalAlpha=1;
-  for(const f of floaters){if(!reducedMotion)f.y-=22*dt;f.life-=dt;ctx.globalAlpha=Math.max(0,Math.min(1,f.life*2));ctx.fillStyle=f.color;ctx.font='bold 13px Trebuchet MS, Arial';ctx.strokeStyle='#182419';ctx.lineWidth=3;ctx.strokeText(f.text,f.x-22,f.y);ctx.fillText(f.text,f.x-22,f.y);}
+  for(const f of floaters){if(!reducedMotion)f.y-=22*effectDt;f.life-=effectDt;ctx.globalAlpha=Math.max(0,Math.min(1,f.life*2));ctx.fillStyle=f.color;ctx.font='bold 13px Trebuchet MS, Arial';ctx.strokeStyle='#182419';ctx.lineWidth=3;ctx.strokeText(f.text,f.x-22,f.y);ctx.fillText(f.text,f.x-22,f.y);}
   floaters=floaters.filter(f=>f.life>0);ctx.globalAlpha=1;
   if(game.boostUntil>game.time){ctx.fillStyle='#e8dbab';ctx.font='bold 12px Arial';ctx.fillText(`FERTILIZER · ${Math.ceil(game.boostUntil-game.time)}s`,25,55);}
   if(game.phase==='paused'){

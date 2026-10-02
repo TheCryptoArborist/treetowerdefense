@@ -136,6 +136,7 @@ export class Game {
     if (!this.access || this.phase !== 'build' || this.wave >= 10) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
     this.queue = waveLineup(this.chapter, this.wave);
+    this.events.push({ type: 'wave-start', wave: this.wave });
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
     return true;
   }
@@ -144,7 +145,9 @@ export class Game {
     const hp = kind === 'boss' ? 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
       slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: PATH[0][0], y: PATH[0][1] };
-    this.enemies.push(e); return e;
+    this.enemies.push(e);
+    if (kind === 'boss') this.events.push({ type: 'boss-arrival', id: e.id });
+    return e;
   }
   pause() {
     if (this.phase === 'running') { this.phase = 'paused'; return true; }
@@ -159,7 +162,7 @@ export class Game {
     if (!this.spend(PRICES[kind])) { this.message = 'Not enough preview TREE.'; return false; }
     if (kind === 'shield') { this.shield = 50; this.message = 'Root shield: 50 extra protection.'; }
     if (kind === 'fertilizer') { this.boostUntil = this.time + 20; this.message = 'Fertilizer: +50% damage for 20 battle seconds.'; }
-    if (kind === 'storm') { this.enemies.forEach(e => { e.hp -= 180; }); this.resolveKills(); this.events.push({ type: 'storm' }); this.message = 'Leaf Storm unleashed.'; }
+    if (kind === 'storm') { this.enemies.forEach(e => this.strike(e, 180, 'storm')); this.resolveKills(); this.events.push({ type: 'storm' }); this.message = 'Leaf Storm unleashed.'; }
     return true;
   }
   continueRun() {
@@ -168,11 +171,17 @@ export class Game {
     this.message = 'Tree of Life restored. Your towers and current wave remain.';
     return true;
   }
+  strike(enemy, damage, source, style = 0) {
+    // Presentation events report actual hits; they never determine combat or rewards.
+    const dealt = Math.min(Math.max(0, enemy.hp), damage);
+    enemy.hp -= damage;
+    if (dealt > 0) this.events.push({ type: 'hit', id: enemy.id, x: enemy.x, y: enemy.y, kind: enemy.kind, source, style, damage: dealt });
+  }
   resolveKills() {
     for (const e of this.enemies) {
       if (e.hp <= 0) {
         this.kills++; this.sap += e.kind === 'boss' ? 150 : 12; this.score += e.kind === 'boss' ? 1000 : 100;
-        this.events.push({ type: 'kill', x: e.x, y: e.y, kind: e.kind });
+        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind });
       }
     }
     this.enemies = this.enemies.filter(e => e.hp > 0);
@@ -193,8 +202,9 @@ export class Game {
       if (enemy.progress < PATH_LENGTH) { survivors.push(enemy); continue; }
       const damage = enemy.kind === 'boss' ? 60 : enemy.kind === 'beetle' ? 18 : 12;
       const absorbed = Math.min(this.shield, damage); this.shield -= absorbed;
+      const previousHealth = this.health;
       this.health = Math.max(0, this.health - damage + absorbed);
-      this.events.push({ type: 'leak', x: 940, y: 640 });
+      this.events.push({ type: 'leak', x: 940, y: 640, kind: enemy.kind, damage: previousHealth - this.health, absorbed });
     }
     this.enemies = survivors;
     if (this.health <= 0) { this.phase = 'defeat'; this.message = 'The Tree of Life has fallen. Continue with preview TREE or start a fresh run.'; return; }
@@ -209,10 +219,10 @@ export class Game {
       tower.cooldown = definition.interval;
       const damage = definition.damage * (1 + (tower.level - 1) * 0.6) * (this.boostUntil > this.time ? 1.5 : 1);
       const armor = target.kind === 'beetle' ? 0.8 : 1;
-      target.hp -= damage * armor;
-      if (tower.type === 'oak') this.enemies.filter(e => e.id !== target.id && distance(e, target) < 70).forEach(e => { e.hp -= damage * 0.55; });
+      this.strike(target, damage * armor, tower.type, tower.style);
+      if (tower.type === 'oak') this.enemies.filter(e => e.id !== target.id && distance(e, target) < 70).forEach(e => this.strike(e, damage * 0.55, tower.type, tower.style));
       if (tower.type === 'palm') target.slowUntil = this.time + 2;
-      if (tower.type === 'cypress' && targets[1]) targets[1].hp -= damage * 0.5;
+      if (tower.type === 'cypress' && targets[1]) this.strike(targets[1], damage * 0.5, tower.type, tower.style);
       if (tower.type === 'mushroom') this.enemies.filter(e => distance(e, target) < 65).forEach(e => { e.poisonUntil = this.time + 3; e.poisonDamage = 14 * tower.level; });
       this.shots.push({ x: tower.x, y: tower.y, tx: target.x, ty: target.y, type: tower.type, style: tower.style, life: 0.32 });
       this.resolveKills();
@@ -222,12 +232,13 @@ export class Game {
       this.sap += 85; this.score += this.health * 5;
       this.shots = [];
       this.phase = this.wave === 10 ? 'victory' : 'build';
+      this.events.push({ type: 'wave-clear', wave: this.wave, sap: 85 });
       if (this.phase === 'victory') {
         const stars = this.health >= 80 ? 3 : this.health >= 40 ? 2 : 1;
         this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
         this.events.push({ type: 'victory', x: 940, y: 640 });
       }
-      this.message = this.phase === 'victory' ? 'The Tree of Life stands. You defeated the Blight King!' : `Wave ${this.wave} cleared. +85 Sap. Prepare your next defense.`;
+      this.message = this.phase === 'victory' ? 'Final wave cleared. The Tree of Life stands!' : `Wave ${this.wave} cleared. +85 Sap. Prepare your next defense.`;
     }
   }
   snapshot() {

@@ -30,8 +30,11 @@ The direct Node command also works when PowerShell blocks `npm.ps1`. Stop the ru
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.5.1
+## Fantasy forest build · v0.6
 
+- Clearer combat feedback: brief pest hit reactions, impact rings, collapsing/fading defeat silhouettes, dust, and Tree of Life damage or shield messages.
+- Wave start/clear notices, an advance warning for the final wave, an arrival warning when the Blight King actually spawns, and a persistent boss health display. See [combat feedback and verification notes](docs/combat-feedback.md).
+- Effects hold during pause, dialogs, and hidden tabs. Reduced-motion mode omits impact motion and hit tinting; transient effects never enter saves or change battle rules.
 - A **Coming later** concept gallery below the battlefield: Archer Watchtower, Sap Cannon, Thorn Bastion, and Root Obelisk. These structures preview future ideas and are not available to build or purchase. See [tower artwork and generation prompts](docs/future-towers.md).
 - Mature fantasy forest terrain, a textured stone route, engraved build foundations, and an ancient Tree of Life with no face.
 - Segmented insect pests with armor, mandibles, wings, and a horned Blight King. They turn with the route; combat statistics are unchanged.
@@ -111,13 +114,15 @@ npm test
 npm run check
 ```
 
-The 30 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes.
+The 38 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes. Combat tests cover hit damage, poison and storm defeats, one-time rewards, actual boss arrival, shield absorption, wave bonuses, bounded transient effects, and restored boss health.
 
 Validation for v0.5: all 30 game and purchase-review tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
 
 See [guided playtest notes and remaining manual checks](docs/playtest-notes.md). Existing v1/v2 game saves and permanent progress are preserved; the guide preference is stored separately. Upgrading an existing played save does not automatically show the guide.
 
 Validation for v0.5.1: all 30 tests and syntax checks pass. The four new PNGs decode with transparent backgrounds; gallery asset references, layout breakpoints, and local HTTP routes were checked. The static gallery introduces no combat, purchase, or save changes. Full browser layout checks remain pending under the same preview-browser restrictions.
+
+Validation for v0.6: all 38 tests and syntax checks pass. All 30 chapter/wave results exactly match the v0.5.1 engine in a deterministic comparison. The actual canvas code renders 60 hit/status combinations and 20 defeat frames without changing their inputs; the defeat frames were visually inspected. DOM references and local HTTP assets were checked. Browser layout and keyboard/touch interactions remain pending under the previously observed preview-browser restrictions.
 
 ## Art preview
 

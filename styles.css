@@ -31,3 +31,15 @@
 @media(max-width:1000px){.future-tower-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.future-towers-heading{align-items:start;flex-direction:column;gap:12px}.future-tower-art{aspect-ratio:5/4}}
 @media(max-width:600px){.future-towers{padding:16px;margin-top:18px}.future-tower-grid{gap:10px}.future-tower-copy{padding:12px}.future-tower-copy h3{font-size:18px}.future-tower-art img{padding:10px}.future-tower-badge{left:8px;top:8px;font-size:7px;padding:4px}.future-tower-role{font-size:7px;letter-spacing:.6px}}
 @media(max-width:420px){.future-tower-grid{grid-template-columns:1fr}.future-tower-art{aspect-ratio:5/4}}
+
+.combat-readout{min-height:78px;padding:14px 18px;display:flex;align-items:center;gap:20px;border-bottom:1px solid var(--line);background:#19251f}
+.battle-notice{flex:1;min-width:0;border-left:3px solid #8f9f72;padding-left:12px}
+.battle-notice strong{display:block;font-size:10px;letter-spacing:.8px;color:var(--gold);line-height:1.5}
+.battle-notice p{font-size:11px;line-height:1.55;color:var(--muted);margin:4px 0 0}
+.battle-notice[data-tone="danger"]{border-color:#c98767}.battle-notice[data-tone="danger"] strong{color:#e5b193}
+.battle-notice[data-tone="success"]{border-color:#b3bd8b}
+.boss-panel{flex:0 0 225px;min-width:0}.boss-panel[hidden],.boss-panel progress[hidden]{display:none}
+.boss-panel>div{display:flex;align-items:center;justify-content:space-between;gap:10px}.boss-panel h2{font-size:9px;letter-spacing:.8px;margin:0;color:#e5b193}
+.boss-panel span{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}.boss-panel progress{display:block;width:100%;height:8px;margin-top:8px;border:0;appearance:none;background:#101813;accent-color:#b38362;border-radius:2px;overflow:hidden}
+.boss-panel progress::-webkit-progress-bar{background:#101813}.boss-panel progress::-webkit-progress-value{background:#b38362}.boss-panel progress::-moz-progress-bar{background:#b38362}
+@media(max-width:600px){.combat-readout{min-height:90px;padding:12px;gap:12px;align-items:stretch;flex-direction:column}.battle-notice strong{font-size:9px}.battle-notice p{font-size:10px}.boss-panel{flex:auto}.boss-panel>div{justify-content:flex-start}.boss-panel span{margin-left:auto}}
