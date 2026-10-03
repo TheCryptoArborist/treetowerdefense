@@ -30,8 +30,9 @@ The direct Node command also works when PowerShell blocks `npm.ps1`. Stop the ru
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.6
+## Fantasy forest build · v0.7
 
+- Guardians now face targets in eight directions using front, side, and rear poses at all three growth levels. Shots leave calibrated gauntlet, staff, spear, or casting-hand points; Oak sends a shockwave from the roots. Firing poses hold while their projectile finishes, including the final killing shot. See [directional art and verification notes](docs/guardian-aiming.md).
 - Clearer combat feedback: brief pest hit reactions, impact rings, collapsing/fading defeat silhouettes, dust, and Tree of Life damage or shield messages.
 - Wave start/clear notices, an advance warning for the final wave, an arrival warning when the Blight King actually spawns, and a persistent boss health display. See [combat feedback and verification notes](docs/combat-feedback.md).
 - Effects hold during pause, dialogs, and hidden tabs. Reduced-motion mode omits impact motion and hit tinting; transient effects never enter saves or change battle rules.
@@ -45,7 +46,7 @@ The server binds to localhost by default and serves only game assets. Do not dou
 - Three campaign chapters: **Emerald Crossing**, **Sunpetal Meadow**, and **Moonlit Marsh**. The winding route is shared; each chapter changes the biome and pest difficulty.
 - Ten waves per chapter, four expressive pest types, and a final **Blight King** boss.
 - Five defenders: Oak splash damage, Pine rapid fire, Palm slowing, Cypress piercing, Mushroom poison.
-- A prominent textured forest battlefield with NFTree-style stump warriors, idle movement and attack recoil, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
+- A prominent textured forest battlefield with NFTree-style stump warriors, idle movement, directional firing poses, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
 - Planting sites, automatic targeting, range previews, three permanent species levels, supplies, victory, and defeat.
 - Grow each defender species from **Sapling → Guardian → Ancient**. A TREE upgrade improves every current and future defender of that species.
 - Chapters unlock in order. Earn 1–3 stars from remaining health, grow the Tree of Life, and add permanent landmarks: an arborist cottage, flower garden, and lily pond.
@@ -114,7 +115,7 @@ npm test
 npm run check
 ```
 
-The 38 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes. Combat tests cover hit damage, poison and storm defeats, one-time rewards, actual boss arrival, shield absorption, wave bonuses, bounded transient effects, and restored boss health.
+The 45 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes. Combat tests cover hit damage, poison and storm defeats, one-time rewards, actual boss arrival, shield absorption, wave bonuses, bounded transient effects, and restored boss health. Seven aiming tests cover all eight directions, shared range and target priority, real attack events, firing/pause holds, final killing shots, bounded state and resets, and paused-save reconstruction.
 
 Validation for v0.5: all 30 game and purchase-review tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
 
@@ -123,6 +124,8 @@ See [guided playtest notes and remaining manual checks](docs/playtest-notes.md).
 Validation for v0.5.1: all 30 tests and syntax checks pass. The four new PNGs decode with transparent backgrounds; gallery asset references, layout breakpoints, and local HTTP routes were checked. The static gallery introduces no combat, purchase, or save changes. Full browser layout checks remain pending under the same preview-browser restrictions.
 
 Validation for v0.6: all 38 tests and syntax checks pass. All 30 chapter/wave results exactly match the v0.5.1 engine in a deterministic comparison. The actual canvas code renders 60 hit/status combinations and 20 defeat frames without changing their inputs; the defeat frames were visually inspected. DOM references and local HTTP assets were checked. Browser layout and keyboard/touch interactions remain pending under the previously observed preview-browser restrictions.
+
+Validation for v0.7: all 45 tests and syntax checks pass. Every one of 10,353 simulated battle snapshots across all 30 chapter/wave combinations exactly matches v0.6. Five directional PNGs isolate into 75 complete poses; all 720 species/growth/style/direction combinations and the same fallback combinations render without errors. Launch-point sheets were visually inspected for every growth level and direction. Local HTTP routes serve the new atlases and module while keeping non-game routes blocked. Full browser layout and keyboard/touch checks remain pending under the same preview-browser restrictions.
 
 ## Art preview
 

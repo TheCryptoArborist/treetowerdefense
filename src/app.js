@@ -1,13 +1,15 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getGuardianShotOrigin } from './art.js';
 import { scoutWave, starterTip, PurchaseReview } from './playtest.js';
 import { CombatFeedback, bossStatus } from './combat.js';
+import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'canopy-defense-preview-v1';
 let game = new Game();
 const feedback = new CombatFeedback();
+const aiming = new GuardianAiming();
 let storageAvailable = true;
 let saved = null;
 try {
@@ -143,7 +145,7 @@ $('confirm-purchase').addEventListener('click', () => {
 });
 function newRun() {
   if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return false;
-  game.newRun(); feedback.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
+  game.newRun(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
 }
 $('guided-run-button').addEventListener('click', () => {
@@ -154,7 +156,7 @@ $('new-run-button').addEventListener('click', newRun);
 $('outcome-new-run').addEventListener('click', newRun);
 $('reset-button').addEventListener('click', () => {
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
-  game = new Game(); feedback.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
+  game = new Game(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
   if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
@@ -175,7 +177,7 @@ for (const [i, chapter] of CHAPTERS.entries()) {
 }
 function selectChapter(i) {
   if (game.wave > 0 && !['defeat', 'victory'].includes(game.phase) && !confirm('Travel to another chapter? Your current battle resets. Permanent growth and forest progress are kept.')) return;
-  if (game.chooseChapter(i)) { feedback.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
+  if (game.chooseChapter(i)) { feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
 }
 $('next-chapter').addEventListener('click', () => selectChapter(game.chapter + 1));
 let sound = false, audio = null, lastTone = 0;
@@ -197,6 +199,7 @@ function tone(frequency, duration = .08) {
 }
 let cardSignature = '';
 loadEnvironmentArt();
+loadAimArt().then(status=>{if(status.failed.length)console.warn('Some directional guardian sprites were unavailable; aiming canvas artwork is active.');});
 loadDefenderArt().then(status => {
   cardSignature = ''; inspectorSignature = null;
   document.querySelectorAll('[data-style]').forEach(button => {
@@ -352,8 +355,12 @@ function draw(clock, dt) {
   const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || document.hidden;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
+  aiming.advance(effectDt);
   const events = game.events.splice(0);
   feedback.consume(events);
+  aiming.consume(events);
+  aiming.track(game,held);
+  for(const shot of aiming.shots)if(!shot.origin)shot.origin=getGuardianShotOrigin(shot);
   const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}`;
   if (key !== backdropKey) { paintBackdrop(bg, game.chapter, game.forestRank); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
@@ -373,7 +380,8 @@ function draw(clock, dt) {
     }
     paintBuildSite(ctx,x,y,{selected,hovered:hoveredPad===i,recommended:suggestedPad===i,occupied:!!tower,number:i+1});
     if (tower) {
-      shapeTree(ctx,tower.type,x,y,1.04,tower.style,tower.level,visualClock, game.phase==='running' && tower.cooldown>TOWERS[tower.type].interval-.15);
+      const pose=aiming.pose(tower.id);
+      shapeTree(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing);
       ctx.fillStyle='#d9c592';ctx.strokeStyle='#283d2e';ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(x+29,y+7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#435b39';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText(tower.level,x+29,y+10);
     }
@@ -381,10 +389,10 @@ function draw(clock, dt) {
   ctx.textAlign='left';
   for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion});
   paintCombatEffects(ctx,feedback,reducedMotion);
-  for (const shot of game.shots) paintShot(ctx,shot);
-  if (!held && game.phase==='running' && game.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
+  for (const shot of aiming.shots) paintShot(ctx,shot);
+  if (!held && aiming.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of events) {
-    if (['hit','wave-start','wave-clear','boss-arrival'].includes(event.type)) continue;
+    if (['attack','hit','wave-start','wave-clear','boss-arrival'].includes(event.type)) continue;
     const n=event.type==='storm'?65:event.type==='victory'?80:14;
     for(let i=0;i<n;i++) particles.push({x:event.type==='storm'?random()*WIDTH:event.x,y:event.type==='storm'?random()*HEIGHT:event.y,vx:(random()-.5)*(event.type==='victory'?250:100),vy:-30-random()*90,life:event.type==='victory'?1.5:.65,max:event.type==='victory'?1.5:.65,color:event.type==='kill'?'#8d8264':event.type==='leak'?'#e88068':event.type==='upgrade'?'#f9e5a0':'#fff4b4'});
     if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#dbd9b4',life:1});

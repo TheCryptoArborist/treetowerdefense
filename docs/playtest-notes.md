@@ -1,4 +1,4 @@
-# Guided playtest and combat feedback · v0.6
+# Guided playtest, combat feedback, and aiming · v0.7
 
 This remains a development preview: simulated NFTree ownership and TREE balances, no wallet connection, token transfer, or financial rewards.
 
@@ -20,8 +20,9 @@ Battle time is held while a review is open. Canceling returns to the existing ba
 
 ## Automated verification
 
-- All 38 Node tests pass, including the original access, currency, rarity, save migration, growth, and campaign checks.
+- All 45 Node tests pass, including the original access, currency, rarity, save migration, growth, and campaign checks.
 - New tests cover forecast accuracy for all 30 chapter/wave combinations, the recommended Sap-only first wave, alternate tutorial placements, recovery, read-only reviews, duplicate confirmation, changed prices, insufficient funds, removed access, changed runs, supply eligibility, and preservation of a continued battle.
+- Seven aiming tests verify directional poses, actual attack targeting, pause holds, final killing-shot completion, resets, and read-only facing reconstruction from paused saves. All 30 campaigns/waves retain identical battle states compared with v0.6.
 - JavaScript syntax checks pass. HTTP asset checks and static DOM-reference/module-path checks pass.
 
 These checks do not substitute for browser layout and interaction testing. The cloud browser blocks local preview URLs in this environment. Browser layout and actual keyboard/touch/dialog behavior remain pending.
@@ -37,5 +38,7 @@ Use a desktop browser and a phone (or a mobile viewport) to check:
 5. Open a purchase during battle; verify pests and battle timers wait. Try Escape, Cancel, and confirmation. Switch tabs during a Leaf Storm review and verify it cannot spend while paused.
 6. Check keyboard focus and return focus around dialogs; confirm hotkeys do not act behind a modal.
 7. Follow the [combat feedback playtest](combat-feedback.md): hit/defeat effects, shield and life feedback, pause/dialog holds, wave notices, actual boss arrival, saved boss health, and reduced motion.
+
+8. Follow the [guardian aiming checks](guardian-aiming.md#manual-playtest): watch pests approach from both sides and pass above/below a guardian, then verify its view and weapon/hand launch point. Repeat after each growth upgrade and with unlocked appearances.
 
 The next launch milestone is verified NFTree ownership and TREE payment integration. The production recipient, finalized prices, current NFT ownership/rarity data, and authoritative payment verification must be settled before enabling real purchases. Existing browser saves remain editable preview data.

@@ -1,4 +1,5 @@
 import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt } from './engine.js';
+import { GUARDIAN_SCALE } from './aiming.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
 function ellipse(c, x, y, rx, ry, fill, stroke = null, width = 3) {
@@ -63,6 +64,8 @@ export function paintLifeTree(c,type,x,y,scale=1,style=0,level=1,clock=0) {
   c.restore();
 }
 const defenderSprites = new Map();
+const aimSprites = new Map();
+const aimFailures = [];
 const DEFENDER_TYPES = ['oak', 'pine', 'palm', 'cypress', 'mushroom'];
 const artFailures = [];
 export function getDefenderArtStatus() {
@@ -153,6 +156,140 @@ export async function loadDefenderArt() {
   })));
   return getDefenderArtStatus();
 }
+export function getAimArtStatus() { return { loaded: [...aimSprites.keys()], failed: [...aimFailures] }; }
+// The atlas grid is approximate. Isolate connected bodies so extended weapons
+// survive cell boundaries without collecting parts of a neighboring guardian.
+export function installAimSprite(type, image, makeCanvas) {
+  if (!DEFENDER_TYPES.includes(type)) throw new Error('Unknown directional guardian');
+  const width = image.naturalWidth || image.width, height = image.naturalHeight || image.height;
+  const source = makeCanvas(width, height), context = source.getContext('2d'); context.drawImage(image, 0, 0);
+  const data = context.getImageData(0, 0, width, height).data, count = width * height;
+  const labels = new Int32Array(count), stack = new Int32Array(count), parts = []; let label = 0;
+  for (let pixel = 0; pixel < count; pixel++) {
+    if (labels[pixel] || data[pixel * 4 + 3] < 180) continue;
+    label++; let pending = 1, size = 0, x0 = width, y0 = height, x1 = 0, y1 = 0;
+    stack[0] = pixel; labels[pixel] = label;
+    while (pending) {
+      const at = stack[--pending], x = at % width, y = Math.floor(at / width);
+      size++; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      for (const next of [x ? at-1 : -1, x < width-1 ? at+1 : -1, y ? at-width : -1, y < height-1 ? at+width : -1]) {
+        if (next >= 0 && !labels[next] && data[next * 4 + 3] >= 180) { labels[next] = label; stack[pending++] = next; }
+      }
+    }
+    parts.push({ label, size, x0, y0, x1, y1 });
+  }
+  const bodies = parts.sort((a,b) => b.size-a.size).slice(0,15).sort((a,b) => (a.y0+a.y1)-(b.y0+b.y1));
+  if (bodies.length !== 15 || bodies.some(body => body.size < 1000)) throw new Error(`Missing ${type} directional silhouettes`);
+  const rows = Array.from({length:3}, (_,row) => bodies.slice(row*5,row*5+5).sort((a,b) => (a.x0+a.x1)-(b.x0+b.x1)));
+  const ordered = rows.flat(), owners = new Int8Array(label+1); owners.fill(-1);
+  ordered.forEach((body,i) => { owners[body.label] = i; });
+  for (const part of parts) if (owners[part.label] < 0 && part.size >= 24) {
+    const x = (part.x0+part.x1)/2, y = (part.y0+part.y1)/2;
+    let nearest = 0, distance = Infinity;
+    ordered.forEach((body,i) => {
+      const dx = x-Math.max(body.x0,Math.min(x,body.x1)), dy = y-Math.max(body.y0,Math.min(y,body.y1));
+      const score = dx*dx+dy*dy+.01*(x-(body.x0+body.x1)/2)**2;
+      if (score < distance) { distance = score; nearest = i; }
+    }); owners[part.label] = nearest;
+  }
+  const pixelOwners = new Int8Array(count); pixelOwners.fill(-1);
+  const flatFrames = ordered.map(() => ({x:width,y:height,width:0,height:0}));
+  for (let at = 0; at < count; at++) {
+    if (data[at*4+3] < 30) continue;
+    let owner = owners[labels[at]];
+    const x = at % width, y = Math.floor(at / width);
+    if (owner < 0 && data[at*4+3] < 180) {
+      for (let dy=-2; dy<=2 && owner<0; dy++) for (let dx=-2; dx<=2 && owner<0; dx++) {
+        if (x+dx>=0 && x+dx<width && y+dy>=0 && y+dy<height) owner = owners[labels[at+dy*width+dx]];
+      }
+    }
+    if (owner < 0) continue;
+    pixelOwners[at] = owner; const f = flatFrames[owner];
+    f.x = Math.min(f.x,x); f.y = Math.min(f.y,y); f.width = Math.max(f.width,x+1); f.height = Math.max(f.height,y+1);
+  }
+  flatFrames.forEach(f => { f.width -= f.x; f.height -= f.y; });
+  const frames = Array.from({length:3}, (_,row) => {
+    const cells = flatFrames.slice(row*5,row*5+5);
+    // One scale per growth row avoids rescaling when the guardian turns.
+    const ratio = Math.min([105,122,140][row]/Math.max(...cells.map(f=>f.height)),146/Math.max(...cells.map(f=>f.width)));
+    return cells.map(f => ({...f,w:f.width*ratio,h:f.height*ratio}));
+  });
+  const variants = frames.map((row,level) => row.map((f,view) => {
+    // Crop-sized canvases keep atlas isolation memory bounded.
+    const isolated = makeCanvas(f.width,f.height), ic = isolated.getContext('2d'), pixels = ic.createImageData(f.width,f.height);
+    for (let y=0; y<f.height; y++) for (let x=0; x<f.width; x++) {
+      const at = (f.y+y)*width+f.x+x;
+      if (pixelOwners[at] === level*5+view) pixels.data.set(data.subarray(at*4,at*4+4),(y*f.width+x)*4);
+    }
+    ic.putImageData(pixels,0,0);
+    return STYLES.map((style,index) => {
+      const canvas = makeCanvas(160,180), c = canvas.getContext('2d');
+      c.filter = ['none','brightness(1.12) saturate(.8)','sepia(.7) hue-rotate(210deg) saturate(1.15)','sepia(.8) saturate(1.5) brightness(1.15)','sepia(.65) hue-rotate(110deg) saturate(1.4)','sepia(.65) hue-rotate(285deg) saturate(1.2)'][index];
+      c.drawImage(isolated,80-f.w/2,160-f.h,f.w,f.h); c.filter = 'none'; return canvas;
+    });
+  }));
+  aimSprites.set(type,{frames,variants}); return frames;
+}
+export async function loadAimArt() {
+  await Promise.all(DEFENDER_TYPES.map(type=>new Promise(resolve=>{
+    const image=new Image();image.onload=()=>{
+      try{installAimSprite(type,image,(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;});}catch{aimFailures.push(type);}resolve();
+    };image.onerror=()=>{aimFailures.push(type);resolve();};image.src=`assets/defenders/${type}-aim-v1.png`;
+  })));
+  return getAimArtStatus();
+}
+// Hand-calibrated launch points in the unmodified 1619×971 v1 atlases.
+// Growth rows: Sapling, Guardian, Ancient. Views: S, SE, E, NE, N.
+const aimSockets = {
+  pine: [
+    [[68,220],[511,224],[941,220],[1270,182],[1575,184]],
+    [[35,538],[530,539],[950,533],[1282,495],[1603,497]],
+    [[12,861],[563,860],[964,854],[1287,816],[1607,818]]
+  ],
+  palm: [
+    [[77,113],[397,133],[927,138],[1234,110],[1555,105]],
+    [[60,410],[383,426],[931,446],[1251,425],[1580,409]],
+    [[55,730],[379,735],[945,771],[1248,747],[1580,754]]
+  ],
+  cypress: [
+    [[12,128],[360,156],[974,170],[1291,150],[1603,128]],
+    [[13,427],[342,458],[968,479],[1294,450],[1603,427]],
+    [[12,769],[339,779],[972,794],[1295,768],[1605,751]]
+  ],
+  mushroom: [
+    [[99,203],[450,208],[916,204],[1245,199],[1563,199]],
+    [[60,519],[421,523],[929,516],[1276,499],[1588,499]],
+    [[62,843],[419,833],[929,843],[1275,825],[1588,826]]
+  ]
+};
+function fallbackSocket(type,level,facing) {
+  const angle=facing.direction*Math.PI/4,growth=1+(level-1)*.12;
+  return type==='oak'?{x:0,y:17}:{x:Math.sin(angle)*38*growth,y:(-30+Math.cos(angle)*18)*growth};
+}
+export function getGuardianShotOrigin(shot) {
+  if(shot.type==='oak')return{x:shot.x,y:shot.y+17*GUARDIAN_SCALE};
+  const art=aimSprites.get(shot.type),f=art?.frames[shot.level-1]?.[shot.facing.view];
+  if(!f){const socket=fallbackSocket(shot.type,shot.level,shot.facing);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
+  const [px,py]=aimSockets[shot.type][shot.level-1][shot.facing.view];
+  const u=(px-f.x)/f.width,v=(py-f.y)/f.height;
+  return{x:shot.x+(u-.5)*f.w*.8*GUARDIAN_SCALE*(shot.facing.flip?-1:1),y:shot.y+(16-f.h*.8+v*f.h*.8)*GUARDIAN_SCALE};
+}
+function paintAimingFallback(c,type,style,level,facing) {
+  const p=STYLES[style],wood=type==='cypress'?'#dcd8bb':p.bark,growth=1+(level-1)*.12;
+  c.save();c.scale(growth,growth);
+  ellipse(c,-14,12,14,8,'#211d16');ellipse(c,14,12,14,8,'#211d16');
+  polygon(c,[[-18,-38],[18,-38],[18,5],[-18,5]],wood,'#151c13',3);
+  polygon(c,[[-24,-38],[-23,-81],[-12,-78],[-5,-88],[8,-81],[21,-85],[24,-38]],wood,'#151c13',3);
+  for(let i=0;i<5;i++)line(c,[[-18+i*9,-74],[-17+i*9,-42]],'#3c301c',1.3);
+  if(facing.view<3){const side=facing.flip?-1:1;ellipse(c,facing.view===2?side*14:-10,-61,5,7,'#10150e');if(facing.view<2)ellipse(c,10,-61,5,7,'#10150e');ellipse(c,facing.view===2?side*16:0,-43,facing.view===2?5:12,7,'#10150e');}
+  for(let i=0;i<3;i++)sprout(c,-12+i*12,-78,(i-1)*17,-24,p.canopy);
+  if(type==='mushroom')ellipse(c,0,-83,32,12,p.canopy,'#151c13',2);
+  const socket=fallbackSocket(type,1,facing),hand=type==='oak'?fallbackSocket('pine',1,facing):socket;
+  line(c,[[0,-30],[hand.x*.6,hand.y],[hand.x,hand.y]],wood,12);ellipse(c,hand.x,hand.y,7,6,wood,'#151c13',2);
+  if(type==='pine'){ellipse(c,hand.x,hand.y,8,6,'#574b2e','#151c13',2);ellipse(c,hand.x,hand.y,3,3,p.canopy);}
+  if(type==='palm'||type==='cypress'){line(c,[[hand.x*.5,-35],[hand.x,hand.y]],'#5d4d31',5);ellipse(c,hand.x,hand.y,5,7,type==='palm'?p.canopy:'#d4c09b','#151c13',1);}
+  c.restore();
+}
 function sprout(c,x,y,dx,dy,color) {
   line(c,[[x,y],[x+dx*.55,y+dy*.55],[x+dx,y+dy]],'#11130f',4);
   c.save();c.translate(x+dx,y+dy);c.rotate(Math.atan2(dy,dx)+Math.PI/2);
@@ -198,14 +335,17 @@ function paintReferenceGuardian(c,type,style,level,clock,attack) {
   if(level>=2)for(const side of[-1,1])polygon(c,[[side*14,-39],[side*23,-41],[side*28,-29],[side*17,-27]],wood,ink,2.5);
   if(level===3){line(c,[[-10,-24],[-10,-4]],p.accent,2);line(c,[[10,-24],[10,-4]],p.accent,2);}
 }
-export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false) {
+export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false,facing=null) {
   const p=STYLES[style];c.save();c.translate(x,y);c.scale(scale,scale);
   ellipse(c,0,17,36+(level-1)*4,10,'#26372a30');
   if(style>=2)ellipse(c,0,17,37,10,p.accent+'35',p.accent+'90',2);
-  const bob=clock>0?Math.sin(clock*2.5+x*.03)*1.2:0;c.translate(0,bob);
-  if(attack)c.rotate(Math.sin(clock*30)*.028);
+  const bob=clock>0&&(!facing||!attack)?Math.sin(clock*2.5+x*.03)*1.2:0;c.translate(0,bob);
+  if(attack&&!facing)c.rotate(Math.sin(clock*30)*.028);
   const sprite=defenderSprites.get(type);
-  if(sprite)c.drawImage(sprite.variants[level-1][style],-64,-112,128,144);
+  const aimed=facing&&aimSprites.get(type);
+  if(aimed){c.save();if(facing.flip)c.scale(-1,1);c.drawImage(aimed.variants[level-1][facing.view][style],-64,-112,128,144);c.restore();}
+  else if(facing)paintAimingFallback(c,type,style,level,facing);
+  else if(sprite)c.drawImage(sprite.variants[level-1][style],-64,-112,128,144);
   else paintReferenceGuardian(c,type,style,level,clock,attack);
   if(style===1){flower(c,-20,-58,'#ffdbe9',.85);flower(c,20,-67,'#fff1bc',.75);}
   if(style>=2)for(let i=0;i<(style>=4?4:2);i++){
@@ -327,11 +467,13 @@ export function paintBackdrop(c,chapter=0,rank=0) {
 }
 export function paintShot(c, shot) {
   const t=Math.max(0,Math.min(1,1-shot.life/.32)),p=STYLES[shot.style];
-  const sx=shot.x,sy=shot.y-28,tx=shot.tx,ty=shot.ty;
+  const origin=shot.origin||(shot.facing?getGuardianShotOrigin(shot):{x:shot.x,y:shot.y-28});
+  const sx=origin.x,sy=origin.y,tx=shot.tx,ty=shot.ty;
   const x=sx+(tx-sx)*t,y=sy+(ty-sy)*t;
   c.save();c.globalAlpha=Math.min(1,shot.life/.08);
+  if(t<.24)ellipse(c,sx,sy,4+(1-t/.24)*3,3+(1-t/.24)*2,p.accent+'90');
   if(shot.type==='cypress'){line(c,[[sx,sy],[tx,ty]],'#785d3d',6);line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);}
-  else if(shot.type==='oak'){c.strokeStyle='#e6ca79';c.lineWidth=5;c.beginPath();c.ellipse(tx,ty,8+t*58,5+t*30,0,0,TAU);c.stroke();}
+  else if(shot.type==='oak'){c.strokeStyle='#c4aa73';c.lineWidth=4;c.beginPath();c.ellipse(x,y,8+t*28,5+t*16,0,0,TAU);c.stroke();if(t>.65){c.lineWidth=2;c.beginPath();c.ellipse(tx,ty,8+(t-.65)*90,5+(t-.65)*45,0,0,TAU);c.stroke();}}
   else if(shot.type==='mushroom'){ellipse(c,tx,ty,8+t*47,6+t*33,p.canopy+'40',p.accent+'80',2);for(let i=0;i<4;i++)ellipse(c,x+Math.sin(i)*12,y+Math.cos(i)*8,4,4,p.accent);}
   else if(shot.type==='palm'){c.strokeStyle='#e1f8cb';c.lineWidth=3;c.beginPath();c.arc(x,y,10+t*11,-1,2);c.stroke();c.beginPath();c.arc(x+5,y+4,6+t*7,2,5);c.stroke();}
   else {c.translate(x,y);c.rotate(Math.atan2(ty-sy,tx-sx));polygon(c,[[-10,-3],[11,0],[-10,3]],'#fff4a9','#5b843e',1.4);}

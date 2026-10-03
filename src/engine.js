@@ -186,6 +186,10 @@ export class Game {
     }
     this.enemies = this.enemies.filter(e => e.hp > 0);
   }
+  targetsFor(tower) {
+    const range = TOWERS[tower.type].range + (tower.level - 1) * 18;
+    return this.enemies.filter(enemy => distance(tower, enemy) <= range).sort((a, b) => b.progress - a.progress);
+  }
   step(dt) {
     if (this.phase !== 'running' || !this.access || !Number.isFinite(dt) || dt <= 0) return;
     dt = Math.min(dt, 0.05); this.time += dt;
@@ -212,10 +216,10 @@ export class Game {
       tower.cooldown -= dt;
       if (tower.cooldown > 0) continue;
       const definition = TOWERS[tower.type];
-      const range = definition.range + (tower.level - 1) * 18;
-      const targets = this.enemies.filter(e => distance(tower, e) <= range).sort((a, b) => b.progress - a.progress);
+      const targets = this.targetsFor(tower);
       if (!targets.length) continue;
       const target = targets[0];
+      this.events.push({ type: 'attack', towerId: tower.id, targetId: target.id, x: tower.x, y: tower.y, tx: target.x, ty: target.y, guardian: tower.type, style: tower.style, level: tower.level });
       tower.cooldown = definition.interval;
       const damage = definition.damage * (1 + (tower.level - 1) * 0.6) * (this.boostUntil > this.time ? 1.5 : 1);
       const armor = target.kind === 'beetle' ? 0.8 : 1;
