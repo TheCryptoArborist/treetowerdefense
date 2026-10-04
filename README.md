@@ -18,15 +18,11 @@ npm start
 
 Open **http://127.0.0.1:5173**. No dependency installation is required. Keep the terminal running while you play. Use Ctrl+C to stop it.
 
-For an existing Windows clone:
+For the existing Windows clone at `D:\Finance\Crypto\Repos\treetowerdefense`, download [Launch-Canopy-Defense.cmd](Launch-Canopy-Defense.cmd) to **Downloads** and double-click it. It updates the clean `main` branch, starts the preview, and opens your default browser. No PowerShell commands or dependency installation are needed; Git for Windows and Node.js 20+ must be installed. After updating, the copy inside your clone also works by double-clicking it.
 
-```powershell
-Set-Location "D:\Finance\Crypto\Repos\treetowerdefense"
-git pull origin main
-node .\tools\serve.mjs
-```
+The launcher stops before updating if there are local edits, untracked files, a different branch or origin, or local commits outside `origin/main`. It never stashes, resets, force-updates, or switches branches. Move or commit local work before retrying. Keep a first downloaded copy outside the clone so it does not become an untracked file that blocks its own update.
 
-The direct Node command also works when PowerShell blocks `npm.ps1`. Stop the running server with Ctrl+C before pulling updates, restart it, and refresh the browser.
+It always uses **http://127.0.0.1:5173** to keep browser saves on the same origin. An existing server is reused only if all game source, styles, and image bytes match this clone. An unrelated or stale server is left running: stop it yourself with Ctrl+C in its original window, then retry. Keep a newly opened preview window running while playing. If browser opening fails, open the printed address manually. Refresh an already-open game tab after updating; the launcher does not modify browser saves. `npm run preview` opens/checks the current build without updating Git.
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
@@ -116,7 +112,7 @@ npm test
 npm run check
 ```
 
-The 52 Node tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes. Combat tests cover hit damage, poison and storm defeats, one-time rewards, actual boss arrival, shield absorption, wave bonuses, bounded transient effects, and restored boss health. Seven aiming tests cover all eight directions, shared range and target priority, real attack events, firing/pause holds, final killing shots, bounded state and resets, and paused-save reconstruction. Seven wave tests cover staged introductions, increasing threat budgets, calibrated opening pressure, Sap-only expansion, all three campaigns, saved queues, and matching threat guidance.
+The 52 game tests cover access gating, purchase accounting, rarity permissions, pause/resume, save validation, loss/continue, old-save migration, permanent species growth, chapter unlocks and stars, and all three ten-wave chapters including their bosses. They also verify all 30 scouted chapter/wave lineups, the Sap-only guided start, and purchase-review invariants: cancellation, duplicate confirmation, changed prices, eligibility, and run changes. Combat tests cover hit damage, poison and storm defeats, one-time rewards, actual boss arrival, shield absorption, wave bonuses, bounded transient effects, and restored boss health. Seven aiming tests cover all eight directions, shared range and target priority, real attack events, firing/pause holds, final killing shots, bounded state and resets, and paused-save reconstruction. Seven wave tests cover staged introductions, increasing threat budgets, calibrated opening pressure, Sap-only expansion, all three campaigns, saved queues, and matching threat guidance.
 
 Validation for v0.5: all 30 game and purchase-review tests and JavaScript syntax checks pass. Five transparent growth atlases were loaded and isolated into 15 complete warrior silhouettes. Canvas drawing paths for all 90 combinations of defender species, style, and growth level, all five pests, and all five attack effects were rendered without errors. The resulting art was visually inspected. Local HTTP assets and source references were checked. Desktop and mobile browser interaction/layout checks remain pending: the cloud browser blocks local preview URLs, and a local browser binary was unavailable. Responsive styles and touch controls are implemented, but their complete browser layout has not yet been verified.
 
@@ -129,6 +125,8 @@ Validation for v0.6: all 38 tests and syntax checks pass. All 30 chapter/wave re
 Validation for v0.7: all 45 tests and syntax checks pass. Every one of 10,353 simulated battle snapshots across all 30 chapter/wave combinations exactly matches v0.6. Five directional PNGs isolate into 75 complete poses; all 720 species/growth/style/direction combinations and the same fallback combinations render without errors. Launch-point sheets were visually inspected for every growth level and direction. Local HTTP routes serve the new atlases and module while keeping non-game routes blocked. Full browser layout and keyboard/touch checks remain pending under the same preview-browser restrictions.
 
 Validation for v0.8: all 52 tests and syntax checks pass. A reproducible 15-scenario balance audit checks held defenses, gradual expansion, stronger mixed Sap coverage, and permanent growth across all chapters. One Sapling addition per wave clears Emerald Crossing at 100 life without TREE purchases; broader mixed Sap coverage clears all three chapters. Existing saves retain queued pests, living-pest stats, TREE, and permanent growth. Native canvas renders and visually inspects the clearer beetle/blight silhouettes; full browser layout and keyboard/touch verification remains pending under the existing preview-browser restriction. Run `npm run balance` to repeat the simulations.
+
+Launcher validation: eight additional cross-platform tests cover update guards, fast-forward-only updates, live server startup/reuse, mismatched source/art, and browser-opener failure. A ninth test exercises the actual `.cmd` on Windows and checks that untracked work blocks both the update and the preview. GitHub CI runs tests and syntax checks on Ubuntu and Windows. Local Linux validation cannot verify the default Windows browser opening or a real double-click on your computer. No gameplay, prices, or save format changed.
 
 ## Art preview
 
