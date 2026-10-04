@@ -103,13 +103,14 @@ test('launcher starts the actual asset server and reuses it on the second launch
   const port = await unusedPort();
   const opened = [];
   const first = await launchPreview({ root, port, openBrowser: async url => opened.push(url) });
-  t.after(() => stopChild(first.server));
-  assert.equal(first.reused, false);
-  assert.equal(await matchesPreview(root, first.url), true);
-  const second = await launchPreview({ root, port, openBrowser: async url => opened.push(url) });
-  assert.equal(second.reused, true);
-  assert.equal(second.server, null);
-  assert.deepEqual(opened, [first.url, first.url]);
+  try {
+    assert.equal(first.reused, false);
+    assert.equal(await matchesPreview(root, first.url), true);
+    const second = await launchPreview({ root, port, openBrowser: async url => opened.push(url) });
+    assert.equal(second.reused, true);
+    assert.equal(second.server, null);
+    assert.deepEqual(opened, [first.url, first.url]);
+  } finally { await stopChild(first.server); }
 });
 
 test('unrelated occupied port is left running and no browser is opened', async t => {
@@ -139,8 +140,8 @@ test('stale art prevents reuse even when the game HTML and source match', async 
 test('browser opener failure leaves a working server available for manual opening', async t => {
   const root = await fixture(t);
   const preview = await launchPreview({ root, port: await unusedPort(), openBrowser: async () => { throw Error('No browser'); } });
-  t.after(() => stopChild(preview.server));
-  assert.equal(await matchesPreview(root, preview.url), true);
+  try { assert.equal(await matchesPreview(root, preview.url), true); }
+  finally { await stopChild(preview.server); }
 });
 
 test('Windows batch launcher stops safely on an untracked clone without launching', { skip: process.platform !== 'win32' }, async t => {
