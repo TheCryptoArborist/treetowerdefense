@@ -40,11 +40,34 @@ export function pointAt(distance) {
 }
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-// Scouting and battle spawning share the same lineup, so forecasts cannot drift.
+// Deliberate mixes introduce one new threat at a time, then build combined pressure.
+// Counts remain 8, 10, …, 26 (+ the final boss); rewards and save limits stay intact.
+const WAVE_MIXES = [
+  { termite:8, beetle:0, moth:0, blight:0 },
+  { termite:8, beetle:2, moth:0, blight:0 },
+  { termite:7, beetle:2, moth:3, blight:0 },
+  { termite:6, beetle:3, moth:3, blight:2 },
+  { termite:5, beetle:4, moth:4, blight:3 },
+  { termite:5, beetle:5, moth:4, blight:4 },
+  { termite:5, beetle:5, moth:5, blight:5 },
+  { termite:5, beetle:6, moth:6, blight:5 },
+  { termite:5, beetle:7, moth:6, blight:6 },
+  { termite:5, beetle:8, moth:7, blight:6 }
+];
+// Armor gets a measured introduction, then gaps shorten as threats combine.
+const SPAWN_INTERVALS = [1.05,1.4,1.2,1.05,.95,.85,.8,.75,.7,.65];
+export function waveSpawnInterval(wave) {
+  return Number.isInteger(wave) && wave >= 1 && wave <= 10 ? SPAWN_INTERVALS[wave-1] : null;
+}
 export function waveLineup(chapter, wave) {
   if (!Number.isInteger(chapter) || !CHAPTERS[chapter] || !Number.isInteger(wave) || wave < 1 || wave > 10) return [];
-  const lineup = Array.from({ length: 6 + wave * 2 }, (_, i) =>
-    wave >= 3 && i % 5 === 0 ? 'beetle' : wave >= 2 && i % 4 === 0 ? 'moth' : wave >= (chapter > 0 ? 3 : 5) && i % 7 === 0 ? 'blight' : 'termite');
+  const remaining = { ...WAVE_MIXES[wave-1] }, lineup = [];
+  // Interleave a mixed escort, rather than hiding each threat at the back of the queue.
+  while (Object.values(remaining).some(count => count > 0)) {
+    for (const kind of ['termite','beetle','moth','blight']) if (remaining[kind] > 0) {
+      lineup.push(kind); remaining[kind]--;
+    }
+  }
   if (wave === 10) lineup.push('boss');
   return lineup;
 }
@@ -136,7 +159,7 @@ export class Game {
     if (!this.access || this.phase !== 'build' || this.wave >= 10) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
     this.queue = waveLineup(this.chapter, this.wave);
-    this.events.push({ type: 'wave-start', wave: this.wave });
+    this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter });
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
     return true;
   }
@@ -194,7 +217,7 @@ export class Game {
     if (this.phase !== 'running' || !this.access || !Number.isFinite(dt) || dt <= 0) return;
     dt = Math.min(dt, 0.05); this.time += dt;
     this.spawnTimer -= dt;
-    if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = Math.max(0.45, 1.1 - this.wave * 0.05); }
+    if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = waveSpawnInterval(this.wave); }
     for (const enemy of this.enemies) {
       if (enemy.poisonUntil > this.time) enemy.hp -= enemy.poisonDamage * dt;
       enemy.progress += enemy.speed * dt * (enemy.slowUntil > this.time ? 0.55 : 1);

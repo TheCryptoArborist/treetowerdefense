@@ -18,7 +18,7 @@ test('every forecast matches the actual queue across all chapters and waves', ()
   }
   assert.deepEqual(waveLineup(0, 1), Array(8).fill('termite'));
   assert.ok(!waveLineup(0, 3).includes('blight'));
-  assert.ok(waveLineup(1, 3).includes('blight'));
+  assert.ok(waveLineup(1, 4).includes('blight'));
   for (const [chapter,wave] of [[-1,1],[3,1],[0,0],[0,11],[0,1.5]]) assert.deepEqual(waveLineup(chapter,wave), []);
 });
 

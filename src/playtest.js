@@ -8,15 +8,26 @@ const PEST_GUIDE = {
   boss: { name: 'Blight King', trait: 'Final boss', counter: 'The Blight King hits the Tree of Life hard. Combine damage and Palm slows.' },
 };
 
+const WAVE_BRIEFINGS = [
+  ['First roots', 'Eight termites approach. Pine and Oak can cover the opening bends; watch their reach before expanding.'],
+  ['Armored advance', 'Two armored beetles join the termites. They take more hits: extend your coverage using earned Sap.'],
+  ['Moth rush', 'Fast moths arrive alongside beetles. Palm can slow them; a guardian farther along the route catches survivors.'],
+  ['Blight arrives', 'Tougher blight pests join the mix. Cypress adds reach and piercing; Mushroom poisons nearby groups.'],
+  ['Mixed assault', 'Armor, speed, and blight attack together. Plant beyond the entrance and combine guardian roles.'],
+  ['Pressure builds', 'More armored and blight pests crowd the route. Reinforce later bends with earned Sap before sending the wave.'],
+  ['Swarming wings', 'Five fast moths run with a tougher escort. Slow the rush and keep damage coverage at multiple bends.'],
+  ['Heavy escort', 'Six beetles and six moths test your defense together. Check slow support and damage coverage before sending them.'],
+  ['Last stand', 'The largest mixed escort so far approaches. Fill gaps along the route and prepare for the King next.'],
+  ['Blight King', 'The King follows a mixed escort. Combine damage, poison, and Palm slows; protect the final bends.']
+];
 export function scoutWave(chapter, wave) {
   const lineup = waveLineup(chapter, wave);
   const groups = Object.entries(PEST_GUIDE).flatMap(([kind, info]) => {
     const count = lineup.filter(pest => pest === kind).length;
     return count ? [{ kind, count, ...info }] : [];
   });
-  const priority = ['boss', 'moth', 'beetle', 'blight', 'termite'];
-  const threat = priority.map(kind => groups.find(group => group.kind === kind)).find(Boolean);
-  return { wave, total: lineup.length, groups, tip: threat?.counter ?? '' };
+  const [title, tip] = lineup.length ? WAVE_BRIEFINGS[wave-1] : ['', ''];
+  return { wave, title, total: lineup.length, groups, tip };
 }
 
 export function starterTip(game) {

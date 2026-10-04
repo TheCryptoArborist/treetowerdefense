@@ -331,7 +331,7 @@ function renderScout() {
   if (signature === scoutSignature) return;
   scoutSignature = signature;
   const scout = scoutWave(game.chapter, game.wave + 1);
-  $('scout-title').textContent = game.wave === 10 ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave}`;
+  $('scout-title').textContent = game.wave === 10 ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave} · ${scout.title}`;
   $('scout-total').textContent = scout.total ? `${scout.total} PESTS${scout.wave === 10 ? ' · BOSS WAVE' : ''}` : '10 OF 10';
   $('scout-pests').replaceChildren();
   for (const group of scout.groups) {

@@ -356,7 +356,7 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
 }
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
-  const size=boss?1.85:e.kind==='beetle'?1.12:moth?.92:.88;
+  const size=boss?1.85:e.kind==='beetle'?1.12:blight?1.06:moth?.92:.88;
   const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
   const ahead=Number.isFinite(e.progress)?pointAt(Math.min(PATH_LENGTH,e.progress+2)):null;
   const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
@@ -378,6 +378,11 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   const shell=c.createLinearGradient(-15,0,15,0);shell.addColorStop(0,colors[1]);shell.addColorStop(.35,colors[0]);shell.addColorStop(1,colors[1]);
   ellipse(c,0,5,moth?5:12,19,shell,'#182019',2);
   for(let i=0;i<5;i++)line(c,[[-8,1+i*4],[0,3+i*4],[8,1+i*4]],'#1b241d90',1.5);
+  if(e.kind==='beetle') {
+    // Broad overlapping armor reads differently from the termite's narrow ribs.
+    for(let i=0;i<3;i++)polygon(c,[[-10,-9+i*9],[-8,-14+i*9],[8,-14+i*9],[11,-8+i*9],[7,-2+i*9],[-7,-2+i*9]],shell,'#17241b',1.6);
+    line(c,[[-7,-10],[-5,15]],'#c2c99a90',1.8);
+  }
   if(e.kind==='beetle'||boss){line(c,[[0,-10],[0,22]],'#111b16',2);line(c,[[-7,-7],[-9,12]],'#b1b79870',1.5);}
   ellipse(c,0,-10,boss?14:8,10,shell,'#1b241c',2);ellipse(c,0,-23,boss?10:7,7,colors[1],'#121a14',2);
   for(const side of [-1,1]){

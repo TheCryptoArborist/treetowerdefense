@@ -43,3 +43,8 @@
 .boss-panel span{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}.boss-panel progress{display:block;width:100%;height:8px;margin-top:8px;border:0;appearance:none;background:#101813;accent-color:#b38362;border-radius:2px;overflow:hidden}
 .boss-panel progress::-webkit-progress-bar{background:#101813}.boss-panel progress::-webkit-progress-value{background:#b38362}.boss-panel progress::-moz-progress-bar{background:#b38362}
 @media(max-width:600px){.combat-readout{min-height:90px;padding:12px;gap:12px;align-items:stretch;flex-direction:column}.battle-notice strong{font-size:9px}.battle-notice p{font-size:10px}.boss-panel{flex:auto}.boss-panel>div{justify-content:flex-start}.boss-panel span{margin-left:auto}}
+
+/* Keep named scouting waves readable beside the count on narrow screens. */
+.wave-scout .panel-heading{align-items:flex-start}
+.wave-scout .panel-heading h2{min-width:0;line-height:1.45}
+.wave-scout #scout-total{flex-shrink:0;white-space:nowrap;padding-top:2px}

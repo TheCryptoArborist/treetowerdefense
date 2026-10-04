@@ -1,3 +1,5 @@
+import { scoutWave } from './playtest.js';
+
 // Transient presentation state: never part of a game save or combat calculation.
 export class CombatFeedback {
   constructor() { this.clear(); }
@@ -14,7 +16,8 @@ export class CombatFeedback {
       } else if (event.type === 'boss-arrival') {
         this.announce('THE BLIGHT KING HAS ARRIVED', 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
       } else if (event.type === 'wave-start') {
-        this.announce(event.wave === 10 ? 'FINAL WAVE · BLIGHT KING INCOMING' : `WAVE ${event.wave} BEGINS`, event.wave === 10 ? 'The King follows his escort. Prepare your strongest defense.' : 'Guardians are engaging the incoming pests.', event.wave === 10 ? 'danger' : 'normal', 3);
+        const briefing = scoutWave(event.chapter ?? 0, event.wave);
+        this.announce(event.wave === 10 ? 'FINAL WAVE · BLIGHT KING INCOMING' : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, event.wave === 10 ? 'danger' : 'normal', 4);
       } else if (event.type === 'wave-clear' && event.wave < 10) {
         this.announce(`WAVE ${event.wave} CLEARED`, `+${event.sap} Sap earned. Prepare your next defense.`, 'success', 3.5);
       } else if (event.type === 'leak' && event.kind === 'boss') {
