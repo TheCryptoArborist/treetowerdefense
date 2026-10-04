@@ -48,3 +48,11 @@
 .wave-scout .panel-heading{align-items:flex-start}
 .wave-scout .panel-heading h2{min-width:0;line-height:1.45}
 .wave-scout #scout-total{flex-shrink:0;white-space:nowrap;padding-top:2px}
+
+/* Guardian orders remain a labeled native select for touch and keyboard input. */
+.target-orders{margin:16px 0;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.target-orders label{display:block;color:var(--gold);font-size:12px;font-weight:bold;margin-bottom:8px}
+.target-orders select{width:100%;min-height:44px;background:#18271e;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit}
+.target-orders select:disabled{opacity:.5}
+.target-orders #target-detail{font-size:12px;line-height:1.5;margin:9px 0 5px;color:var(--muted)}
+.target-orders small{color:var(--gold);font-size:10px}

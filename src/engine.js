@@ -25,6 +25,11 @@ export const CHAPTERS = [
   { name: 'Moonlit Marsh', subtitle: 'Let your ancient forest shine.', terrain: '#9fc4b1', grass: '#7eafa4', path: '#c6cbb0', difficulty: 1.4 },
 ];
 export const GROWTH_NAMES = ['Sapling', 'Guardian', 'Ancient'];
+export const TARGET_MODES = Object.freeze({
+  first: Object.freeze({ name: 'First', detail: 'Furthest along the route. Best for catching pests before they escape.' }),
+  strongest: Object.freeze({ name: 'Strongest', detail: 'Most health remaining. Focus on tough pests and the Blight King.' }),
+  fastest: Object.freeze({ name: 'Fastest', detail: 'Highest current movement speed, including slows. Intercept fast pests.' }),
+});
 const segments = PATH.slice(1).map((p, i) => Math.hypot(p[0] - PATH[i][0], p[1] - PATH[i][1]));
 export const PATH_LENGTH = segments.reduce((a, b) => a + b, 0);
 export function pointAt(distance) {
@@ -124,10 +129,18 @@ export class Game {
     if (this.sap < definition.cost) { this.message = 'Earn more Sap by defeating pests.'; return false; }
     this.sap -= definition.cost;
     const [x, y] = PADS[pad];
-    const tower = { id: this.nextId++, type, pad, x, y, level: this.forest.levels[type], cooldown: 0, style: this.style };
+    const tower = { id: this.nextId++, type, pad, x, y, level: this.forest.levels[type], cooldown: 0, style: this.style, targetMode: 'first' };
     this.towers.push(tower); this.message = `${definition.name} planted. Ready to defend.`;
     this.events.push({ type: 'plant', x, y });
     return tower;
+  }
+  setTargetMode(id, mode) {
+    if (!this.access || !['build', 'running', 'paused'].includes(this.phase) || typeof mode !== 'string' || !Object.hasOwn(TARGET_MODES, mode)) return false;
+    const tower = this.towers.find(t => t.id === id);
+    if (!tower) return false;
+    tower.targetMode = mode;
+    this.message = `${TOWERS[tower.type].name} at site ${tower.pad + 1}: target ${TARGET_MODES[mode].name.toLowerCase()}.`;
+    return true;
   }
   upgradeCost(tower) { return tower.level === 1 ? 5000 : 10000; }
   spend(cost) {
@@ -211,7 +224,10 @@ export class Game {
   }
   targetsFor(tower) {
     const range = TOWERS[tower.type].range + (tower.level - 1) * 18;
-    return this.enemies.filter(enemy => distance(tower, enemy) <= range).sort((a, b) => b.progress - a.progress);
+    const speed = enemy => enemy.speed * (enemy.slowUntil > this.time ? .55 : 1);
+    const priority = tower.targetMode === 'strongest' ? enemy => enemy.hp : tower.targetMode === 'fastest' ? speed : enemy => enemy.progress;
+    return this.enemies.filter(enemy => enemy.hp > 0 && distance(tower, enemy) <= range)
+      .sort((a, b) => priority(b) - priority(a) || b.progress - a.progress);
   }
   step(dt) {
     if (this.phase !== 'running' || !this.access || !Number.isFinite(dt) || dt <= 0) return;
@@ -309,7 +325,8 @@ export class Game {
     }
     // Explicit fields only: browser saves are editable development data, never an entitlement proof.
     for (const key of ['phase', 'wave', 'health', 'shield', 'sap', 'score', 'kills', 'time', 'tree', 'rarity', 'style', 'access', 'spawnTimer', 'boostUntil', 'nextId']) game[key] = data[key];
-    game.towers = data.towers.map(t => ({ ...t, level: game.forest.levels[t.type], x: PADS[t.pad][0], y: PADS[t.pad][1] }));
+    // Optional tactical orders default safely for old/edited saves without losing progress.
+    game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: game.forest.levels[t.type], x: PADS[t.pad][0], y: PADS[t.pad][1] }));
     game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress) })); game.queue = [...data.queue];
     game.message = 'Preview save restored. Continue your defense.';
     if (game.phase === 'running') game.phase = 'paused';
