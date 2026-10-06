@@ -49,7 +49,7 @@ test('poison defeats also carry a silhouette event without emitting per-frame hi
 
 test('the final-wave warning precedes exactly one real boss arrival', () => {
   const game = preview(); game.wave = 9; game.startWave();
-  assert.deepEqual(game.events[0], { type: 'wave-start', wave: 10, chapter: 0 });
+  assert.deepEqual(game.events[0], { type: 'wave-start', wave: 10, chapter: 0, enemyRules: 1 });
   assert.deepEqual(bossStatus(game), { state: 'incoming' });
   for (let i = 0; i < 1000 && game.queue.length; i++) game.step(.05);
   assert.equal(game.events.filter(event => event.type === 'boss-arrival').length, 1);

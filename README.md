@@ -26,7 +26,9 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.10
+## Fantasy forest build · v0.11
+
+- New-run moths make brief speed bursts; blight pests regenerate between hits, with poison suppressing recovery. Scouting explains the counters and battlefield markers show active traits. Older saved runs keep original rules until a fresh run. See [enemy behaviors and balance](docs/enemy-behaviors.md).
 
 - **Earn your roster:** start with Oak and Pine, earn Palm/Cypress/Mushroom by clearing Emerald Crossing waves 2/4/6, the Archer Watchtower by protecting that chapter, Willow at 4 best campaign stars, and the Sap Cannon by protecting Sunpetal Meadow. Locked cards show requirements and progress. Unlocks stay across runs. Existing preview saves keep all five original guardians and purchased growth. See [earned defenders and art prompts](docs/earned-defenders.md).
 - Three new playable roles: Willow chains a pulse between up to three nearby pests; the Watchtower fires long-range armor-piercing bolts; the Cannon splashes crowded pests. Structure weapons turn independently on fixed painterly foundations.
@@ -59,7 +61,7 @@ The server binds to localhost by default and serves only game assets. Do not dou
 
 ## Agreed game model
 
-The core remains fixed-route tower defense around the Tree of Life. The accepted direction is lasting roster progression plus seasonal themes such as Halloween, Thanksgiving and Christmas. See [seasons and progression design](docs/seasons-and-progression.md) for proposed event challenges, earnable cosmetics and the implementation sequence. Seasonal events are planned and are not playable in v0.10.
+The core remains fixed-route tower defense around the Tree of Life. The accepted direction is lasting roster progression plus seasonal themes such as Halloween, Thanksgiving and Christmas. See [seasons and progression design](docs/seasons-and-progression.md) for proposed event challenges, earnable cosmetics and the implementation sequence. Seasonal events are planned and are not playable in v0.11.
 
 | Feature | Requirement |
 | --- | --- |

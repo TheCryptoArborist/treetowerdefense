@@ -64,3 +64,7 @@
 @media(max-width:600px){.tower-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tower-card,.tower-card.active{display:flex;gap:8px;text-align:left;padding:8px;min-height:130px}.tower-card .tree-icon{width:52px;height:70px;margin:0}.tower-card strong{font-size:11px}.tower-card .roster-role,.roster-progress{font-size:9px}.tower-card b{font-size:9px}.roster-summary,.roster-next{font-size:10px}}
 
 .future-tower-copy>p{font-size:11px;line-height:1.65;color:var(--muted)}
+
+/* Readable counterplay under each scouting portrait. */
+.scout-pest{min-width:145px;max-width:220px}.scout-pest small:last-child{font-size:11px;line-height:1.5;text-align:left;margin-top:7px}
+@media(max-width:600px){.scout-pest{min-width:130px}.scout-pest small:last-child{font-size:11px}}

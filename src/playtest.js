@@ -2,9 +2,9 @@ import { TOWERS, PRICES, GROWTH_NAMES, waveLineup } from './engine.js';
 
 const PEST_GUIDE = {
   termite: { name: 'Termites', trait: 'Steady march', counter: 'Pine gives reliable coverage; Oak hits clusters.' },
-  moth: { name: 'Moths', trait: 'Fast movers', counter: 'Palm slows fast moths so your other guardians can finish them.' },
+  moth: { name: 'Moths', trait: 'Fast movers · short dashes', counter: 'Moths dash 20% faster for 0.65 seconds every four seconds, starting two seconds after arrival. Palm slows still work during a dash; Fastest targeting follows their current speed.' },
   beetle: { name: 'Beetles', trait: 'Armored', counter: 'Beetles resist direct hits. Add sustained coverage; unlocked poison or armor-piercing defenders offer other options.' },
-  blight: { name: 'Blight pests', trait: 'Extra health', counter: 'Cypress reaches distant pests; permanent species growth adds damage.' },
+  blight: { name: 'Blight pests', trait: 'Extra health · regeneration', counter: 'After two seconds without a hit, blight recovers 0.6% maximum health per second. Sustained attacks delay recovery; Mushroom poison suppresses it.' },
   boss: { name: 'Blight King', trait: 'Final boss', counter: 'The Blight King hits the Tree of Life hard. Combine damage and Palm slows.' },
 };
 
@@ -12,22 +12,24 @@ const WAVE_BRIEFINGS = [
   ['First roots', 'Eight termites approach. Pine and Oak can cover the opening bends; watch their reach before expanding.'],
   ['Armored advance', 'Two armored beetles join the termites. They take more hits: extend your coverage using earned Sap.'],
   ['Moth rush', 'Fast moths arrive alongside beetles. Palm can slow them; a guardian farther along the route catches survivors.'],
-  ['Blight arrives', 'Tougher blight pests join the mix. Extend Pine and Oak coverage and support them with Palm slows. Clearing this wave earns Cypress on a fresh roster.'],
+  ['Blight arrives', 'Tougher blight pests recover between attacks. Extend Pine and Oak coverage and support them with Palm slows. Clearing this wave earns Cypress on a fresh roster.'],
   ['Mixed assault', 'Armor, speed, and blight attack together. Plant beyond the entrance and combine guardian roles.'],
-  ['Pressure builds', 'More armored and blight pests crowd the route. Reinforce later bends with earned Sap before sending the wave.'],
-  ['Swarming wings', 'Five fast moths run with a tougher escort. Slow the rush and keep damage coverage at multiple bends.'],
+  ['Pressure builds', 'More armored and blight pests crowd the route. Keep blight under fire; clearing this wave earns Mushroom poison to suppress recovery.'],
+  ['Swarming wings', 'Five fast moths dash with a tougher escort. Try Palm slows and Fastest targeting on a rapid-fire defender.'],
   ['Heavy escort', 'Six beetles and six moths test your defense together. Check slow support and damage coverage before sending them.'],
-  ['Last stand', 'The largest mixed escort so far approaches. Fill gaps along the route and prepare for the King next.'],
+  ['Last stand', 'The largest mixed escort so far approaches. Poison suppresses blight recovery while armor-piercing bolts handle beetles. Prepare for the King next.'],
   ['Blight King', 'The King follows a mixed escort. Combine damage, poison, and Palm slows; protect the final bends.']
 ];
-export function scoutWave(chapter, wave) {
+export function scoutWave(chapter, wave, enemyRules = 1) {
   const lineup = waveLineup(chapter, wave);
   const groups = Object.entries(PEST_GUIDE).flatMap(([kind, info]) => {
     const count = lineup.filter(pest => pest === kind).length;
-    return count ? [{ kind, count, ...info }] : [];
+    const legacy = enemyRules === 0 && ['moth','blight'].includes(kind);
+    const details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : info;
+    return count ? [{ kind, count, ...details }] : [];
   });
   const [title, tip] = lineup.length ? WAVE_BRIEFINGS[wave-1] : ['', ''];
-  return { wave, title, total: lineup.length, groups, tip };
+  return { wave, title, total: lineup.length, groups, tip: enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : tip };
 }
 
 export function starterTip(game) {

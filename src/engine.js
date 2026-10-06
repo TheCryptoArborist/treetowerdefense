@@ -91,6 +91,17 @@ export function waveLineup(chapter, wave) {
   return lineup;
 }
 
+// Shared by movement, targeting and presentation; legacy pests have no new traits.
+export function mothDashing(enemy, time) {
+  return enemy.behavior === 1 && enemy.kind === 'moth' && (time - enemy.bornAt) % 4 >= 2 && (time - enemy.bornAt) % 4 < 2.65;
+}
+export function enemySpeed(enemy, time) {
+  return enemy.speed * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
+}
+export function blightHealing(enemy, time) {
+  return enemy.behavior === 1 && enemy.kind === 'blight' && enemy.hp > 0 && enemy.hp < enemy.maxHp && enemy.poisonUntil <= time && enemy.recoverAt <= time;
+}
+
 export class Game {
   constructor() {
     this.version = 2;
@@ -109,6 +120,7 @@ export class Game {
     this.towers = []; this.enemies = []; this.queue = []; this.shots = [];
     this.spawnTimer = 0; this.boostUntil = 0; this.nextId = 1;
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
+    this.enemyRules = 1;
   }
   get unlockedChapter() {
     const first = this.forest.stars.findIndex(stars => stars === 0);
@@ -206,7 +218,7 @@ export class Game {
     if (!this.access || this.phase !== 'build' || this.wave >= 10) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
     this.queue = waveLineup(this.chapter, this.wave);
-    this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter });
+    this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter, enemyRules: this.enemyRules });
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
     return true;
   }
@@ -215,6 +227,7 @@ export class Game {
     const hp = kind === 'boss' ? 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
       slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: PATH[0][0], y: PATH[0][1] };
+    if (this.enemyRules === 1) Object.assign(e, { behavior: 1, bornAt: this.time, recoverAt: this.time + 2 });
     this.enemies.push(e);
     if (kind === 'boss') this.events.push({ type: 'boss-arrival', id: e.id });
     return e;
@@ -245,6 +258,7 @@ export class Game {
     // Presentation events report actual hits; they never determine combat or rewards.
     const dealt = Math.min(Math.max(0, enemy.hp), damage);
     enemy.hp -= damage;
+    if (dealt > 0 && enemy.behavior === 1) enemy.recoverAt = this.time + 2;
     if (dealt > 0) this.events.push({ type: 'hit', id: enemy.id, x: enemy.x, y: enemy.y, kind: enemy.kind, source, style, damage: dealt });
   }
   resolveKills() {
@@ -258,7 +272,7 @@ export class Game {
   }
   targetsFor(tower) {
     const range = TOWERS[tower.type].range + (tower.level - 1) * 18;
-    const speed = enemy => enemy.speed * (enemy.slowUntil > this.time ? .55 : 1);
+    const speed = enemy => enemySpeed(enemy, this.time);
     const priority = tower.targetMode === 'strongest' ? enemy => enemy.hp : tower.targetMode === 'fastest' ? speed : enemy => enemy.progress;
     return this.enemies.filter(enemy => enemy.hp > 0 && distance(tower, enemy) <= range)
       .sort((a, b) => priority(b) - priority(a) || b.progress - a.progress);
@@ -270,7 +284,8 @@ export class Game {
     if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = waveSpawnInterval(this.wave); }
     for (const enemy of this.enemies) {
       if (enemy.poisonUntil > this.time) enemy.hp -= enemy.poisonDamage * dt;
-      enemy.progress += enemy.speed * dt * (enemy.slowUntil > this.time ? 0.55 : 1);
+      if (blightHealing(enemy,this.time)) enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * .006 * dt);
+      enemy.progress += enemySpeed(enemy,this.time) * dt;
       Object.assign(enemy, pointAt(enemy.progress));
     }
     this.resolveKills();
@@ -386,6 +401,13 @@ export class Game {
     // Optional tactical orders default safely for old/edited saves without losing progress.
     game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: game.forest.levels[t.type], x: PADS[t.pad][0], y: PADS[t.pad][1] }));
     game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress) })); game.queue = [...data.queue];
+    // Preserve old active runs, including future queued spawns, under their original rules.
+    game.enemyRules = data.enemyRules === 1 ? 1 : 0;
+    for (const enemy of game.enemies) {
+      if (enemy.behavior !== 1 || !validNumber(enemy.bornAt) || enemy.bornAt > game.time || !validNumber(enemy.recoverAt)) {
+        delete enemy.behavior; delete enemy.bornAt; delete enemy.recoverAt;
+      }
+    }
     game.message = 'Preview save restored. Continue your defense.';
     if (game.phase === 'running') game.phase = 'paused';
     return game;

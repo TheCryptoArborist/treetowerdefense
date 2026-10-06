@@ -359,16 +359,16 @@ function renderGuide() {
   }
 }
 function renderScout() {
-  const signature = `${game.chapter}:${game.wave}:${game.phase}`;
+  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}`;
   if (signature === scoutSignature) return;
   scoutSignature = signature;
-  const scout = scoutWave(game.chapter, game.wave + 1);
+  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules);
   $('scout-title').textContent = game.wave === 10 ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave} · ${scout.title}`;
   $('scout-total').textContent = scout.total ? `${scout.total} PESTS${scout.wave === 10 ? ' · BOSS WAVE' : ''}` : '10 OF 10';
   $('scout-pests').replaceChildren();
   for (const group of scout.groups) {
     const card = document.createElement('div'); card.className = 'scout-pest';
-    card.innerHTML = `<canvas width="96" height="92" aria-hidden="true"></canvas><strong>${group.name} <b>×${group.count}</b></strong><small>${group.trait}</small>`;
+    card.innerHTML = `<canvas width="96" height="92" aria-hidden="true"></canvas><strong>${group.name} <b>×${group.count}</b></strong><small>${group.trait}</small><small>${group.counter}</small>`;
     const c = card.querySelector('canvas').getContext('2d'), scale = group.kind === 'boss' ? .5 : .65; c.translate(48,59); c.scale(scale,scale);
     paintPest(c,{kind:group.kind,x:0,y:0,id:0,hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0);
     $('scout-pests').append(card);

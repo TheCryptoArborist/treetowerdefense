@@ -1,4 +1,4 @@
-import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt } from './engine.js';
+import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing } from './engine.js';
 import { GUARDIAN_SCALE } from './aiming.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
@@ -431,6 +431,14 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
   const march=Math.sin(clock*14+e.id)*3;
+  if(mothDashing(e,time)) {
+    // Static streaks remain legible with reduced motion; phase follows battle time.
+    for(const side of [-1,1])line(c,[[side*20,22],[side*20,37]],'#d5c9a0',2);
+  }
+  if(blightHealing(e,time)) {
+    c.strokeStyle='#b78dac';c.lineWidth=2;c.beginPath();c.ellipse(0,4,27,32,0,0,TAU);c.stroke();
+    line(c,[[16,-35],[16,-27]],'#d6b2cb',2);line(c,[[12,-31],[20,-31]],'#d6b2cb',2);
+  }
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
     line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);
     line(c,[[side*9,i*8],[side*18,i*12+march*side]],colors[0],1.4);

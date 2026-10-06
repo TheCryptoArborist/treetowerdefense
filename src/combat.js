@@ -17,7 +17,7 @@ export class CombatFeedback {
       } else if (event.type === 'boss-arrival') {
         this.announce('THE BLIGHT KING HAS ARRIVED', 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
       } else if (event.type === 'wave-start') {
-        const briefing = scoutWave(event.chapter ?? 0, event.wave);
+        const briefing = scoutWave(event.chapter ?? 0, event.wave, event.enemyRules ?? 1);
         this.announce(event.wave === 10 ? 'FINAL WAVE · BLIGHT KING INCOMING' : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, event.wave === 10 ? 'danger' : 'normal', 4);
       } else if (event.type === 'wave-clear' && event.wave < 10) {
         this.announce(`WAVE ${event.wave} CLEARED`, `+${event.sap} Sap earned. Prepare your next defense.`, 'success', 3.5);
