@@ -17,7 +17,21 @@ export const TOWERS = {
   palm: { name: 'Palm', role: 'Wind snare', cost: 90, range: 180, damage: 12, interval: 0.85, color: '#a0c96c', icon: '✳', description: 'Slows a target for two seconds with every hit.' },
   cypress: { name: 'Cypress', role: 'Piercing roots', cost: 120, range: 230, damage: 42, interval: 1.1, color: '#64a8cf', icon: '◆', description: 'Long-range strikes that hit a second nearby pest.' },
   mushroom: { name: 'Mushroom', role: 'Spore cloud', cost: 100, range: 155, damage: 10, interval: 1.0, color: '#c58bce', icon: '●', description: 'Poisons nearby pests for damage over time.' },
+  willow: { name: 'Willow', role: 'Chain pulse', cost: 145, range: 190, damage: 30, interval: 1.15, color: '#9ac6bd', icon: 'ϟ', description: 'A charged branch pulse jumps to two nearby pests for 65% then 40% damage.' },
+  watchtower: { name: 'Archer Watchtower', role: 'Armor-piercing bolt', cost: 160, range: 275, damage: 54, interval: 1.4, color: '#c6b183', icon: '⌂', structure: true, description: 'A mounted bow fires long-range bolts that ignore beetle armor.' },
+  cannon: { name: 'Sap Cannon', role: 'Sap bombardment', cost: 180, range: 200, damage: 66, interval: 1.9, color: '#d2a35d', icon: '●', structure: true, description: 'Slow heavy shells splash nearby pests for 70% damage within 95 range.' },
 };
+export const ORIGINAL_GUARDIANS = Object.freeze(['oak', 'pine', 'palm', 'cypress', 'mushroom']);
+export const UNLOCKS = Object.freeze({
+  oak: { label: 'Starter guardian', kind: 'starter' },
+  pine: { label: 'Starter guardian', kind: 'starter' },
+  palm: { label: 'Clear wave 2 in Emerald Crossing', kind: 'wave', chapter: 0, wave: 2 },
+  cypress: { label: 'Clear wave 4 in Emerald Crossing', kind: 'wave', chapter: 0, wave: 4 },
+  mushroom: { label: 'Clear wave 6 in Emerald Crossing', kind: 'wave', chapter: 0, wave: 6 },
+  willow: { label: 'Earn 4 campaign stars', kind: 'stars', stars: 4 },
+  watchtower: { label: 'Protect Emerald Crossing', kind: 'chapter', chapter: 0 },
+  cannon: { label: 'Protect Sunpetal Meadow', kind: 'chapter', chapter: 1 },
+});
 export const PRICES = Object.freeze({ shield: 3000, fertilizer: 5000, storm: 8000, continue: 20000 });
 export const CHAPTERS = [
   { name: 'Emerald Crossing', subtitle: 'A small forest. A big beginning.', terrain: '#b5d87b', grass: '#a4c765', path: '#e1c998', difficulty: 1 },
@@ -84,7 +98,7 @@ export class Game {
     this.rarity = 0;
     this.style = 0;
     this.access = false;
-    this.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, 1])), stars: CHAPTERS.map(() => 0) };
+    this.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, 1])), stars: CHAPTERS.map(() => 0), rosterVersion: 1, bestWaves: CHAPTERS.map(() => 0), unlocked: ['oak', 'pine'] };
     this.chapter = 0;
     this.newRun();
   }
@@ -101,6 +115,25 @@ export class Game {
     return first === -1 ? CHAPTERS.length - 1 : first;
   }
   get forestRank() { return this.forest.stars.filter(stars => stars > 0).length; }
+  isUnlocked(type) { return Object.hasOwn(TOWERS, type) && this.forest.unlocked.includes(type); }
+  unlockStatus(type) {
+    if (!Object.hasOwn(UNLOCKS, type)) return null;
+    const rule = UNLOCKS[type], unlocked = this.isUnlocked(type);
+    const current = rule.kind === 'stars' ? this.forest.stars.reduce((a,b) => a+b,0) : rule.kind === 'chapter' ? Number(this.forest.stars[rule.chapter] > 0) : rule.kind === 'wave' ? this.forest.bestWaves[rule.chapter] : 1;
+    const goal = rule.stars ?? rule.wave ?? 1;
+    return { unlocked, label: rule.label, current: Math.min(current, goal), goal };
+  }
+  refreshUnlocks(announce = true) {
+    const earned = [];
+    for (const type of Object.keys(TOWERS)) {
+      const status = this.unlockStatus(type);
+      if (!status.unlocked && status.current >= status.goal) {
+        this.forest.unlocked.push(type); earned.push(type);
+        if (announce) this.events.push({ type: 'roster-unlock', defender: type });
+      }
+    }
+    return earned;
+  }
   chooseChapter(chapter) {
     if (!this.access || !Number.isInteger(chapter) || chapter < 0 || chapter >= CHAPTERS.length || chapter > this.unlockedChapter) return false;
     this.chapter = chapter; this.newRun();
@@ -124,6 +157,7 @@ export class Game {
   }
   place(type, pad) {
     if (!this.access || !['build', 'running', 'paused'].includes(this.phase) || !Object.hasOwn(TOWERS, type) || !Number.isInteger(pad) || !PADS[pad]) return false;
+    if (!this.isUnlocked(type)) { this.message = `${TOWERS[type].name} locked. ${UNLOCKS[type].label}.`; return false; }
     if (this.towers.some(t => t.pad === pad)) return false;
     const definition = TOWERS[type];
     if (this.sap < definition.cost) { this.message = 'Earn more Sap by defeating pests.'; return false; }
@@ -261,12 +295,22 @@ export class Game {
       this.events.push({ type: 'attack', towerId: tower.id, targetId: target.id, x: tower.x, y: tower.y, tx: target.x, ty: target.y, guardian: tower.type, style: tower.style, level: tower.level });
       tower.cooldown = definition.interval;
       const damage = definition.damage * (1 + (tower.level - 1) * 0.6) * (this.boostUntil > this.time ? 1.5 : 1);
-      const armor = target.kind === 'beetle' ? 0.8 : 1;
+      const armor = target.kind === 'beetle' && tower.type !== 'watchtower' ? 0.8 : 1;
       this.strike(target, damage * armor, tower.type, tower.style);
       if (tower.type === 'oak') this.enemies.filter(e => e.id !== target.id && distance(e, target) < 70).forEach(e => this.strike(e, damage * 0.55, tower.type, tower.style));
       if (tower.type === 'palm') target.slowUntil = this.time + 2;
       if (tower.type === 'cypress' && targets[1]) this.strike(targets[1], damage * 0.5, tower.type, tower.style);
       if (tower.type === 'mushroom') this.enemies.filter(e => distance(e, target) < 65).forEach(e => { e.poisonUntil = this.time + 3; e.poisonDamage = 14 * tower.level; });
+      if (tower.type === 'cannon') this.enemies.filter(e => e.hp > 0 && e.id !== target.id && distance(e, target) < 95).forEach(e => this.strike(e, damage * .7 * (e.kind === 'beetle' ? .8 : 1), tower.type, tower.style));
+      if (tower.type === 'willow') {
+        const visited = new Set([target.id]); let previous = target;
+        for (const multiplier of [.65, .4]) {
+          const next = this.enemies.filter(e => e.hp > 0 && !visited.has(e.id) && distance(e, previous) <= 95).sort((a,b) => distance(a,previous) - distance(b,previous) || b.progress - a.progress)[0];
+          if (!next) break;
+          this.events.push({ type: 'chain', towerId: tower.id, x: previous.x, y: previous.y, tx: next.x, ty: next.y, guardian: 'willow', style: tower.style, level: tower.level });
+          this.strike(next, damage * multiplier * (next.kind === 'beetle' ? .8 : 1), tower.type, tower.style); visited.add(next.id); previous = next;
+        }
+      }
       this.shots.push({ x: tower.x, y: tower.y, tx: target.x, ty: target.y, type: tower.type, style: tower.style, life: 0.32 });
       this.resolveKills();
     }
@@ -275,13 +319,15 @@ export class Game {
       this.sap += 85; this.score += this.health * 5;
       this.shots = [];
       this.phase = this.wave === 10 ? 'victory' : 'build';
+      this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
       this.events.push({ type: 'wave-clear', wave: this.wave, sap: 85 });
       if (this.phase === 'victory') {
         const stars = this.health >= 80 ? 3 : this.health >= 40 ? 2 : 1;
         this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
         this.events.push({ type: 'victory', x: 940, y: 640 });
       }
-      this.message = this.phase === 'victory' ? 'Final wave cleared. The Tree of Life stands!' : `Wave ${this.wave} cleared. +85 Sap. Prepare your next defense.`;
+      const earned = this.refreshUnlocks();
+      this.message = (this.phase === 'victory' ? 'Final wave cleared. The Tree of Life stands!' : `Wave ${this.wave} cleared. +85 Sap. Prepare your next defense.`) + (earned.length ? ` Unlocked: ${earned.map(type => TOWERS[type].name).join(', ')}. Ready to plant with Sap.` : '');
     }
   }
   snapshot() {
@@ -310,11 +356,12 @@ export class Game {
     const game = new Game();
     if (data.version === 2) {
       if (!data.forest || !data.forest.levels || !Array.isArray(data.forest.stars) || data.forest.stars.length !== CHAPTERS.length) return null;
-      if (!Object.keys(TOWERS).every(type => Number.isInteger(data.forest.levels[type]) && data.forest.levels[type] >= 1 && data.forest.levels[type] <= 3)) return null;
+      if (!Object.keys(TOWERS).every(type => { const level = data.forest.levels[type]; return level === undefined && !ORIGINAL_GUARDIANS.includes(type) || Number.isInteger(level) && level >= 1 && level <= 3; })) return null;
       if (!data.forest.stars.every(stars => Number.isInteger(stars) && stars >= 0 && stars <= 3)) return null;
       let gap = false;
       for (const stars of data.forest.stars) { if (!stars) gap = true; else if (gap) return null; }
-      game.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, data.forest.levels[type]])), stars: [...data.forest.stars] };
+      game.forest.levels = Object.fromEntries(Object.keys(TOWERS).map(type => [type, data.forest.levels[type] ?? 1]));
+      game.forest.stars = [...data.forest.stars];
       if (!Number.isInteger(data.chapter) || data.chapter < 0 || data.chapter > game.unlockedChapter) return null;
       game.chapter = data.chapter;
       if (data.towers.some(t => t.level !== game.forest.levels[t.type])) return null;
@@ -323,6 +370,17 @@ export class Game {
       for (const tower of data.towers) game.forest.levels[tower.type] = Math.max(game.forest.levels[tower.type], tower.level);
       if (data.phase === 'victory') game.forest.stars[0] = data.health >= 80 ? 3 : data.health >= 40 ? 2 : 1;
     }
+    // Old previews offered all five originals. Keep them, active defenders, and paid growth.
+    const hasRoster = data.version === 2 && data.forest.rosterVersion === 1;
+    const savedWaves = hasRoster && Array.isArray(data.forest.bestWaves) ? data.forest.bestWaves : [];
+    game.forest.bestWaves = CHAPTERS.map((_,i) => Math.max(
+      Number.isInteger(savedWaves[i]) && savedWaves[i] >= 0 && savedWaves[i] <= 10 ? savedWaves[i] : 0,
+      game.forest.stars[i] > 0 ? 10 : 0,
+      !hasRoster && i === game.chapter ? Math.max(0, data.wave - (['running','paused','defeat'].includes(data.phase) ? 1 : 0)) : 0
+    ));
+    const granted = hasRoster && Array.isArray(data.forest.unlocked) ? data.forest.unlocked.filter(type => typeof type === 'string' && Object.hasOwn(TOWERS,type)) : hasRoster ? [] : ORIGINAL_GUARDIANS;
+    game.forest.unlocked = [...new Set(['oak','pine', ...granted, ...data.towers.map(t => t.type), ...Object.keys(TOWERS).filter(type => game.forest.levels[type] > 1)])];
+    game.refreshUnlocks(false);
     // Explicit fields only: browser saves are editable development data, never an entitlement proof.
     for (const key of ['phase', 'wave', 'health', 'shield', 'sap', 'score', 'kills', 'time', 'tree', 'rarity', 'style', 'access', 'spawnTimer', 'boostUntil', 'nextId']) game[key] = data[key];
     // Optional tactical orders default safely for old/edited saves without losing progress.

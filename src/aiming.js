@@ -13,6 +13,7 @@ export class GuardianAiming {
   clear() { this.poses = new Map(); this.shots = []; this.time = 0; }
   consume(events) {
     for (const event of events) {
+      if (event.type === 'chain') { this.shots.push({ ...event, type: 'willow', origin: {x:event.x,y:event.y}, life: SHOT_DURATION }); continue; }
       if (event.type !== 'attack') continue;
       const facing = facingFor(event.tx - event.x, event.ty - event.y);
       this.poses.set(event.towerId, { facing, targetId: event.targetId, hold: SHOT_DURATION, attack: .18 });

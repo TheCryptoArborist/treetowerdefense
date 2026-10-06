@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { Game, TOWERS, CHAPTERS } from '../src/engine.js';
+import { Game, TOWERS, CHAPTERS, ORIGINAL_GUARDIANS } from '../src/engine.js';
 
 export const MIXED_PLACEMENTS = [
   ['pine',0],['oak',1],['pine',2],['palm',4],['cypress',11],['mushroom',6],
@@ -16,6 +16,8 @@ export const BALANCE_PROFILES = {
 // Fixed placements are representative engine scenarios, not a model of human skill.
 export function simulateDefense(chapter, profile) {
   const game = new Game(); game.allowPreview();
+  // Retain the original five-guardian audit as a baseline for existing preview saves.
+  game.forest.unlocked = [...ORIGINAL_GUARDIANS];
   game.forest.stars = CHAPTERS.map((_,i)=>i<chapter?3:0);
   if (!game.chooseChapter(chapter)) throw new Error('Invalid audit chapter');
   const rows = [];

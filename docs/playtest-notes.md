@@ -1,6 +1,10 @@
-# Guided playtest, combat feedback, and aiming · v0.9
+# Guided playtest, combat feedback, and aiming · v0.10
 
 This remains a development preview: simulated NFTree ownership and TREE balances, no wallet connection, token transfer, or financial rewards.
+
+## Earn new defenders
+
+See [earned defenders](earned-defenders.md) for all eight roles and their milestones. A fresh preview starts with Oak and Pine; older saves keep their original five guardians. Unlocks are earned through cleared waves and best chapter stars, shown on roster cards, and preserved across fresh runs. Upgrades, supplies and continues still use simulated TREE. The Watchtower and Cannon now have playable rotating weapons; Thorn Bastion and Root Obelisk remain future concepts.
 
 ## Start a guided run
 
@@ -50,5 +54,7 @@ Use a desktop browser and a phone (or a mobile viewport) to check:
 9. Follow the [wave balance playtest](wave-balance.md#manual-playtest). Check that armor, speed, and blight are visibly distinct by waves 2–4, and that adding defenses with Sap handles the first chapter. Try a replay with existing permanent growth; the opening should reward those purchases, while later gaps still matter.
 
 10. Follow the [guardian targeting playtest](guardian-targeting.md#manual-playtest). Change orders between mixed waves, confirm target/facing agreement, and verify keyboard focus after changing the native select.
+
+11. Follow the [earned roster checks](earned-defenders.md#manual-playtest): milestone notices, locked hotkeys, new combat roles, structure rotation, saved progression and narrow-screen card requirements.
 
 The next launch milestone is verified NFTree ownership and TREE payment integration. The production recipient, finalized prices, current NFT ownership/rarity data, and authoritative payment verification must be settled before enabling real purchases. Existing browser saves remain editable preview data.

@@ -3,7 +3,7 @@ import { TOWERS, PRICES, GROWTH_NAMES, waveLineup } from './engine.js';
 const PEST_GUIDE = {
   termite: { name: 'Termites', trait: 'Steady march', counter: 'Pine gives reliable coverage; Oak hits clusters.' },
   moth: { name: 'Moths', trait: 'Fast movers', counter: 'Palm slows fast moths so your other guardians can finish them.' },
-  beetle: { name: 'Beetles', trait: 'Armored', counter: 'Beetles resist direct hits. Add sustained attacks and Mushroom poison.' },
+  beetle: { name: 'Beetles', trait: 'Armored', counter: 'Beetles resist direct hits. Add sustained coverage; unlocked poison or armor-piercing defenders offer other options.' },
   blight: { name: 'Blight pests', trait: 'Extra health', counter: 'Cypress reaches distant pests; permanent species growth adds damage.' },
   boss: { name: 'Blight King', trait: 'Final boss', counter: 'The Blight King hits the Tree of Life hard. Combine damage and Palm slows.' },
 };
@@ -12,7 +12,7 @@ const WAVE_BRIEFINGS = [
   ['First roots', 'Eight termites approach. Pine and Oak can cover the opening bends; watch their reach before expanding.'],
   ['Armored advance', 'Two armored beetles join the termites. They take more hits: extend your coverage using earned Sap.'],
   ['Moth rush', 'Fast moths arrive alongside beetles. Palm can slow them; a guardian farther along the route catches survivors.'],
-  ['Blight arrives', 'Tougher blight pests join the mix. Cypress adds reach and piercing; Mushroom poisons nearby groups.'],
+  ['Blight arrives', 'Tougher blight pests join the mix. Extend Pine and Oak coverage and support them with Palm slows. Clearing this wave earns Cypress on a fresh roster.'],
   ['Mixed assault', 'Armor, speed, and blight attack together. Plant beyond the entrance and combine guardian roles.'],
   ['Pressure builds', 'More armored and blight pests crowd the route. Reinforce later bends with earned Sap before sending the wave.'],
   ['Swarming wings', 'Five fast moths run with a tougher escort. Slow the rush and keep damage coverage at multiple bends.'],

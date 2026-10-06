@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Game, TOWERS, PATH_LENGTH, pointAt } from '../src/engine.js';
 import { CombatFeedback, bossStatus } from '../src/combat.js';
 
-const preview = () => { const game = new Game(); game.allowPreview(); return game; };
+const preview = () => { const game = new Game(); game.allowPreview(); game.forest.unlocked = Object.keys(TOWERS); return game; };
 function at(enemy, progress) { enemy.progress = progress; Object.assign(enemy, pointAt(progress)); return enemy; }
 
 test('hit feedback matches armor, splash and piercing damage without spending extra currency', () => {
@@ -16,9 +16,9 @@ test('hit feedback matches armor, splash and piercing damage without spending ex
     const hits = game.events.filter(event => event.type === 'hit');
     assert.equal(hits[0].id, primary.id);
     assert.equal(hits[0].source, type);
-    assert.equal(hits[0].damage, TOWERS[type].damage * .8);
+    assert.equal(hits[0].damage, TOWERS[type].damage * (type === 'watchtower' ? 1 : .8));
     assert.equal(primary.hp, 500 - hits[0].damage);
-    if (type === 'oak' || type === 'cypress') {
+    if (['oak','cypress','willow','cannon'].includes(type)) {
       assert.equal(hits.length, 2);
       assert.equal(hits[1].id, secondary.id);
       assert.equal(secondary.hp, 500 - hits[1].damage);

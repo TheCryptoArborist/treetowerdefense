@@ -1,6 +1,6 @@
 # Future structure tower concepts
 
-These four structures appear in the **Coming later** gallery below the battlefield in v0.5.1. They are visual concepts with proposed roles, not playable towers or purchasable upgrades. No release dates, combat statistics, prices, or rarity entitlements are set here.
+These four structures first appeared as **Coming later** concepts in v0.5.1. In v0.10 the Archer Watchtower and Sap Cannon are playable earned unlocks; their original full concepts remain gallery portraits, while new weapon-free bases support independently rotating battlefield weapons. See [earned defenders](earned-defenders.md) for unlocks, test combat statistics, prices, new asset prompts and save rules. Thorn Bastion and Root Obelisk remain future concepts with proposed roles and no build or purchase controls. The notes below record the original gallery integration.
 
 | Structure | Proposed role | Asset |
 | --- | --- | --- |

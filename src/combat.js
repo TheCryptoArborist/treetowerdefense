@@ -1,3 +1,4 @@
+import { TOWERS } from './engine.js';
 import { scoutWave } from './playtest.js';
 
 // Transient presentation state: never part of a game save or combat calculation.
@@ -20,6 +21,8 @@ export class CombatFeedback {
         this.announce(event.wave === 10 ? 'FINAL WAVE · BLIGHT KING INCOMING' : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, event.wave === 10 ? 'danger' : 'normal', 4);
       } else if (event.type === 'wave-clear' && event.wave < 10) {
         this.announce(`WAVE ${event.wave} CLEARED`, `+${event.sap} Sap earned. Prepare your next defense.`, 'success', 3.5);
+      } else if (event.type === 'roster-unlock') {
+        this.announce(`${TOWERS[event.defender].name.toUpperCase()} UNLOCKED`, 'Earned through play. Select your new defender in the roster; plant it with Sap.', 'success', 5);
       } else if (event.type === 'leak' && event.kind === 'boss') {
         this.announce('THE BLIGHT KING BREACHED THE ROOTS', event.damage ? `The Tree of Life took ${event.damage} damage.` : 'Your Root Shield absorbed the attack.', 'danger', 4);
       }

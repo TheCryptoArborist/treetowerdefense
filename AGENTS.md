@@ -18,3 +18,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Client-side saved state is editable. Never use it as production payment proof, ownership proof, or prize eligibility.
 - Preserve mobile touch access and keyboard alternatives. Use labeled build-site buttons as an alternative to canvas input.
 - Run `npm test` and `npm run check` for game changes; inspect relevant browser flows when possible.
+
+- Earned roster unlocks persist across runs: Oak/Pine start; Palm/Cypress/Mushroom after Emerald waves 2/4/6; Watchtower after Emerald victory; Willow at 4 best campaign stars; Cannon after Sunpetal victory. Unlocks have no currency fee and never depend on rarity. Planting uses Sap; TREE still pays for growth, supplies and continues. Original saves retain the five previously available guardians. Thorn Bastion and Root Obelisk remain Coming later.

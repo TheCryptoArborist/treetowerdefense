@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Game, waveLineup, CHAPTERS } from '../src/engine.js';
+import { Game, TOWERS, waveLineup, CHAPTERS } from '../src/engine.js';
 import { scoutWave, starterTip, purchaseQuote, PurchaseReview } from '../src/playtest.js';
 
-const preview = () => { const game = new Game(); game.allowPreview(); return game; };
+const preview = () => { const game = new Game(); game.allowPreview(); game.forest.unlocked = Object.keys(TOWERS); return game; };
 
 test('every forecast matches the actual queue across all chapters and waves', () => {
   for (let chapter = 0; chapter < CHAPTERS.length; chapter++) for (let wave = 1; wave <= 10; wave++) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Game, TOWERS, pointAt } from '../src/engine.js';
 import { GuardianAiming, facingFor, SHOT_DURATION } from '../src/aiming.js';
 
-const preview = () => { const game = new Game(); game.allowPreview(); return game; };
+const preview = () => { const game = new Game(); game.allowPreview(); game.forest.unlocked = Object.keys(TOWERS); return game; };
 const aimEvent = (overrides = {}) => ({ type:'attack', towerId:1, targetId:2, x:100, y:100, tx:200, ty:100, guardian:'pine', style:0, level:1, ...overrides });
 function at(enemy, progress) { enemy.progress=progress; Object.assign(enemy,pointAt(progress)); return enemy; }
 
@@ -28,7 +28,7 @@ test('tracking uses the actual range and furthest-along targeting without mutati
   tower.level=2; assert.equal(game.targetsFor(tower)[0].id,outside.id);
 });
 
-test('all five guardians emit facing from the real attack target and preserve damage accounting', () => {
+test('all eight defenders emit facing from the real attack target and preserve damage accounting', () => {
   for (const type of Object.keys(TOWERS)) {
     const game=preview(); game.place(type,0); game.phase='running'; game.wave=1; game.queue=['termite']; game.spawnTimer=100;
     const enemy=at(game.spawn('beetle'),150); enemy.hp=enemy.maxHp=500;
@@ -36,7 +36,7 @@ test('all five guardians emit facing from the real attack target and preserve da
     const event=game.events.find(e=>e.type==='attack'), hit=game.events.find(e=>e.type==='hit'), tower=game.towers[0];
     assert.equal(event.targetId,enemy.id); assert.equal(event.towerId,tower.id); assert.equal(event.guardian,type);
     assert.equal(event.level,tower.level); assert.equal(event.style,tower.style);
-    assert.equal(hit.damage,TOWERS[type].damage*.8); assert.equal(enemy.hp,500-hit.damage);
+    assert.equal(hit.damage,TOWERS[type].damage*(type === 'watchtower' ? 1 : .8)); assert.equal(enemy.hp,500-hit.damage);
     const before=structuredClone(game.events), aiming=new GuardianAiming(); aiming.consume(game.events);
     assert.deepEqual(aiming.pose(tower.id).facing,facingFor(event.tx-event.x,event.ty-event.y));
     assert.equal(aiming.shots[0].type,type); assert.equal(aiming.shots[0].life,SHOT_DURATION);

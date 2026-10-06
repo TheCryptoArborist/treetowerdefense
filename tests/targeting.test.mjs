@@ -4,7 +4,7 @@ import { Game, TOWERS, pointAt, TARGET_MODES } from '../src/engine.js';
 import { GuardianAiming, facingFor } from '../src/aiming.js';
 
 function encounter(type = 'pine') {
-  const game = new Game(); game.allowPreview(5); game.place(type, 0);
+  const game = new Game(); game.allowPreview(5); game.forest.unlocked = Object.keys(TOWERS); game.place(type, 0);
   game.phase = 'running'; game.wave = 3; game.queue = ['termite']; game.spawnTimer = 100;
   const enemies = {};
   for (const [name, kind, progress, hp] of [['first','termite',270,200], ['strongest','beetle',150,600], ['fastest','moth',220,120]]) {
@@ -44,7 +44,7 @@ test('fastest uses active slows; strongest uses remaining health; ties favor pro
   assert.equal(game.targetsFor(tower)[0].id, enemies.first.id);
 });
 
-test('orders change all five real attacks and their facing together, with normal costs and cooldowns', () => {
+test('orders change all eight real attacks and their facing together, with normal costs and cooldowns', () => {
   for (const type of Object.keys(TOWERS)) for (const mode of Object.keys(TARGET_MODES)) {
     const { game, tower, enemies } = encounter(type);
     const funds = [game.sap, game.tree], cooldown = tower.cooldown;
@@ -63,7 +63,7 @@ test('orders change all five real attacks and their facing together, with normal
     assert.equal(aiming.shots[0].targetId, attack.targetId);
     assert.equal(tower.cooldown, TOWERS[type].interval);
     const hit = game.events.find(event => event.type === 'hit');
-    assert.equal(hit.damage, TOWERS[type].damage * (enemies[mode].kind === 'beetle' ? .8 : 1));
+    assert.equal(hit.damage, TOWERS[type].damage * (enemies[mode].kind === 'beetle' && type !== 'watchtower' ? .8 : 1));
     if (type === 'cypress') {
       const hits = game.events.filter(event => event.type === 'hit');
       assert.equal(hits[1].id, expectedSecond);

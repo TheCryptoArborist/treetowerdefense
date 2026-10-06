@@ -1,6 +1,6 @@
-import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES } from './engine.js';
+import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getGuardianShotOrigin } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin } from './art.js';
 import { scoutWave, starterTip, PurchaseReview } from './playtest.js';
 import { CombatFeedback, bossStatus } from './combat.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
@@ -73,8 +73,8 @@ for (const [i, type] of Object.keys(TOWERS).entries()) {
   const d = TOWERS[type]; const button = document.createElement('button');
   button.className = 'tower-card'; button.dataset.tower = type;
   button.setAttribute('aria-label', `${d.name}: ${d.role}, ${d.cost} Sap. ${d.description}`);
-  button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small>${GROWTH_NAMES[game.forest.levels[type] - 1]}</small><b>${d.cost} SAP</b></span><kbd>${i + 1}</kbd>`;
-  button.addEventListener('click', () => { selectedType = type; selectedTower = null; game.message = `${d.name} selected. Choose an empty build site (${d.cost} Sap).`; renderUI(); });
+  button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small class="roster-role">${d.role}</small><b>${d.cost} SAP</b><span class="roster-progress"></span></span><kbd>${i + 1}</kbd>`;
+  button.addEventListener('click', () => selectDefender(type));
   shapeTree(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
   $('tower-cards').append(button);
 }
@@ -90,6 +90,13 @@ for (const [i, style] of STYLES.entries()) {
 for (let i = 0; i < PADS.length; i++) {
   const button = document.createElement('button'); button.dataset.pad = i;
   button.addEventListener('click', () => choosePad(i)); $('pad-buttons').append(button);
+}
+function selectDefender(type) {
+  if (!game.access || !['build','running','paused'].includes(game.phase)) return;
+  if (!game.isUnlocked(type)) { game.message = `${TOWERS[type].name} locked. ${UNLOCKS[type].label}.`; renderUI(); return; }
+  selectedType = type; selectedTower = null;
+  game.message = `${TOWERS[type].name} selected. Choose an empty build site (${TOWERS[type].cost} Sap).`;
+  renderUI();
 }
 function dName(tower) { return TOWERS[tower.type].name; }
 function choosePad(pad) {
@@ -161,8 +168,8 @@ $('reset-button').addEventListener('click', () => {
 document.addEventListener('keydown', event => {
   if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
   const index = Number(event.key) - 1;
-  if (index >= 0 && index < 5 && Number.isInteger(index)) {
-    selectedType = Object.keys(TOWERS)[index]; selectedTower = null; renderUI();
+  if (index >= 0 && index < Object.keys(TOWERS).length && Number.isInteger(index)) {
+    selectDefender(Object.keys(TOWERS)[index]);
   } else if (event.code === 'Space') { event.preventDefault(); act(() => game.pause()); }
   else if (event.key.toLowerCase() === 'n') act(() => game.startWave());
   else if (event.key === 'Escape') { selectedTower = null; selectedType = null; renderUI(); }
@@ -199,7 +206,8 @@ function tone(frequency, duration = .08) {
 }
 let cardSignature = '';
 loadEnvironmentArt();
-loadAimArt().then(status=>{if(status.failed.length)console.warn('Some directional guardian sprites were unavailable; aiming canvas artwork is active.');});
+loadStructureArt().then(() => { cardSignature = ''; inspectorSignature = null; renderUI(); });
+loadAimArt().then(status=>{cardSignature = ''; inspectorSignature = null; renderUI(); if(status.failed.length)console.warn('Some directional guardian sprites were unavailable; aiming canvas artwork is active.');});
 loadDefenderArt().then(status => {
   cardSignature = ''; inspectorSignature = null;
   document.querySelectorAll('[data-style]').forEach(button => {
@@ -223,11 +231,11 @@ function renderUI() {
     button.querySelector('.chapter-stars').textContent = i > game.unlockedChapter ? 'Locked' : '★'.repeat(stars) + '☆'.repeat(3-stars);
     button.setAttribute('aria-label', `${CHAPTERS[i].name}: ${i > game.unlockedChapter ? 'locked' : `${stars} of 3 stars`}`);
   });
-  const nextCards = Object.values(game.forest.levels).join(':') + ':' + getDefenderArtStatus().loaded.length;
+  const nextCards = Object.values(game.forest.levels).join(':') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length;
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
       const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.forest.levels[type];
-      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level); button.querySelector('small').textContent = GROWTH_NAMES[level-1];
+      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level);
     }); cardSignature = nextCards;
   }
   if (!tower) selectedTower = null;
@@ -247,8 +255,13 @@ function renderUI() {
   $('wave-button').disabled = !game.access || game.phase !== 'build';
   $('pause-button').disabled = !['running', 'paused'].includes(game.phase); $('pause-button').textContent = game.phase === 'paused' ? 'Resume' : 'Pause';
   document.querySelectorAll('[data-tower]').forEach(button => {
-    button.classList.toggle('active', selectedType === button.dataset.tower); button.setAttribute('aria-pressed', String(selectedType === button.dataset.tower)); button.disabled = !active;
+    button.classList.toggle('active', selectedType === button.dataset.tower); button.setAttribute('aria-pressed', String(selectedType === button.dataset.tower)); const type = button.dataset.tower, status = game.unlockStatus(type);
+    button.disabled = !active || !status.unlocked;
+    button.classList.toggle('roster-locked', !status.unlocked);
+    button.querySelector('.roster-progress').textContent = status.unlocked ? `${GROWTH_NAMES[game.forest.levels[type]-1]} · unlocked` : `${status.label} · ${status.current}/${status.goal}`;
+    button.setAttribute('aria-label', `${TOWERS[type].name}: ${TOWERS[type].role}. ${status.unlocked ? `${TOWERS[type].cost} Sap. ${TOWERS[type].description}` : `Locked. ${status.label}. Progress ${status.current} of ${status.goal}.`}`);
   });
+  renderRosterProgress();
   document.querySelectorAll('[data-style]').forEach(button => {
     const i = Number(button.dataset.style); button.disabled = !game.access || i > game.rarity;
     button.classList.toggle('selected', i === (tower?.style ?? game.style)); button.setAttribute('aria-pressed', String(i === (tower?.style ?? game.style)));
@@ -269,7 +282,7 @@ function renderUI() {
   if (nextInspector !== inspectorSignature) {
   if (tower) {
     const d = TOWERS[tower.type];
-    $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">Growth applies to every ${d.name}, now and in future runs.</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><div class="target-orders"><label for="target-mode">Target priority</label><select id="target-mode" aria-describedby="target-detail">${Object.entries(TARGET_MODES).map(([mode,order]) => `<option value="${mode}" ${tower.targetMode === mode ? 'selected' : ''}>${order.name}</option>`).join('')}</select><p id="target-detail">${TARGET_MODES[tower.targetMode].detail}</p><small>This guardian only · order included</small></div><button id="upgrade-button" class="primary">${tower.level === 3 ? 'Ancient growth reached ✓' : `Grow all ${d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
+    $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">Growth applies to every ${d.name}, now and in future runs.</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><div class="target-orders"><label for="target-mode">Target priority</label><select id="target-mode" aria-describedby="target-detail">${Object.entries(TARGET_MODES).map(([mode,order]) => `<option value="${mode}" ${tower.targetMode === mode ? 'selected' : ''}>${order.name}</option>`).join('')}</select><p id="target-detail">${TARGET_MODES[tower.targetMode].detail}</p><small>This defender only · order included</small></div><button id="upgrade-button" class="primary">${tower.level === 3 ? 'Ancient growth reached ✓' : `Grow all ${d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
     shapeTree($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
     $('target-mode').disabled = !active;
     $('target-mode').addEventListener('change', event => {
@@ -297,6 +310,18 @@ function renderUI() {
     $('next-chapter').hidden = !won || game.chapter >= CHAPTERS.length-1;
     $('outcome-description').textContent = won ? `${CHAPTERS[game.chapter].name} protected. ${stars}/3 stars. Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : 'Continue to restore health and keep your towers and current wave. Preview prices only.';
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
+  }
+}
+
+function renderRosterProgress() {
+  const types = Object.keys(TOWERS), unlocked = types.filter(type => game.isUnlocked(type));
+  $('roster-summary').textContent = `${unlocked.length}/${types.length} defenders unlocked · earned progress stays across runs`;
+  const next = types.filter(type => !game.isUnlocked(type)).map(type => ({type, ...game.unlockStatus(type)}));
+  $('next-unlock').textContent = next.length ? `Next rewards: ${next.slice(0,2).map(item => `${TOWERS[item.type].name} — ${item.label} (${item.current}/${item.goal})`).join(' · ')}` : 'Full roster earned. Replay chapters to improve your stars and try new defense combinations.';
+  for (const [type,name] of [['watchtower','watchtower'],['cannon','cannon']]) {
+    const status = game.unlockStatus(type);
+    $(`${name}-badge`).textContent = status.unlocked ? 'UNLOCKED · PLAYABLE' : 'EARN THROUGH PLAY';
+    $(`${name}-requirement`).textContent = status.unlocked ? `Ready to build · ${TOWERS[type].cost} Sap. Select it in the roster above.` : `${status.label} · ${status.current}/${status.goal}`;
   }
 }
 
@@ -399,7 +424,7 @@ function draw(clock, dt) {
   for (const shot of aiming.shots) paintShot(ctx,shot);
   if (!held && aiming.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of events) {
-    if (['attack','hit','wave-start','wave-clear','boss-arrival'].includes(event.type)) continue;
+    if (['attack','chain','hit','wave-start','wave-clear','boss-arrival','roster-unlock'].includes(event.type)) continue;
     const n=event.type==='storm'?65:event.type==='victory'?80:14;
     for(let i=0;i<n;i++) particles.push({x:event.type==='storm'?random()*WIDTH:event.x,y:event.type==='storm'?random()*HEIGHT:event.y,vx:(random()-.5)*(event.type==='victory'?250:100),vy:-30-random()*90,life:event.type==='victory'?1.5:.65,max:event.type==='victory'?1.5:.65,color:event.type==='kill'?'#8d8264':event.type==='leak'?'#e88068':event.type==='upgrade'?'#f9e5a0':'#fff4b4'});
     if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#dbd9b4',life:1});

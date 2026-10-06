@@ -56,3 +56,11 @@
 .target-orders select:disabled{opacity:.5}
 .target-orders #target-detail{font-size:12px;line-height:1.5;margin:9px 0 5px;color:var(--muted)}
 .target-orders small{color:var(--gold);font-size:10px}
+
+/* Earned roster: readable requirements remain visible on disabled cards. */
+.tower-cards{grid-template-columns:repeat(4,minmax(0,1fr))}.tower-card{min-height:128px;align-items:center}.tower-card strong{overflow-wrap:anywhere}.tower-card .roster-role{font-size:9px;line-height:1.4}.roster-progress{display:block;font-size:9px;line-height:1.45;color:var(--green);margin-top:7px;white-space:normal}.tower-card.roster-locked{opacity:1;background:#19251e;border-color:#455044;color:#b6c0ad}.roster-locked .tree-icon{filter:grayscale(.75);opacity:.65}.roster-locked .roster-progress{color:#d3c3a0}.roster-locked b{opacity:.6}.roster-summary,.roster-next{font-size:11px;line-height:1.65;color:var(--muted);margin:10px 0 0}.roster-next{padding:10px 12px;border-left:2px solid var(--gold);background:#19251e;margin-bottom:4px}.tower-requirement{color:var(--gold)!important;border-top:1px solid #46533e;padding-top:10px;margin-top:12px!important;font-size:11px!important}
+@media(max-width:1150px){.tower-card{min-height:172px}}
+@media(max-width:800px){.tower-card{min-height:135px}.tower-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.tower-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tower-card,.tower-card.active{display:flex;gap:8px;text-align:left;padding:8px;min-height:130px}.tower-card .tree-icon{width:52px;height:70px;margin:0}.tower-card strong{font-size:11px}.tower-card .roster-role,.roster-progress{font-size:9px}.tower-card b{font-size:9px}.roster-summary,.roster-next{font-size:10px}}
+
+.future-tower-copy>p{font-size:11px;line-height:1.65;color:var(--muted)}

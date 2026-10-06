@@ -67,6 +67,7 @@ const defenderSprites = new Map();
 const aimSprites = new Map();
 const aimFailures = [];
 const DEFENDER_TYPES = ['oak', 'pine', 'palm', 'cypress', 'mushroom'];
+const AIM_TYPES = [...DEFENDER_TYPES, 'willow'];
 const artFailures = [];
 export function getDefenderArtStatus() {
   return { loaded: [...defenderSprites.keys()], failed: [...artFailures] };
@@ -160,7 +161,7 @@ export function getAimArtStatus() { return { loaded: [...aimSprites.keys()], fai
 // The atlas grid is approximate. Isolate connected bodies so extended weapons
 // survive cell boundaries without collecting parts of a neighboring guardian.
 export function installAimSprite(type, image, makeCanvas) {
-  if (!DEFENDER_TYPES.includes(type)) throw new Error('Unknown directional guardian');
+  if (!AIM_TYPES.includes(type)) throw new Error('Unknown directional guardian');
   const width = image.naturalWidth || image.width, height = image.naturalHeight || image.height;
   const source = makeCanvas(width, height), context = source.getContext('2d'); context.drawImage(image, 0, 0);
   const data = context.getImageData(0, 0, width, height).data, count = width * height;
@@ -231,7 +232,7 @@ export function installAimSprite(type, image, makeCanvas) {
   aimSprites.set(type,{frames,variants}); return frames;
 }
 export async function loadAimArt() {
-  await Promise.all(DEFENDER_TYPES.map(type=>new Promise(resolve=>{
+  await Promise.all(AIM_TYPES.map(type=>new Promise(resolve=>{
     const image=new Image();image.onload=()=>{
       try{installAimSprite(type,image,(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;});}catch{aimFailures.push(type);}resolve();
     };image.onerror=()=>{aimFailures.push(type);resolve();};image.src=`assets/defenders/${type}-aim-v1.png`;
@@ -241,6 +242,11 @@ export async function loadAimArt() {
 // Hand-calibrated launch points in the unmodified 1619×971 v1 atlases.
 // Growth rows: Sapling, Guardian, Ancient. Views: S, SE, E, NE, N.
 const aimSockets = {
+  willow: [
+    [[46,91],[620,129],[930,108],[1217,115],[1497,80]],
+    [[51,394],[625,454],[927,447],[1226,448],[1496,373]],
+    [[52,731],[628,786],[930,782],[1230,777],[1502,704]]
+  ],
   pine: [
     [[68,220],[511,224],[941,220],[1270,182],[1575,184]],
     [[35,538],[530,539],[950,533],[1282,495],[1603,497]],
@@ -267,6 +273,7 @@ function fallbackSocket(type,level,facing) {
   return type==='oak'?{x:0,y:17}:{x:Math.sin(angle)*38*growth,y:(-30+Math.cos(angle)*18)*growth};
 }
 export function getGuardianShotOrigin(shot) {
+  if(['watchtower','cannon'].includes(shot.type)){const socket=structureSocket(shot.type,shot.level,shot.facing,true);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
   if(shot.type==='oak')return{x:shot.x,y:shot.y+17*GUARDIAN_SCALE};
   const art=aimSprites.get(shot.type),f=art?.frames[shot.level-1]?.[shot.facing.view];
   if(!f){const socket=fallbackSocket(shot.type,shot.level,shot.facing);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
@@ -287,7 +294,7 @@ function paintAimingFallback(c,type,style,level,facing) {
   const socket=fallbackSocket(type,1,facing),hand=type==='oak'?fallbackSocket('pine',1,facing):socket;
   line(c,[[0,-30],[hand.x*.6,hand.y],[hand.x,hand.y]],wood,12);ellipse(c,hand.x,hand.y,7,6,wood,'#151c13',2);
   if(type==='pine'){ellipse(c,hand.x,hand.y,8,6,'#574b2e','#151c13',2);ellipse(c,hand.x,hand.y,3,3,p.canopy);}
-  if(type==='palm'||type==='cypress'){line(c,[[hand.x*.5,-35],[hand.x,hand.y]],'#5d4d31',5);ellipse(c,hand.x,hand.y,5,7,type==='palm'?p.canopy:'#d4c09b','#151c13',1);}
+  if(type==='palm'||type==='cypress'||type==='willow'){line(c,[[hand.x*.5,-35],[hand.x,hand.y]],'#5d4d31',5);ellipse(c,hand.x,hand.y,5,7,type==='willow'?'#abdace':type==='palm'?p.canopy:'#d4c09b','#151c13',1);}
   c.restore();
 }
 function sprout(c,x,y,dx,dy,color) {
@@ -335,13 +342,74 @@ function paintReferenceGuardian(c,type,style,level,clock,attack) {
   if(level>=2)for(const side of[-1,1])polygon(c,[[side*14,-39],[side*23,-41],[side*28,-29],[side*17,-27]],wood,ink,2.5);
   if(level===3){line(c,[[-10,-24],[-10,-4]],p.accent,2);line(c,[[10,-24],[10,-4]],p.accent,2);}
 }
+const structureSprites = new Map();
+const structureFailures = [];
+export function getStructureArtStatus() { return { loaded: [...structureSprites.keys()], failed: [...structureFailures] }; }
+export function installStructureSprite(type,image,makeCanvas) {
+  if (!['watchtower','cannon'].includes(type)) throw new Error('Unknown structure');
+  const width=image.naturalWidth||image.width,height=image.naturalHeight||image.height;
+  const source=makeCanvas(width,height),context=source.getContext('2d');context.drawImage(image,0,0);
+  const pixels=context.getImageData(0,0,width,height).data;let x0=width,y0=height,x1=0,y1=0;
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]>80){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+  if(x1<=x0||y1<=y0)throw new Error('Empty structure');
+  const bounds={x:x0,y:y0,width:x1-x0+1,height:y1-y0+1};
+  const variants=Array.from({length:3},(_,index)=>STYLES.map((_,style)=>{
+    const canvas=makeCanvas(160,180),c=canvas.getContext('2d'),h=structureMount(type,index+1).h,w=bounds.width*h/bounds.height;
+    c.filter=['none','brightness(1.12) saturate(.8)','sepia(.7) hue-rotate(210deg)','sepia(.8) saturate(1.5)','sepia(.65) hue-rotate(110deg)','sepia(.65) hue-rotate(285deg)'][style];
+    c.drawImage(image,bounds.x,bounds.y,bounds.width,bounds.height,80-w/2,160-h,w,h);c.filter='none';return canvas;
+  }));
+  structureSprites.set(type,{variants});return bounds;
+}
+export async function loadStructureArt() {
+  await Promise.all(['watchtower','cannon'].map(type=>new Promise(resolve=>{
+    const image=new Image();image.onload=()=>{try{installStructureSprite(type,image,(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;});}catch{structureFailures.push(type);}resolve();};
+    image.onerror=()=>{structureFailures.push(type);resolve();};image.src=`assets/towers/${type}-base-v1.png`;
+  })));
+  return getStructureArtStatus();
+}
+function structureMount(type,level) {
+  const h=(type==='watchtower'?110:76)+(level-1)*10;
+  return {h,y:16-h*(type==='watchtower'?.76:.68)};
+}
+function structureSocket(type,level,facing,attack=false) {
+  const mount=structureMount(type,level),angle=(facing?.direction??0)*Math.PI/4;
+  const length=(type==='watchtower'?30:36)-(attack?2:0);
+  return {x:Math.sin(angle)*length,y:mount.y+Math.cos(angle)*length};
+}
+function paintStructure(c,type,x,y,scale,style,level,attack,facing) {
+  const p=STYLES[style],mount=structureMount(type,level),art=structureSprites.get(type);
+  c.save();c.translate(x,y);c.scale(scale,scale);
+  ellipse(c,0,17,type==='watchtower'?31:44,10,'#0a100b70');
+  if(art){c.drawImage(art.variants[level-1][style],-80,-144);
+  }else{polygon(c,[[-27,16],[-23,16-mount.h],[24,16-mount.h],[29,16]],'#554c39','#171d15',3);for(let i=0;i<6;i++)line(c,[[-22,10-i*14],[22,10-i*14]],'#948064',2);}
+  if(level>=2){line(c,[[-18,10],[18,10]],'#bb9b5f',3);ellipse(c,0,10,5,3,p.accent);}
+  if(level===3)ellipse(c,0,17,32,9,p.accent+'18',p.accent+'70',2);
+  ellipse(c,0,mount.y,8,5,'#665735','#c2a16a',1.5);
+  const angle=(facing?.direction??0)*Math.PI/4;
+  c.translate(0,mount.y);c.rotate(Math.atan2(Math.cos(angle),Math.sin(angle)));if(attack)c.translate(-2,0);
+  if(type==='watchtower'){
+    line(c,[[-8,0],[26,0]],'#171912',8);line(c,[[-8,0],[26,0]],'#8e7850',4);
+    c.beginPath();c.moveTo(9,-20);c.quadraticCurveTo(27,0,9,20);c.strokeStyle='#171912';c.lineWidth=6;c.stroke();c.strokeStyle='#b7965d';c.lineWidth=3;c.stroke();
+    line(c,[[9,-20],[-2,0],[9,20]],'#d8c49a',1);polygon(c,[[22,-3],[30,0],[22,3]],p.accent,'#342e21',1);
+  }else{
+    const wood=c.createLinearGradient(0,-11,0,11);wood.addColorStop(0,'#2b241b');wood.addColorStop(.3,'#8a704b');wood.addColorStop(.65,'#55412c');wood.addColorStop(1,'#241f17');
+    polygon(c,[[-10,-11],[33,-10],[36,-7],[36,7],[33,10],[-10,11]],wood,'#151a13',2);
+    for(let i=0;i<9;i++)line(c,[[-7,-8+i*2],[8,-9+i*2],[31,-8+i*2]],i%2?'#211c1745':'#b6945540',.6);
+    line(c,[[-7,-8],[31,-7]],'#967344',2);for(const at of [0,14,30])line(c,[[at,-9],[at,9]],'#b19158',4);
+    for(const at of [0,14,30]){ellipse(c,at,-7,1.5,1.5,'#dfba78','#4f3d28',.5);ellipse(c,at,7,1.5,1.5,'#997b4b','#4f3d28',.5);}
+    ellipse(c,36,0,3,7,'#33281c','#b08a50',2);ellipse(c,36,0,1.5,4,'#e5b55b');
+  }
+  c.restore();
+}
 export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false,facing=null) {
+  if(['watchtower','cannon'].includes(type)){paintStructure(c,type,x,y,scale,style,level,attack,facing);return;}
   const p=STYLES[style];c.save();c.translate(x,y);c.scale(scale,scale);
   ellipse(c,0,17,36+(level-1)*4,10,'#26372a30');
   if(style>=2)ellipse(c,0,17,37,10,p.accent+'35',p.accent+'90',2);
   const bob=clock>0&&(!facing||!attack)?Math.sin(clock*2.5+x*.03)*1.2:0;c.translate(0,bob);
   if(attack&&!facing)c.rotate(Math.sin(clock*30)*.028);
   const sprite=defenderSprites.get(type);
+  if(type==='willow'&&!facing)facing={direction:0,view:0,flip:false};
   const aimed=facing&&aimSprites.get(type);
   if(aimed){c.save();if(facing.flip)c.scale(-1,1);c.drawImage(aimed.variants[level-1][facing.view][style],-64,-112,128,144);c.restore();}
   else if(facing)paintAimingFallback(c,type,style,level,facing);
@@ -413,7 +481,7 @@ export function paintCombatEffects(c,feedback,reducedMotion=false) {
   // Reduced-motion mode keeps health bars and text, omitting animated impact rings.
   if(reducedMotion)return;
   for(const impact of feedback.impacts){
-    const t=1-impact.life/impact.max, color={oak:'#c9ac70',pine:'#c1d49f',palm:'#afd6c4',cypress:'#bbad8c',mushroom:'#ba8dc1',storm:'#d8d4a2'}[impact.source]||'#c9ac70';
+    const t=1-impact.life/impact.max, color={oak:'#c9ac70',pine:'#c1d49f',palm:'#afd6c4',cypress:'#bbad8c',mushroom:'#ba8dc1',willow:'#abdace',watchtower:'#c2a16a',cannon:'#e4b661',storm:'#d8d4a2'}[impact.source]||'#c9ac70';
     c.save();c.globalAlpha=Math.max(0,1-t);c.strokeStyle=color;c.lineWidth=2*(1-t)+.5;
     c.beginPath();c.ellipse(impact.x,impact.y,5+t*21,4+t*13,0,0,TAU);c.stroke();
     for(let i=0;i<4;i++){const a=i*TAU/4+.4;line(c,[[impact.x+Math.cos(a)*(8+t*13),impact.y+Math.sin(a)*(8+t*13)],[impact.x+Math.cos(a)*(12+t*19),impact.y+Math.sin(a)*(12+t*19)]],color,1.5);}
@@ -477,7 +545,9 @@ export function paintShot(c, shot) {
   const x=sx+(tx-sx)*t,y=sy+(ty-sy)*t;
   c.save();c.globalAlpha=Math.min(1,shot.life/.08);
   if(t<.24)ellipse(c,sx,sy,4+(1-t/.24)*3,3+(1-t/.24)*2,p.accent+'90');
-  if(shot.type==='cypress'){line(c,[[sx,sy],[tx,ty]],'#785d3d',6);line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);}
+  if(shot.type==='willow'){const dx=tx-sx,dy=ty-sy,length=Math.hypot(dx,dy)||1;const points=Array.from({length:7},(_,i)=>{const at=i/6,z=i===0||i===6?0:(i%2?1:-1)*5;return[sx+dx*at-dy/length*z,sy+dy*at+dx/length*z];});line(c,points,'#35665f',6);line(c,points,'#d4f3dd',2);}
+  else if(shot.type==='cannon'){ellipse(c,x,y-Math.sin(t*Math.PI)*22,6,6,'#f4c66d','#6e4928',2);if(t>.7)ellipse(c,tx,ty,10+(t-.7)*95,6+(t-.7)*55,'#d39b4525','#e4b661',2);}
+  else if(shot.type==='cypress'){line(c,[[sx,sy],[tx,ty]],'#785d3d',6);line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);}
   else if(shot.type==='oak'){c.strokeStyle='#c4aa73';c.lineWidth=4;c.beginPath();c.ellipse(x,y,8+t*28,5+t*16,0,0,TAU);c.stroke();if(t>.65){c.lineWidth=2;c.beginPath();c.ellipse(tx,ty,8+(t-.65)*90,5+(t-.65)*45,0,0,TAU);c.stroke();}}
   else if(shot.type==='mushroom'){ellipse(c,tx,ty,8+t*47,6+t*33,p.canopy+'40',p.accent+'80',2);for(let i=0;i<4;i++)ellipse(c,x+Math.sin(i)*12,y+Math.cos(i)*8,4,4,p.accent);}
   else if(shot.type==='palm'){c.strokeStyle='#e1f8cb';c.lineWidth=3;c.beginPath();c.arc(x,y,10+t*11,-1,2);c.stroke();c.beginPath();c.arc(x+5,y+4,6+t*7,2,5);c.stroke();}
