@@ -59,6 +59,8 @@ The server binds to localhost by default and serves only game assets. Do not dou
 
 ## Agreed game model
 
+The core remains fixed-route tower defense around the Tree of Life. The accepted direction is lasting roster progression plus seasonal themes such as Halloween, Thanksgiving and Christmas. See [seasons and progression design](docs/seasons-and-progression.md) for proposed event challenges, earnable cosmetics and the implementation sequence. Seasonal events are planned and are not playable in v0.10.
+
 | Feature | Requirement |
 | --- | --- |
 | Game and seasonal access | Own an NFTree |

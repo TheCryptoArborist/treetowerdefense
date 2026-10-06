@@ -2,6 +2,8 @@
 
 Read README.md for accepted product decisions and current prototype limitations.
 
+- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; seasonal gameplay is not implemented yet.
+
 - Check the live https://github.com/MystenLabs/skills README before every project task. For Sui technical decisions, load the applicable current SKILL.md and supporting files before acting. If access fails, report it and do not claim the live guidance was consulted.
 - The protected tree is named **Tree of Life**.
 - NFTree ownership grants game and seasonal access. Starting new runs is included. There is no SUI admission fee or separate season-pass purchase.
