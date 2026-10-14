@@ -248,7 +248,7 @@ function renderUI() {
   const starCount = game.forest.stars.reduce((a,b) => a+b,0);
   $('forest-summary').textContent = game.forestRank ? `${starCount}/9 stars · permanent defender growth saved` : 'Clear a chapter to build your first landmark.';
   $('map-name').textContent = game.runName.toUpperCase();
-  $('map-tactics').textContent = game.chapter===1 && !game.isEvent && game.mapId==='crossing-v1' ? 'Saved battle · original route preserved. Start a new run to explore the new Sunpetal layout.' : game.map.tip;
+  $('map-tactics').textContent = game.chapter>0 && !game.isEvent && game.mapId==='crossing-v1' ? `Saved battle · original route preserved. Start a new run to explore the new ${CHAPTERS[game.chapter].name} layout.` : game.map.tip;
   document.querySelectorAll('[data-chapter]').forEach(button => {
     const i = Number(button.dataset.chapter), stars = game.forest.stars[i];
     button.disabled = !game.access || i > game.unlockedChapter;

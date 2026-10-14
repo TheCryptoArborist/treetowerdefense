@@ -54,7 +54,11 @@ export const MEADOW_MAP=makeMap('meadow-v1',
   [[-35,190],[360,190],[360,330],[125,330],[125,540],[655,540],[655,150],[850,150],[850,355],[445,355],[445,640],[940,640]],
   [[175,265],[295,270],[465,235],[760,235],[570,445],[350,445],[540,285],[210,620],[345,620],[565,590],[775,565],[855,455]],
   'Central crossing: sites 5 and 7 cover several passes. Mix crowd control with damage, and reinforce the final approach at sites 10–12.');
-export const MAPS=Object.freeze({[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP});
+export const MARSH_MAP=makeMap('marsh-v1',
+  [[-35,150],[900,150],[900,320],[105,320],[105,500],[740,500],[740,640],[940,640]],
+  [[155,235],[320,235],[520,235],[760,235],[245,415],[430,415],[620,415],[170,590],[365,590],[565,590],[840,570],[940,430]],
+  'Staggered causeways: long-range defenders can reach across several passes. Support them with slows; sites 10–12 guard the final gap to the Tree of Life.');
+export const MAPS=Object.freeze({[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP,[MARSH_MAP.id]:MARSH_MAP});
 export function mapFor(id) { return Object.hasOwn(MAPS,id)?MAPS[id]:LEGACY_MAP; }
 export const PATH_LENGTH = LEGACY_MAP.length;
 export function pointAt(distance, map = LEGACY_MAP) {
@@ -147,7 +151,7 @@ export class Game {
     this.spawnTimer = 0; this.boostUntil = 0; this.nextId = 1;
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
     this.enemyRules = 1;
-    this.mapId = !this.isEvent && this.chapter===1 ? MEADOW_MAP.id : LEGACY_MAP.id;
+    this.mapId = this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
     this.eventTeam = []; this.eventVersion = this.mode === HAUNTED_GROVE.id ? 1 : null;
   }
   get isEvent() { return this.mode === HAUNTED_GROVE.id; }
@@ -408,7 +412,7 @@ export class Game {
     if (!data || ![1, 2].includes(data.version) || !['build', 'running', 'paused', 'defeat', 'victory'].includes(data.phase)) return null;
     const validNumber = x => Number.isFinite(x) && x >= 0;
     const mapId=data.mapId===undefined?LEGACY_MAP.id:data.mapId;
-    if(typeof mapId!=='string' || !Object.hasOwn(MAPS,mapId) || mapId===MEADOW_MAP.id && (data.chapter!==1 || data.mode==='haunted-grove' || data.version!==2))return null;
+    if(typeof mapId!=='string' || !Object.hasOwn(MAPS,mapId) || mapId!==LEGACY_MAP.id && (data.chapter!==(mapId===MEADOW_MAP.id?1:2) || data.mode==='haunted-grove' || data.version!==2))return null;
     const map=MAPS[mapId];
     if (!['tree', 'sap', 'health', 'shield', 'score', 'kills', 'time', 'wave', 'nextId', 'boostUntil'].every(k => validNumber(data[k]))) return null;
     if (data.health > 100 || data.shield > 50 || !Number.isInteger(data.wave) || data.wave > 10 || typeof data.access !== 'boolean') return null;

@@ -26,7 +26,9 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.14
+## Fantasy forest build · v0.15
+
+- **Moonlit Marsh now has a distinct battlefield:** staggered causeways, wet pockets, direction markers and twelve build sites reward range and slow support. Saved original-route Marsh battles keep their geometry until a new run. The permanent pond landmark moves clear of the causeway. See [Moonlit Marsh rules and balance](docs/moonlit-map.md).
 
 - **Sunpetal Meadow has its own battlefield:** two looping approaches, a central crossing and twelve new build positions. Movement, placement, drawing and targeting share the selected map. Saved older Sunpetal battles keep the original route until a new run. See [Sunpetal map and balance](docs/sunpetal-map.md).
 
@@ -52,7 +54,7 @@ The server binds to localhost by default and serves only game assets. Do not dou
 - A four-step guided start with suggested Pine/Oak placements, highlighted sites, optional skip, and restart from Field Guide. The recommended first wave uses earned Sap only.
 - Next-wave scouting with pest portraits, counts, traits, and defense tips; its forecast shares the exact battle lineup.
 - Purchase reviews for every TREE upgrade, supply, and continue, showing effect, cost, and remaining balance before confirmation. Canceling never charges. Battle time waits during review.
-- Three campaign chapters: **Emerald Crossing**, **Sunpetal Meadow**, and **Moonlit Marsh**. Sunpetal has a distinct route and build positions; Emerald and Moonlit retain the original winding route. Each chapter changes biome and pest difficulty.
+- Three campaign chapters: **Emerald Crossing**, **Sunpetal Meadow**, and **Moonlit Marsh**. Each campaign chapter now has a distinct route and build positions; Emerald retains the original winding route. Each chapter changes biome and pest difficulty.
 - Ten waves per chapter, four expressive pest types, and a final **Blight King** boss.
 - Eight defenders: Oak splash, Pine rapid fire, Palm slowing, Cypress piercing, Mushroom poison, Willow chains, Archer Watchtower bolts, and Sap Cannon bombardment.
 - A prominent textured forest battlefield with NFTree-style stump warriors, idle movement, directional firing poses, marching pests, visible tower growth, distinct attack effects, and optional synthesized sound (off by default).
@@ -156,7 +158,7 @@ The mature forest artwork is integrated into the game. These images use its actu
 
 ![Starting forest and build sites](docs/forest-empty-v05.jpg)
 
-[Environment assets, generation prompts, and verification notes](docs/environment-art.md). Sunpetal now uses its own route and build-site coordinates. All three chapters share one terrain plate with biome color treatments.
+[Environment assets, generation prompts, and verification notes](docs/environment-art.md). Sunpetal and Moonlit now use their own route and build-site coordinates. All three chapters share one terrain plate with biome color treatments.
 
 
 The character sheet below is rendered from the game’s actual drawing code; it is not a browser screenshot.

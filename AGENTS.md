@@ -29,4 +29,6 @@ Read README.md for accepted product decisions and current prototype limitations.
 
 - Page branding follows NFTree.net: navy #040810, teal #00f1d2, mint #7ef3a0, gold #ffd84b, amber #ffad32. Use original ecosystem graphics in assets/brand, preserve the mature battlefield art, and keep the simulated-payment notice visible. See docs/ecosystem-branding.md.
 
-- Sunpetal new runs use meadow-v1; other chapters and Haunted Grove use crossing-v1. All geometry consumers must use the active map, including pointer input, pest/defeat orientation and restore. Saves without mapId keep crossing-v1 until a fresh run. Preserve queued enemies, growth, funds and seasonal progress. See docs/sunpetal-map.md.
+- Sunpetal new runs use meadow-v1; Moonlit new runs use marsh-v1; Emerald and Haunted Grove use crossing-v1. All geometry consumers must use the active map, including pointer input, pest/defeat orientation and restore. Saves without mapId keep crossing-v1 until a fresh run. Preserve queued enemies, growth, funds and seasonal progress. See docs/sunpetal-map.md.
+
+- Moonlit Marsh uses staggered causeways and all geometry consumers share marsh-v1. Both missing mapId and explicit crossing-v1 Moonlit saves keep the old route through reload/continue. Wet pockets and the relocated permanent pond must remain clear of route and build sites. See docs/moonlit-map.md.

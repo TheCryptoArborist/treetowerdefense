@@ -556,9 +556,20 @@ export function paintBackdrop(c,chapter=0,rank=0,map=LEGACY_MAP) {
       ellipse(c,x,y,24,8,'#47563b80');for(let i=0;i<5;i++)flower(c,x-15+i*7,y-3+(i%2)*5,i%2?'#d8c388':'#b99292',.65);
     }
   }
+  if(map.id==='marsh-v1'){
+    // Wet pockets sit clear of build pads and every causeway.
+    for(const[x,y,rx]of [[65,70,40],[650,75,43],[80,650,46]]){
+      ellipse(c,x,y,rx,15,'#264a59','#1e3941',2);ellipse(c,x,y-2,rx-6,10,'#46687870');
+      for(const side of [-1,1])for(let i=0;i<3;i++)line(c,[[x+side*(rx-5)+i*3,y],[x+side*(rx-8)+i*3,y-14-i*3]],'#758573',1.5);
+    }
+    // Cross-plank joints reinforce the causeway theme without hiding pest silhouettes.
+    for(let d=25;d<map.length;d+=34){const p=pointAt(d,map),next=pointAt(d+2,map),a=Math.atan2(next.y-p.y,next.x-p.x);line(c,[[p.x-Math.sin(a)*23,p.y+Math.cos(a)*23],[p.x+Math.sin(a)*23,p.y-Math.cos(a)*23]],'#b0bfc32b',1);}
+    let distance=0;
+    for(const length of map.segments){const p=pointAt(distance+length*.6,map),next=pointAt(distance+length*.6+2,map);c.save();c.translate(p.x,p.y);c.rotate(Math.atan2(next.y-p.y,next.x-p.x));polygon(c,[[-7,-6],[3,0],[-7,6],[0,6],[10,0],[0,-6]],'#b3d2d080','#466360',1);c.restore();distance+=length;}
+  }
   if(rank>=1)cottage(c,885,90);
   if(rank>=2){polygon(c,[[386,75],[514,75],[524,111],[380,111]],'#343b2790','#726d4b',2);for(let i=0;i<18;i++)flower(c,391+i*6,84+(i%3)*8,['#ad8980','#b5a66c','#7e818f'][i%3],.55);}
-  if(rank>=3){ellipse(c,882,261,55,26,'#455747','#273d32',4);ellipse(c,882,257,48,20,'#4b6e69');line(c,[[850,250],[885,248],[909,253]],'#b3c0a34d',1.5);ellipse(c,865,260,9,4,'#79866b');}
+  if(rank>=3){c.save();if(map.id==='marsh-v1')c.translate(-462,399);ellipse(c,882,261,55,26,'#455747','#273d32',4);ellipse(c,882,257,48,20,'#4b6e69');line(c,[[850,250],[885,248],[909,253]],'#b3c0a34d',1.5);ellipse(c,865,260,9,4,'#79866b');c.restore();}
   const vignette=c.createRadialGradient(WIDTH/2,HEIGHT/2,230,WIDTH/2,HEIGHT/2,650);vignette.addColorStop(0,'#06120a00');vignette.addColorStop(1,'#06120a60');c.fillStyle=vignette;c.fillRect(0,0,WIDTH,HEIGHT);c.restore();
 }
 export function paintShot(c, shot) {
