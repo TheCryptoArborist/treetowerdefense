@@ -59,6 +59,17 @@ export function pointAt(distance) {
 }
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+export const HAUNTED_GROVE = Object.freeze({ id: 'haunted-grove', version: 1, name: 'Haunted Grove', waves: 5,
+  bossName: 'Hollow King', gaps: [1.1,1.15,.9,.85,.8],
+  mixes: [{termite:8,moth:2},{termite:8,beetle:4},{termite:10,moth:6},{termite:5,beetle:5,moth:4,blight:4},{termite:6,beetle:6,moth:4,blight:4}],
+  rewards: ['grove-badge','lantern-oak','web-watchtower'] });
+export function eventLineup(wave) {
+  const mix = HAUNTED_GROVE.mixes[wave-1]; if (!mix || !Number.isInteger(wave)) return [];
+  const remaining = {...mix}, queue=[];
+  while(Object.values(remaining).some(n=>n>0)) for(const kind of ['termite','beetle','moth','blight']) if(remaining[kind]>0){queue.push(kind);remaining[kind]--;}
+  if(wave===5)queue.push('boss');return queue;
+}
+
 // Deliberate mixes introduce one new threat at a time, then build combined pressure.
 // Counts remain 8, 10, …, 26 (+ the final boss); rewards and save limits stay intact.
 const WAVE_MIXES = [
@@ -111,6 +122,9 @@ export class Game {
     this.access = false;
     this.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, 1])), stars: CHAPTERS.map(() => 0), rosterVersion: 1, bestWaves: CHAPTERS.map(() => 0), unlocked: ['oak', 'pine'] };
     this.chapter = 0;
+    this.mode = 'campaign';
+    this.season = { bestWave: 0, bestHealth: 0, teamClear: false };
+    this.seasonLooks = { oak: false, watchtower: false };
     this.newRun();
   }
   newRun() {
@@ -121,6 +135,20 @@ export class Game {
     this.spawnTimer = 0; this.boostUntil = 0; this.nextId = 1;
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
     this.enemyRules = 1;
+    this.eventTeam = []; this.eventVersion = this.mode === HAUNTED_GROVE.id ? 1 : null;
+  }
+  get isEvent() { return this.mode === HAUNTED_GROVE.id; }
+  get waveCount() { return this.isEvent ? 5 : 10; }
+  get runName() { return this.isEvent ? HAUNTED_GROVE.name : CHAPTERS[this.chapter].name; }
+  get seasonRewards() { return [this.season.bestWave===5 && 'grove-badge',this.season.bestHealth>=80 && 'lantern-oak',this.season.teamClear && 'web-watchtower'].filter(Boolean); }
+  startEvent() {
+    if(!this.access || !this.forest.stars[0])return false;
+    this.mode=HAUNTED_GROVE.id;this.newRun();this.message='Haunted Grove: five waves. Earn seasonal looks through play.';return true;
+  }
+  setSeasonLook(type, enabled) {
+    const reward = type==='oak'?'lantern-oak':type==='watchtower'?'web-watchtower':null;
+    if(!this.access || typeof enabled!=='boolean' || !reward || !this.seasonRewards.includes(reward))return false;
+    this.seasonLooks[type]=enabled;return true;
   }
   get unlockedChapter() {
     const first = this.forest.stars.findIndex(stars => stars === 0);
@@ -148,7 +176,7 @@ export class Game {
   }
   chooseChapter(chapter) {
     if (!this.access || !Number.isInteger(chapter) || chapter < 0 || chapter >= CHAPTERS.length || chapter > this.unlockedChapter) return false;
-    this.chapter = chapter; this.newRun();
+    this.chapter = chapter; this.mode = 'campaign'; this.newRun();
     this.message = `${CHAPTERS[chapter].name}: your permanent defender growth carries with you.`;
     return true;
   }
@@ -177,6 +205,7 @@ export class Game {
     const [x, y] = PADS[pad];
     const tower = { id: this.nextId++, type, pad, x, y, level: this.forest.levels[type], cooldown: 0, style: this.style, targetMode: 'first' };
     this.towers.push(tower); this.message = `${definition.name} planted. Ready to defend.`;
+    if(this.isEvent && !this.eventTeam.includes(type))this.eventTeam.push(type);
     this.events.push({ type: 'plant', x, y });
     return tower;
   }
@@ -215,21 +244,24 @@ export class Game {
     return true;
   }
   startWave() {
-    if (!this.access || this.phase !== 'build' || this.wave >= 10) return false;
+    if (!this.access || this.phase !== 'build' || this.wave >= this.waveCount) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
-    this.queue = waveLineup(this.chapter, this.wave);
+    this.queue = this.isEvent ? eventLineup(this.wave) : waveLineup(this.chapter, this.wave);
     this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter, enemyRules: this.enemyRules });
+    if(this.isEvent)Object.assign(this.events.at(-1),{mode:this.mode,waveCount:5});
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
+    if(this.isEvent)this.message=this.wave===5?'Final wave. The Hollow King approaches!':`Haunted Grove wave ${this.wave}: keep the lanterns burning.`;
     return true;
   }
   spawn(kind) {
-    const base = (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
-    const hp = kind === 'boss' ? 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
+    const base = this.isEvent ? 45 + this.wave * 25 : (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
+    const hp = kind === 'boss' ? this.isEvent ? 1200 : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
       slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: PATH[0][0], y: PATH[0][1] };
     if (this.enemyRules === 1) Object.assign(e, { behavior: 1, bornAt: this.time, recoverAt: this.time + 2 });
+    if(this.isEvent)e.theme='haunted-grove';
     this.enemies.push(e);
-    if (kind === 'boss') this.events.push({ type: 'boss-arrival', id: e.id });
+    if (kind === 'boss') this.events.push({ type: 'boss-arrival', id: e.id, ...(this.isEvent?{bossName:'Hollow King'}:{}) });
     return e;
   }
   pause() {
@@ -265,7 +297,7 @@ export class Game {
     for (const e of this.enemies) {
       if (e.hp <= 0) {
         this.kills++; this.sap += e.kind === 'boss' ? 150 : 12; this.score += e.kind === 'boss' ? 1000 : 100;
-        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind });
+        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind, ...(e.theme==='haunted-grove'?{theme:e.theme,bossName:'Hollow King'}:{}) });
       }
     }
     this.enemies = this.enemies.filter(e => e.hp > 0);
@@ -281,7 +313,7 @@ export class Game {
     if (this.phase !== 'running' || !this.access || !Number.isFinite(dt) || dt <= 0) return;
     dt = Math.min(dt, 0.05); this.time += dt;
     this.spawnTimer -= dt;
-    if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = waveSpawnInterval(this.wave); }
+    if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = this.isEvent ? HAUNTED_GROVE.gaps[this.wave-1] : waveSpawnInterval(this.wave); }
     for (const enemy of this.enemies) {
       if (enemy.poisonUntil > this.time) enemy.hp -= enemy.poisonDamage * dt;
       if (blightHealing(enemy,this.time)) enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * .006 * dt);
@@ -296,7 +328,7 @@ export class Game {
       const absorbed = Math.min(this.shield, damage); this.shield -= absorbed;
       const previousHealth = this.health;
       this.health = Math.max(0, this.health - damage + absorbed);
-      this.events.push({ type: 'leak', x: 940, y: 640, kind: enemy.kind, damage: previousHealth - this.health, absorbed });
+      this.events.push({ type: 'leak', x: 940, y: 640, kind: enemy.kind, damage: previousHealth - this.health, absorbed, ...(this.isEvent?{bossName:'Hollow King'}:{}) });
     }
     this.enemies = survivors;
     if (this.health <= 0) { this.phase = 'defeat'; this.message = 'The Tree of Life has fallen. Continue with preview TREE or start a fresh run.'; return; }
@@ -331,18 +363,26 @@ export class Game {
     }
     this.shots.forEach(shot => { shot.life -= dt; }); this.shots = this.shots.filter(shot => shot.life > 0);
     if (!this.queue.length && !this.enemies.length) {
+      const previousSeasonRewards=this.seasonRewards;
       this.sap += 85; this.score += this.health * 5;
       this.shots = [];
-      this.phase = this.wave === 10 ? 'victory' : 'build';
-      this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
+      this.phase = this.wave === this.waveCount ? 'victory' : 'build';
+      if(this.isEvent)this.season.bestWave=Math.max(this.season.bestWave,this.wave);
+      else this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
       this.events.push({ type: 'wave-clear', wave: this.wave, sap: 85 });
+      if(this.isEvent)this.events.at(-1).waveCount=5;
       if (this.phase === 'victory') {
         const stars = this.health >= 80 ? 3 : this.health >= 40 ? 2 : 1;
-        this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
+        if(this.isEvent){
+          this.season.bestHealth=Math.max(this.season.bestHealth,this.health);
+          this.season.teamClear ||= this.eventTeam.length>=3;
+          for(const reward of this.seasonRewards.filter(r=>!previousSeasonRewards.includes(r)))this.events.push({type:'season-reward',reward});
+        } else this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
         this.events.push({ type: 'victory', x: 940, y: 640 });
       }
       const earned = this.refreshUnlocks();
       this.message = (this.phase === 'victory' ? 'Final wave cleared. The Tree of Life stands!' : `Wave ${this.wave} cleared. +85 Sap. Prepare your next defense.`) + (earned.length ? ` Unlocked: ${earned.map(type => TOWERS[type].name).join(', ')}. Ready to plant with Sap.` : '');
+      if(this.isEvent && this.phase==='victory')this.message='Haunted Grove protected. Your seasonal rewards are saved. Equip earned looks in the event panel.';
     }
   }
   snapshot() {
@@ -369,6 +409,10 @@ export class Game {
     }
     if (!data.queue.every(k => kinds.includes(k)) || !Number.isFinite(data.spawnTimer)) return null;
     const game = new Game();
+    if(data.mode==='haunted-grove'){
+      if(data.eventVersion!==1 || data.wave>5)return null;
+      game.mode=data.mode;game.eventVersion=1;
+    }
     if (data.version === 2) {
       if (!data.forest || !data.forest.levels || !Array.isArray(data.forest.stars) || data.forest.stars.length !== CHAPTERS.length) return null;
       if (!Object.keys(TOWERS).every(type => { const level = data.forest.levels[type]; return level === undefined && !ORIGINAL_GUARDIANS.includes(type) || Number.isInteger(level) && level >= 1 && level <= 3; })) return null;
@@ -401,6 +445,14 @@ export class Game {
     // Optional tactical orders default safely for old/edited saves without losing progress.
     game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: game.forest.levels[t.type], x: PADS[t.pad][0], y: PADS[t.pad][1] }));
     game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress) })); game.queue = [...data.queue];
+    const season=data.season;
+    if(season && typeof season==='object'){
+      game.season.bestWave=Number.isInteger(season.bestWave)&&season.bestWave>=0&&season.bestWave<=5?season.bestWave:0;
+      game.season.bestHealth=game.season.bestWave===5 && validNumber(season.bestHealth)&&season.bestHealth<=100?season.bestHealth:0;
+      game.season.teamClear=game.season.bestWave===5 && season.teamClear===true;
+    }
+    game.eventTeam=game.isEvent?[...new Set([...(Array.isArray(data.eventTeam)?data.eventTeam.filter(t=>typeof t==='string'&&Object.hasOwn(TOWERS,t)):[]),...game.towers.map(t=>t.type)])]:[];
+    for(const[type,reward]of [['oak','lantern-oak'],['watchtower','web-watchtower']])game.seasonLooks[type]=data.seasonLooks?.[type]===true&&game.seasonRewards.includes(reward);
     // Preserve old active runs, including future queued spawns, under their original rules.
     game.enemyRules = data.enemyRules === 1 ? 1 : 0;
     for (const enemy of game.enemies) {

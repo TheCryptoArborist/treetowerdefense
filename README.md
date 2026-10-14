@@ -26,7 +26,9 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.11
+## Fantasy forest build · v0.12
+
+- **Haunted Grove is playable:** protect Emerald Crossing to enter a five-wave Halloween event with dusk pests and the Hollow King. Earn a badge, Lantern Oak at 80+ final health, and a web-carved Watchtower by clearing with three planted defender types. Equip earned looks in the event panel; all rarities share the same requirements and combat rules. Event progress stays separate from campaign stars. The preview has no event expiry. See [Haunted Grove rules and validation](docs/haunted-grove.md).
 
 - New-run moths make brief speed bursts; blight pests regenerate between hits, with poison suppressing recovery. Scouting explains the counters and battlefield markers show active traits. Older saved runs keep original rules until a fresh run. See [enemy behaviors and balance](docs/enemy-behaviors.md).
 
@@ -61,7 +63,7 @@ The server binds to localhost by default and serves only game assets. Do not dou
 
 ## Agreed game model
 
-The core remains fixed-route tower defense around the Tree of Life. The accepted direction is lasting roster progression plus seasonal themes such as Halloween, Thanksgiving and Christmas. See [seasons and progression design](docs/seasons-and-progression.md) for proposed event challenges, earnable cosmetics and the implementation sequence. Seasonal events are planned and are not playable in v0.11.
+The core remains fixed-route tower defense around the Tree of Life. The accepted direction is lasting roster progression plus seasonal themes such as Halloween, Thanksgiving and Christmas. See [seasons and progression design](docs/seasons-and-progression.md) for proposed event challenges, earnable cosmetics and the implementation sequence. Haunted Grove is playable in v0.12; Thanksgiving and Christmas events remain planned.
 
 | Feature | Requirement |
 | --- | --- |

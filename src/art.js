@@ -425,7 +425,7 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const size=boss?1.85:e.kind==='beetle'?1.12:blight?1.06:moth?.92:.88;
-  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
+  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
   const ahead=Number.isFinite(e.progress)?pointAt(Math.min(PATH_LENGTH,e.progress+2)):null;
   const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
   c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
@@ -560,5 +560,33 @@ export function paintShot(c, shot) {
   else if(shot.type==='mushroom'){ellipse(c,tx,ty,8+t*47,6+t*33,p.canopy+'40',p.accent+'80',2);for(let i=0;i<4;i++)ellipse(c,x+Math.sin(i)*12,y+Math.cos(i)*8,4,4,p.accent);}
   else if(shot.type==='palm'){c.strokeStyle='#e1f8cb';c.lineWidth=3;c.beginPath();c.arc(x,y,10+t*11,-1,2);c.stroke();c.beginPath();c.arc(x+5,y+4,6+t*7,2,5);c.stroke();}
   else {c.translate(x,y);c.rotate(Math.atan2(ty-sy,tx-sx));polygon(c,[[-10,-3],[11,0],[-10,3]],'#fff4a9','#5b843e',1.4);}
+  c.restore();
+}
+
+// Seasonal ornament layers never affect aim sockets, silhouettes or combat rules.
+export function paintSeasonLook(c,type,x,y,scale=1) {
+  c.save();c.translate(x,y);c.scale(scale,scale);
+  if(type==='oak'){
+    line(c,[[-26,-36],[-31,-23]],'#5d4b37',3);
+    const glow=c.createRadialGradient(-31,-15,2,-31,-15,18);glow.addColorStop(0,'#f3b65280');glow.addColorStop(1,'#d9953100');ellipse(c,-31,-15,18,18,glow);
+    polygon(c,[[-37,-24],[-25,-24],[-25,-6],[-37,-6]],'#493b2c','#191e20',2);ellipse(c,-31,-15,4,7,'#e3ad58');line(c,[[-38,-25],[-24,-25]],'#b49a73',2);line(c,[[-38,-5],[-24,-5]],'#b49a73',2);
+  } else if(type==='watchtower'){
+    const ox=-24,oy=-50;
+    for(let i=0;i<5;i++){const a=i*Math.PI/8;line(c,[[ox,oy],[ox+Math.cos(a)*27,oy+Math.sin(a)*27]],'#c8baca',.8);}
+    for(const r of [9,17,25]){c.strokeStyle='#b7a7ba';c.lineWidth=.7;c.beginPath();c.arc(ox,oy,r,0,Math.PI/2);c.stroke();}
+  }
+  c.restore();
+}
+export function paintHauntedBackdrop(c) {
+  c.save();c.fillStyle='#201b3d55';c.fillRect(0,0,WIDTH,HEIGHT);
+  for(const[x,y]of [[45,90],[675,70],[962,262],[450,704]]){
+    polygon(c,[[x-15,y+9],[x-12,y-25],[x+11,y-28],[x+17,y+9]],'#4d4853','#272331',2);
+    line(c,[[x-18,y+9],[x+19,y+9]],'#807578',3);paintSeasonLook(c,'oak',x+30,y-9,1);
+    line(c,[[x-10,y-20],[x+8,y-9],[x-6,y+2]],'#988a9b',1);
+  }
+  // Moon and corner web remain outside the battlefield route and build pads.
+  const glow=c.createRadialGradient(932,55,4,932,55,50);glow.addColorStop(0,'#d9cfe330');glow.addColorStop(1,'#d9cfe300');ellipse(c,932,55,50,50,glow);ellipse(c,932,55,17,17,'#c7bfcd');ellipse(c,939,50,15,15,'#252638');
+  for(let i=0;i<6;i++)line(c,[[0,0],[Math.cos(i*Math.PI/10)*95,Math.sin(i*Math.PI/10)*95]],'#a398b050',1);
+  for(const r of [24,48,72]){c.strokeStyle='#a398b050';c.lineWidth=1;c.beginPath();c.arc(0,0,r,0,Math.PI/2);c.stroke();}
   c.restore();
 }

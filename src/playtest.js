@@ -1,4 +1,4 @@
-import { TOWERS, PRICES, GROWTH_NAMES, waveLineup } from './engine.js';
+import { TOWERS, PRICES, GROWTH_NAMES, waveLineup, eventLineup } from './engine.js';
 
 const PEST_GUIDE = {
   termite: { name: 'Termites', trait: 'Steady march', counter: 'Pine gives reliable coverage; Oak hits clusters.' },
@@ -20,15 +20,18 @@ const WAVE_BRIEFINGS = [
   ['Last stand', 'The largest mixed escort so far approaches. Poison suppresses blight recovery while armor-piercing bolts handle beetles. Prepare for the King next.'],
   ['Blight King', 'The King follows a mixed escort. Combine damage, poison, and Palm slows; protect the final bends.']
 ];
-export function scoutWave(chapter, wave, enemyRules = 1) {
-  const lineup = waveLineup(chapter, wave);
+export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign') {
+  const event = mode === 'haunted-grove';
+  const lineup = event ? eventLineup(wave) : waveLineup(chapter, wave);
   const groups = Object.entries(PEST_GUIDE).flatMap(([kind, info]) => {
     const count = lineup.filter(pest => pest === kind).length;
     const legacy = enemyRules === 0 && ['moth','blight'].includes(kind);
-    const details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : info;
+    let details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : info;
+    if(event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
     return count ? [{ kind, count, ...details }] : [];
   });
-  const [title, tip] = lineup.length ? WAVE_BRIEFINGS[wave-1] : ['', ''];
+  const eventBriefings=[['Lantern watch','Dusk termites and two moths test the entrance. Start with Pine and Oak, then reinforce a later bend.'],['Hollow armor','Four armored beetles approach. The earned Watchtower ignores their armor; sustained fire also works.'],['Dusk swarm','Dense termites and six dashing moths approach. Oak splash and Palm slows help cover the rush.'],['Webbed escort','Blight regenerates between hits. Mushroom poison suppresses recovery; keep several bends covered.'],['Hollow King','The Hollow King follows twenty escorts. Spread damage and slows along the route. Finish with 80 health for Lantern Oak; use three defender types for the web-carved Watchtower.']];
+  const [title, tip] = lineup.length ? (event?eventBriefings:WAVE_BRIEFINGS)[wave-1] : ['', ''];
   return { wave, title, total: lineup.length, groups, tip: enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : tip };
 }
 

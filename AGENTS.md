@@ -2,7 +2,7 @@
 
 Read README.md for accepted product decisions and current prototype limitations.
 
-- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; seasonal gameplay is not implemented yet.
+- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; Haunted Grove is playable in v0.12; Thanksgiving and Christmas events remain planned.
 
 - Check the live https://github.com/MystenLabs/skills README before every project task. For Sui technical decisions, load the applicable current SKILL.md and supporting files before acting. If access fails, report it and do not claim the live guidance was consulted.
 - The protected tree is named **Tree of Life**.
@@ -23,4 +23,6 @@ Read README.md for accepted product decisions and current prototype limitations.
 
 - Earned roster unlocks persist across runs: Oak/Pine start; Palm/Cypress/Mushroom after Emerald waves 2/4/6; Watchtower after Emerald victory; Willow at 4 best campaign stars; Cannon after Sunpetal victory. Unlocks have no currency fee and never depend on rarity. Planting uses Sap; TREE still pays for growth, supplies and continues. Original saves retain the five previously available guardians. Thorn Bastion and Root Obelisk remain Coming later.
 
-- v0.11 new-run pest traits: moth bursts use shared actual movement/targeting speed; blight recovery stops during poison and is delayed by hits. Preserve optional enemyRules and per-pest behavior/timers; pre-trait saved runs keep legacy rules until a new run. Seasonal events remain planned.
+- v0.11 new-run pest traits: moth bursts use shared actual movement/targeting speed; blight recovery stops during poison and is delayed by hits. Preserve optional enemyRules and per-pest behavior/timers; pre-trait saved runs keep legacy rules until a new run. Haunted Grove is now implemented; later seasonal events remain planned.
+
+- Haunted Grove is a separate five-wave mode unlocked by Emerald victory. Seasonal progress and cosmetics never grant campaign stars or combat roles. Preserve eventVersion 1, queued pests, eventTeam, season and seasonLooks on save/continue. Preview event has no expiry or entry fee; earned looks are optional overlays available at every rarity. See docs/haunted-grove.md.

@@ -13,18 +13,19 @@ export class CombatFeedback {
       } else if (event.type === 'kill') {
         this.reactions.delete(event.id);
         this.defeats.push({ ...event, life: event.kind === 'boss' ? .9 : .5, max: event.kind === 'boss' ? .9 : .5 });
-        if (event.kind === 'boss') this.announce('THE BLIGHT KING FALLS', 'Your guardians have broken the King’s advance.', 'success', 4);
+        if (event.kind === 'boss') this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} FALLS`, 'Your guardians have broken the King’s advance.', 'success', 4);
       } else if (event.type === 'boss-arrival') {
-        this.announce('THE BLIGHT KING HAS ARRIVED', 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
+        this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} HAS ARRIVED`, 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
       } else if (event.type === 'wave-start') {
-        const briefing = scoutWave(event.chapter ?? 0, event.wave, event.enemyRules ?? 1);
-        this.announce(event.wave === 10 ? 'FINAL WAVE · BLIGHT KING INCOMING' : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, event.wave === 10 ? 'danger' : 'normal', 4);
-      } else if (event.type === 'wave-clear' && event.wave < 10) {
+        const briefing = scoutWave(event.chapter ?? 0, event.wave, event.enemyRules ?? 1,event.mode);
+        const final=event.wave===(event.waveCount??10);
+        this.announce(final ? `FINAL WAVE · ${event.mode==='haunted-grove'?'HOLLOW':'BLIGHT'} KING INCOMING` : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, final ? 'danger' : 'normal', 4);
+      } else if (event.type === 'wave-clear' && event.wave < (event.waveCount??10)) {
         this.announce(`WAVE ${event.wave} CLEARED`, `+${event.sap} Sap earned. Prepare your next defense.`, 'success', 3.5);
       } else if (event.type === 'roster-unlock') {
         this.announce(`${TOWERS[event.defender].name.toUpperCase()} UNLOCKED`, 'Earned through play. Select your new defender in the roster; plant it with Sap.', 'success', 5);
       } else if (event.type === 'leak' && event.kind === 'boss') {
-        this.announce('THE BLIGHT KING BREACHED THE ROOTS', event.damage ? `The Tree of Life took ${event.damage} damage.` : 'Your Root Shield absorbed the attack.', 'danger', 4);
+        this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} BREACHED THE ROOTS`, event.damage ? `The Tree of Life took ${event.damage} damage.` : 'Your Root Shield absorbed the attack.', 'danger', 4);
       }
     }
     // Limit memory and rendering cost even after a large number of hits.

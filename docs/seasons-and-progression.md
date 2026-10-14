@@ -1,6 +1,6 @@
 # Seasons and long-term progression
 
-Design direction accepted October 6, 2026. Seasonal themes are planned content, not implemented in the v0.10 preview. Event names, objectives, and rollout below are proposed first designs; no release dates or final prices are promised.
+Design direction accepted October 6, 2026. Haunted Grove is implemented in v0.12; Thanksgiving and Christmas remain planned. See [Haunted Grove implementation](haunted-grove.md). Event names, objectives, and rollout below are proposed first designs; no release dates or final prices are promised.
 
 ## Core loop
 
