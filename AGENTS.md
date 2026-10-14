@@ -28,3 +28,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Haunted Grove is a separate five-wave mode unlocked by Emerald victory. Seasonal progress and cosmetics never grant campaign stars or combat roles. Preserve eventVersion 1, queued pests, eventTeam, season and seasonLooks on save/continue. Preview event has no expiry or entry fee; earned looks are optional overlays available at every rarity. See docs/haunted-grove.md.
 
 - Page branding follows NFTree.net: navy #040810, teal #00f1d2, mint #7ef3a0, gold #ffd84b, amber #ffad32. Use original ecosystem graphics in assets/brand, preserve the mature battlefield art, and keep the simulated-payment notice visible. See docs/ecosystem-branding.md.
+
+- Sunpetal new runs use meadow-v1; other chapters and Haunted Grove use crossing-v1. All geometry consumers must use the active map, including pointer input, pest/defeat orientation and restore. Saves without mapId keep crossing-v1 until a fresh run. Preserve queued enemies, growth, funds and seasonal progress. See docs/sunpetal-map.md.

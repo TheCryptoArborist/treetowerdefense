@@ -44,18 +44,30 @@ export const TARGET_MODES = Object.freeze({
   strongest: Object.freeze({ name: 'Strongest', detail: 'Most health remaining. Focus on tough pests and the Blight King.' }),
   fastest: Object.freeze({ name: 'Fastest', detail: 'Highest current movement speed, including slows. Intercept fast pests.' }),
 });
-const segments = PATH.slice(1).map((p, i) => Math.hypot(p[0] - PATH[i][0], p[1] - PATH[i][1]));
-export const PATH_LENGTH = segments.reduce((a, b) => a + b, 0);
-export function pointAt(distance) {
+function makeMap(id,path,pads,tip) {
+  path=Object.freeze(path.map(p=>Object.freeze([...p])));pads=Object.freeze(pads.map(p=>Object.freeze([...p])));
+  const segments=path.slice(1).map((p,i)=>Math.hypot(p[0]-path[i][0],p[1]-path[i][1]));
+  return Object.freeze({id,path,pads,segments:Object.freeze(segments),length:segments.reduce((a,b)=>a+b,0),tip});
+}
+export const LEGACY_MAP=makeMap('crossing-v1',PATH,PADS,'Cover the opening bends, then extend your defense along the return route.');
+export const MEADOW_MAP=makeMap('meadow-v1',
+  [[-35,190],[360,190],[360,330],[125,330],[125,540],[655,540],[655,150],[850,150],[850,355],[445,355],[445,640],[940,640]],
+  [[175,265],[295,270],[465,235],[760,235],[570,445],[350,445],[540,285],[210,620],[345,620],[565,590],[775,565],[855,455]],
+  'Central crossing: sites 5 and 7 cover several passes. Mix crowd control with damage, and reinforce the final approach at sites 10–12.');
+export const MAPS=Object.freeze({[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP});
+export function mapFor(id) { return Object.hasOwn(MAPS,id)?MAPS[id]:LEGACY_MAP; }
+export const PATH_LENGTH = LEGACY_MAP.length;
+export function pointAt(distance, map = LEGACY_MAP) {
+  const {path,segments}=map;
   let remaining = Math.max(0, distance);
   for (let i = 0; i < segments.length; i++) {
     if (remaining <= segments[i]) {
       const t = remaining / segments[i];
-      return { x: PATH[i][0] + (PATH[i + 1][0] - PATH[i][0]) * t, y: PATH[i][1] + (PATH[i + 1][1] - PATH[i][1]) * t };
+      return { x: path[i][0] + (path[i + 1][0] - path[i][0]) * t, y: path[i][1] + (path[i + 1][1] - path[i][1]) * t };
     }
     remaining -= segments[i];
   }
-  return { x: PATH.at(-1)[0], y: PATH.at(-1)[1] };
+  return { x: path.at(-1)[0], y: path.at(-1)[1] };
 }
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
@@ -135,9 +147,11 @@ export class Game {
     this.spawnTimer = 0; this.boostUntil = 0; this.nextId = 1;
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
     this.enemyRules = 1;
+    this.mapId = !this.isEvent && this.chapter===1 ? MEADOW_MAP.id : LEGACY_MAP.id;
     this.eventTeam = []; this.eventVersion = this.mode === HAUNTED_GROVE.id ? 1 : null;
   }
   get isEvent() { return this.mode === HAUNTED_GROVE.id; }
+  get map() { return mapFor(this.mapId); }
   get waveCount() { return this.isEvent ? 5 : 10; }
   get runName() { return this.isEvent ? HAUNTED_GROVE.name : CHAPTERS[this.chapter].name; }
   get seasonRewards() { return [this.season.bestWave===5 && 'grove-badge',this.season.bestHealth>=80 && 'lantern-oak',this.season.teamClear && 'web-watchtower'].filter(Boolean); }
@@ -196,13 +210,13 @@ export class Game {
     return true;
   }
   place(type, pad) {
-    if (!this.access || !['build', 'running', 'paused'].includes(this.phase) || !Object.hasOwn(TOWERS, type) || !Number.isInteger(pad) || !PADS[pad]) return false;
+    if (!this.access || !['build', 'running', 'paused'].includes(this.phase) || !Object.hasOwn(TOWERS, type) || !Number.isInteger(pad) || !this.map.pads[pad]) return false;
     if (!this.isUnlocked(type)) { this.message = `${TOWERS[type].name} locked. ${UNLOCKS[type].label}.`; return false; }
     if (this.towers.some(t => t.pad === pad)) return false;
     const definition = TOWERS[type];
     if (this.sap < definition.cost) { this.message = 'Earn more Sap by defeating pests.'; return false; }
     this.sap -= definition.cost;
-    const [x, y] = PADS[pad];
+    const [x, y] = this.map.pads[pad];
     const tower = { id: this.nextId++, type, pad, x, y, level: this.forest.levels[type], cooldown: 0, style: this.style, targetMode: 'first' };
     this.towers.push(tower); this.message = `${definition.name} planted. Ready to defend.`;
     if(this.isEvent && !this.eventTeam.includes(type))this.eventTeam.push(type);
@@ -257,7 +271,8 @@ export class Game {
     const base = this.isEvent ? 45 + this.wave * 25 : (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
     const hp = kind === 'boss' ? this.isEvent ? 1200 : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
-      slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: PATH[0][0], y: PATH[0][1] };
+      slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: this.map.path[0][0], y: this.map.path[0][1] };
+    if(this.mapId!==LEGACY_MAP.id)e.mapId=this.mapId;
     if (this.enemyRules === 1) Object.assign(e, { behavior: 1, bornAt: this.time, recoverAt: this.time + 2 });
     if(this.isEvent)e.theme='haunted-grove';
     this.enemies.push(e);
@@ -297,7 +312,7 @@ export class Game {
     for (const e of this.enemies) {
       if (e.hp <= 0) {
         this.kills++; this.sap += e.kind === 'boss' ? 150 : 12; this.score += e.kind === 'boss' ? 1000 : 100;
-        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind, ...(e.theme==='haunted-grove'?{theme:e.theme,bossName:'Hollow King'}:{}) });
+        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind, ...(this.mapId!==LEGACY_MAP.id?{mapId:this.mapId}:{}), ...(e.theme==='haunted-grove'?{theme:e.theme,bossName:'Hollow King'}:{}) });
       }
     }
     this.enemies = this.enemies.filter(e => e.hp > 0);
@@ -318,12 +333,12 @@ export class Game {
       if (enemy.poisonUntil > this.time) enemy.hp -= enemy.poisonDamage * dt;
       if (blightHealing(enemy,this.time)) enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * .006 * dt);
       enemy.progress += enemySpeed(enemy,this.time) * dt;
-      Object.assign(enemy, pointAt(enemy.progress));
+      Object.assign(enemy, pointAt(enemy.progress,this.map));
     }
     this.resolveKills();
     const survivors = [];
     for (const enemy of this.enemies) {
-      if (enemy.progress < PATH_LENGTH) { survivors.push(enemy); continue; }
+      if (enemy.progress < this.map.length) { survivors.push(enemy); continue; }
       const damage = enemy.kind === 'boss' ? 60 : enemy.kind === 'beetle' ? 18 : 12;
       const absorbed = Math.min(this.shield, damage); this.shield -= absorbed;
       const previousHealth = this.health;
@@ -392,23 +407,27 @@ export class Game {
   static restore(data) {
     if (!data || ![1, 2].includes(data.version) || !['build', 'running', 'paused', 'defeat', 'victory'].includes(data.phase)) return null;
     const validNumber = x => Number.isFinite(x) && x >= 0;
+    const mapId=data.mapId===undefined?LEGACY_MAP.id:data.mapId;
+    if(typeof mapId!=='string' || !Object.hasOwn(MAPS,mapId) || mapId===MEADOW_MAP.id && (data.chapter!==1 || data.mode==='haunted-grove' || data.version!==2))return null;
+    const map=MAPS[mapId];
     if (!['tree', 'sap', 'health', 'shield', 'score', 'kills', 'time', 'wave', 'nextId', 'boostUntil'].every(k => validNumber(data[k]))) return null;
     if (data.health > 100 || data.shield > 50 || !Number.isInteger(data.wave) || data.wave > 10 || typeof data.access !== 'boolean') return null;
     if (!Number.isInteger(data.rarity) || data.rarity < 0 || data.rarity > 5 || !Number.isInteger(data.style) || data.style < 0 || data.style > data.rarity) return null;
-    if (!Array.isArray(data.towers) || data.towers.length > PADS.length || !Array.isArray(data.enemies) || data.enemies.length > 50 || !Array.isArray(data.queue) || data.queue.length > 30) return null;
+    if (!Array.isArray(data.towers) || data.towers.length > map.pads.length || !Array.isArray(data.enemies) || data.enemies.length > 50 || !Array.isArray(data.queue) || data.queue.length > 30) return null;
     const kinds = ['termite', 'beetle', 'moth', 'blight', 'boss'];
     const used = new Set();
     for (const t of data.towers) {
       if (!t || typeof t !== 'object') return null;
-      if (!Object.hasOwn(TOWERS, t.type) || !Number.isInteger(t.pad) || !PADS[t.pad] || used.has(t.pad) || !Number.isInteger(t.level) || t.level < 1 || t.level > 3 || !Number.isInteger(t.style) || t.style < 0 || t.style > data.rarity || !validNumber(t.id) || !Number.isFinite(t.cooldown)) return null;
+      if (!Object.hasOwn(TOWERS, t.type) || !Number.isInteger(t.pad) || !map.pads[t.pad] || used.has(t.pad) || !Number.isInteger(t.level) || t.level < 1 || t.level > 3 || !Number.isInteger(t.style) || t.style < 0 || t.style > data.rarity || !validNumber(t.id) || !Number.isFinite(t.cooldown)) return null;
       used.add(t.pad);
     }
     for (const e of data.enemies) {
       if (!e || typeof e !== 'object') return null;
-      if (!kinds.includes(e.kind) || !['id', 'progress', 'hp', 'maxHp', 'speed', 'slowUntil', 'poisonUntil', 'poisonDamage'].every(k => validNumber(e[k])) || e.hp <= 0 || e.progress >= PATH_LENGTH || e.speed <= 0) return null;
+      if (!kinds.includes(e.kind) || !['id', 'progress', 'hp', 'maxHp', 'speed', 'slowUntil', 'poisonUntil', 'poisonDamage'].every(k => validNumber(e[k])) || e.hp <= 0 || e.progress >= map.length || e.speed <= 0) return null;
     }
     if (!data.queue.every(k => kinds.includes(k)) || !Number.isFinite(data.spawnTimer)) return null;
     const game = new Game();
+    game.mapId=mapId;
     if(data.mode==='haunted-grove'){
       if(data.eventVersion!==1 || data.wave>5)return null;
       game.mode=data.mode;game.eventVersion=1;
@@ -443,8 +462,9 @@ export class Game {
     // Explicit fields only: browser saves are editable development data, never an entitlement proof.
     for (const key of ['phase', 'wave', 'health', 'shield', 'sap', 'score', 'kills', 'time', 'tree', 'rarity', 'style', 'access', 'spawnTimer', 'boostUntil', 'nextId']) game[key] = data[key];
     // Optional tactical orders default safely for old/edited saves without losing progress.
-    game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: game.forest.levels[t.type], x: PADS[t.pad][0], y: PADS[t.pad][1] }));
-    game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress) })); game.queue = [...data.queue];
+    game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: game.forest.levels[t.type], x: map.pads[t.pad][0], y: map.pads[t.pad][1] }));
+    game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress,map) })); game.queue = [...data.queue];
+    for(const enemy of game.enemies){if(mapId!==LEGACY_MAP.id)enemy.mapId=mapId;else delete enemy.mapId;}
     const season=data.season;
     if(season && typeof season==='object'){
       game.season.bestWave=Number.isInteger(season.bestWave)&&season.bestWave>=0&&season.bestWave<=5?season.bestWave:0;

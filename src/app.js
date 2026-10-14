@@ -111,7 +111,7 @@ function pointerPad(event) {
   const rect = canvas.getBoundingClientRect();
   const x = (event.clientX - rect.left) * WIDTH / rect.width;
   const y = (event.clientY - rect.top) * HEIGHT / rect.height;
-  const matches = PADS.map(([px, py], i) => ({ i, d: Math.hypot(px - x, py - y) })).sort((a, b) => a.d - b.d);
+  const matches = game.map.pads.map(([px, py], i) => ({ i, d: Math.hypot(px - x, py - y) })).sort((a, b) => a.d - b.d);
   return matches[0].d < 45 ? matches[0].i : null;
 }
 canvas.addEventListener('pointermove', event => { hoveredPad = pointerPad(event); canvas.style.cursor = hoveredPad !== null ? 'pointer' : 'default'; });
@@ -248,6 +248,7 @@ function renderUI() {
   const starCount = game.forest.stars.reduce((a,b) => a+b,0);
   $('forest-summary').textContent = game.forestRank ? `${starCount}/9 stars · permanent defender growth saved` : 'Clear a chapter to build your first landmark.';
   $('map-name').textContent = game.runName.toUpperCase();
+  $('map-tactics').textContent = game.chapter===1 && !game.isEvent && game.mapId==='crossing-v1' ? 'Saved battle · original route preserved. Start a new run to explore the new Sunpetal layout.' : game.map.tip;
   document.querySelectorAll('[data-chapter]').forEach(button => {
     const i = Number(button.dataset.chapter), stars = game.forest.stars[i];
     button.disabled = !game.access || i > game.unlockedChapter;
@@ -419,8 +420,8 @@ function draw(clock, dt) {
   aiming.consume(events);
   aiming.track(game,held);
   for(const shot of aiming.shots)if(!shot.origin)shot.origin=getGuardianShotOrigin(shot);
-  const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}:${game.mode}`;
-  if (key !== backdropKey) { paintBackdrop(bg, game.isEvent?2:game.chapter, game.forestRank); if(game.isEvent)paintHauntedBackdrop(bg); backdropKey = key; }
+  const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}:${game.mode}:${game.mapId}`;
+  if (key !== backdropKey) { paintBackdrop(bg, game.isEvent?2:game.chapter, game.forestRank,game.map); if(game.isEvent)paintHauntedBackdrop(bg); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
   aura.addColorStop(0, '#d8ad6230'); aura.addColorStop(1, '#d8ad6200'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
@@ -429,8 +430,8 @@ function draw(clock, dt) {
   ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
   if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(885,606,75,90,0,0,Math.PI*2);ctx.stroke(); }
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
-  for (let i = 0; i < PADS.length; i++) {
-    const [x,y] = PADS[i], tower = game.towers.find(t => t.pad === i);
+  for (let i = 0; i < game.map.pads.length; i++) {
+    const [x,y] = game.map.pads[i], tower = game.towers.find(t => t.pad === i);
     const selected = tower && tower.id === selectedTower;
     if (selected || hoveredPad === i && selectedType && !tower) {
       const range = selected ? TOWERS[tower.type].range + (tower.level-1)*18 : TOWERS[selectedType].range;

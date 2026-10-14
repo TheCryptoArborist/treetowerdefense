@@ -1,4 +1,4 @@
-import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing } from './engine.js';
+import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor } from './engine.js';
 import { GUARDIAN_SCALE } from './aiming.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
@@ -426,7 +426,8 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const size=boss?1.85:e.kind==='beetle'?1.12:blight?1.06:moth?.92:.88;
   const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
-  const ahead=Number.isFinite(e.progress)?pointAt(Math.min(PATH_LENGTH,e.progress+2)):null;
+  const map=mapFor(e.mapId);
+  const ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
   const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
   c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
@@ -518,7 +519,8 @@ export function paintBuildSite(c,x,y,{selected=false,hovered=false,recommended=f
   if(!occupied){c.fillStyle='#e1d8ae';c.font='bold 19px Arial';c.textAlign='center';c.fillText('+',0,16);c.fillStyle='#eee6cc';c.font='bold 10px Arial';c.strokeStyle='#101c16';c.lineWidth=3;c.strokeText(number,0,42);c.fillText(number,0,42);}
   c.restore();
 }
-export function paintBackdrop(c,chapter=0,rank=0) {
+export function paintBackdrop(c,chapter=0,rank=0,map=LEGACY_MAP) {
+  const PATH=map.path,PATH_LENGTH=map.length;
   let seed=89+chapter*100;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
   c.save();c.clearRect(0,0,WIDTH,HEIGHT);
   const terrain=environment.get('terrain');
@@ -531,15 +533,28 @@ export function paintBackdrop(c,chapter=0,rank=0) {
   c.strokeStyle='#242c2070';c.lineWidth=70;c.stroke();
   c.strokeStyle=road?c.createPattern(road.texture,'repeat'):'#8a7d63b0';c.lineWidth=58;c.stroke();
   for(let i=0;i<(road?0:850);i++){
-    const d=rand()*(PATH_LENGTH-3),p=pointAt(d),ahead=pointAt(d+2),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),offset=(rand()-.5)*50;
+    const d=rand()*(PATH_LENGTH-3),p=pointAt(d,map),ahead=pointAt(d+2,map),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),offset=(rand()-.5)*50;
     const x=p.x-Math.sin(angle)*offset,y=p.y+Math.cos(angle)*offset,w=1+rand()*5,h=1+rand()*2;
     ellipse(c,x,y,w,h,['#4b4a3b90','#b9ad8b85','#65665370','#ddd0ac50'][i%4]);
     if(i%29===0)line(c,[[x-5,y-2],[x,y],[x+4,y+4]],'#393c3180',1);
   }
   for(let i=0;i<280;i++){
-    const d=rand()*(PATH_LENGTH-3),p=pointAt(d),ahead=pointAt(d+2),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),side=i%2?1:-1;
+    const d=rand()*(PATH_LENGTH-3),p=pointAt(d,map),ahead=pointAt(d+2,map),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),side=i%2?1:-1;
     const x=p.x-Math.sin(angle)*(29+rand()*6)*side,y=p.y+Math.cos(angle)*(29+rand()*6)*side;
     ellipse(c,x,y,2+rand()*4,1+rand()*3,i%3?'#313c2c80':'#766d5050');
+  }
+  if(map.id==='meadow-v1'){
+    // Brass route markers distinguish both passes through the central crossing.
+    let progress=0;
+    for(let i=0;i<map.segments.length;i++){
+      const p=pointAt(progress+map.segments[i]*.6,map),next=pointAt(progress+map.segments[i]*.6+2,map);
+      c.save();c.translate(p.x,p.y);c.rotate(Math.atan2(next.y-p.y,next.x-p.x));
+      polygon(c,[[-7,-6],[3,0],[-7,6],[0,6],[10,0],[0,-6]],'#c8b77a70','#655d3d80',1);c.restore();progress+=map.segments[i];
+    }
+    // Small flower patches sit in open meadow pockets, clear of road and pads.
+    for(const[x,y]of [[70,100],[510,80],[55,430],[780,455]]){
+      ellipse(c,x,y,24,8,'#47563b80');for(let i=0;i<5;i++)flower(c,x-15+i*7,y-3+(i%2)*5,i%2?'#d8c388':'#b99292',.65);
+    }
   }
   if(rank>=1)cottage(c,885,90);
   if(rank>=2){polygon(c,[[386,75],[514,75],[524,111],[380,111]],'#343b2790','#726d4b',2);for(let i=0;i<18;i++)flower(c,391+i*6,84+(i%3)*8,['#ad8980','#b5a66c','#7e818f'][i%3],.55);}
