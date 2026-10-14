@@ -265,7 +265,7 @@ function renderUI() {
   if (!tower) selectedTower = null;
   const active = game.access && ['build', 'running', 'paused'].includes(game.phase);
   $('health-value').innerHTML = `${game.health}<span> / 100</span>`;
-  $('health-bar').style.width = game.health + '%'; $('health-bar').style.background = game.health < 30 ? '#d18a79' : '#b4d294';
+  $('health-bar').style.width = game.health + '%'; $('health-bar').style.background = game.health < 30 ? '#ff6b7c' : '#7ef3a0';
   $('shield-value').textContent = `Root shield: ${game.shield}`;
   $('wave-value').innerHTML = `${String(game.wave).padStart(2, '0')}<span> / ${game.waveCount}</span>`;
   $('sap-value').textContent = game.sap.toLocaleString(); $('tree-value').textContent = game.tree.toLocaleString(); $('score-value').textContent = game.score.toLocaleString();

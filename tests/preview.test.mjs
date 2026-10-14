@@ -68,11 +68,11 @@ test('clean expected clone updates only through a fast-forward', () => {
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'canopy-preview-'));
   t.after(() => rm(root, { recursive: true, force: true }));
-  for (const folder of ['tools', 'src', 'assets/environment', 'assets/defenders', 'assets/towers']) {
+  for (const folder of ['tools', 'src', 'assets/environment', 'assets/defenders', 'assets/towers', 'assets/brand']) {
     await mkdir(path.join(root, folder), { recursive: true });
   }
   await copyFile(path.join(repo, 'tools/serve.mjs'), path.join(root, 'tools/serve.mjs'));
-  for (const file of ['index.html', 'styles.css', 'src/app.js', 'assets/defenders/oak-aim-v1.png']) {
+  for (const file of ['index.html', 'styles.css', 'src/app.js', 'assets/defenders/oak-aim-v1.png', 'assets/brand/tree-logo.jpg']) {
     await writeFile(path.join(root, file), `fixture:${file}`);
   }
   return root;

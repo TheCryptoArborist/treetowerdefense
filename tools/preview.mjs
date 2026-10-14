@@ -12,9 +12,9 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 // allowlist cannot be mistaken for this clone. Old serve.mjs needs no health API.
 export async function publicFiles(root) {
   const files = ['index.html', 'styles.css'];
-  for (const folder of ['src', 'assets/environment', 'assets/defenders', 'assets/towers']) {
+  for (const folder of ['src', 'assets/environment', 'assets/defenders', 'assets/towers', 'assets/brand']) {
     for (const entry of await readdir(path.join(root, folder), { withFileTypes: true })) {
-      if (entry.isFile() && (folder === 'src' ? entry.name.endsWith('.js') : entry.name.endsWith('.png'))) {
+      if (entry.isFile() && (folder === 'src' ? entry.name.endsWith('.js') : entry.name.endsWith('.png') || folder === 'assets/brand' && entry.name.endsWith('.jpg'))) {
         files.push(`${folder}/${entry.name}`);
       }
     }
