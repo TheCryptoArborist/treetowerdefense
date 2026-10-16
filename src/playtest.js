@@ -105,3 +105,16 @@ export class PurchaseReview {
     return done;
   }
 }
+
+
+const REWARD_NAMES = { 'grove-badge': 'Grove Defender badge', 'lantern-oak': 'Lantern Oak look', 'web-watchtower': 'Web-carved Watchtower look' };
+export function battleReport(game) {
+  const r = game.runReport;
+  const leaks = Object.entries(r.leaks).filter(([,count]) => count > 0).map(([kind,count]) => ({ kind, count, name: kind === 'boss' && game.isEvent ? 'Hollow King' : PEST_GUIDE[kind].name, counter: PEST_GUIDE[kind].counter }));
+  const worst = [...leaks].sort((a,b) => b.count-a.count)[0];
+  const next = Object.keys(TOWERS).find(type => !game.isUnlocked(type));
+  let goal = next ? `${TOWERS[next].name}: ${game.unlockStatus(next).label} (${game.unlockStatus(next).current}/${game.unlockStatus(next).goal}).` : 'Full roster earned. Improve chapter stars or try another defender combination.';
+  if (game.isEvent) goal = !game.seasonRewards.includes('grove-badge') ? 'Clear all five Haunted Grove waves to earn the Grove Defender badge.' : !game.seasonRewards.includes('lantern-oak') ? 'Finish Haunted Grove with at least 80 health to earn Lantern Oak.' : !game.seasonRewards.includes('web-watchtower') ? 'Win Haunted Grove after planting three defender types to earn the Web-carved Watchtower.' : 'All Haunted Grove rewards earned. Equip your looks in the event panel.';
+  return { ...r, leaks, earned: [...r.unlocks.map(type => TOWERS[type].name), ...r.rewards.map(reward => REWARD_NAMES[reward])], goal,
+    tip: worst ? worst.counter : 'Your defense stopped every recorded pest. Try a different formation or pursue your next unlock.' };
+}

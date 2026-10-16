@@ -129,6 +129,26 @@ export function blightHealing(enemy, time) {
   return enemy.behavior === 1 && enemy.kind === 'blight' && enemy.hp > 0 && enemy.hp < enemy.maxHp && enemy.poisonUntil <= time && enemy.recoverAt <= time;
 }
 
+const REPORT_KINDS = ['termite','beetle','moth','blight','boss'];
+const REPORT_REWARDS = ['grove-badge','lantern-oak','web-watchtower'];
+function freshReport(complete = true) {
+  return { version: 1, complete, cleared: 0, sapEarned: 0, treeSpent: 0, damage: 0, absorbed: 0, continues: 0,
+    leaks: Object.fromEntries(REPORT_KINDS.map(kind => [kind,0])), unlocks: [], rewards: [] };
+}
+function restoreReport(saved) {
+  const report = freshReport(false);
+  if (!saved || saved.version !== 1 || typeof saved.complete !== 'boolean') return report;
+  const counts = ['cleared','sapEarned','treeSpent','damage','absorbed','continues'];
+  const valid = n => Number.isSafeInteger(n) && n >= 0 && n <= 1000000000;
+  if (!counts.every(key => valid(saved[key])) || saved.cleared > 10 || !REPORT_KINDS.every(kind => valid(saved.leaks?.[kind]))) return report;
+  for (const key of counts) report[key] = saved[key];
+  report.complete = saved.complete;
+  report.leaks = Object.fromEntries(REPORT_KINDS.map(kind => [kind,saved.leaks[kind]]));
+  report.unlocks = [...new Set(Array.isArray(saved.unlocks) ? saved.unlocks.filter(t => typeof t === 'string' && Object.hasOwn(TOWERS,t)) : [])];
+  report.rewards = [...new Set(Array.isArray(saved.rewards) ? saved.rewards.filter(r => REPORT_REWARDS.includes(r)) : [])];
+  return report;
+}
+
 export class Game {
   constructor() {
     this.version = 2;
@@ -151,6 +171,7 @@ export class Game {
     this.spawnTimer = 0; this.boostUntil = 0; this.nextId = 1;
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
     this.enemyRules = 1;
+    this.runReport = freshReport();
     this.mapId = this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
     this.eventTeam = []; this.eventVersion = this.mode === HAUNTED_GROVE.id ? 1 : null;
   }
@@ -187,6 +208,7 @@ export class Game {
       const status = this.unlockStatus(type);
       if (!status.unlocked && status.current >= status.goal) {
         this.forest.unlocked.push(type); earned.push(type);
+        if (announce) this.runReport.unlocks.push(type);
         if (announce) this.events.push({ type: 'roster-unlock', defender: type });
       }
     }
@@ -238,7 +260,7 @@ export class Game {
   upgradeCost(tower) { return tower.level === 1 ? 5000 : 10000; }
   spend(cost) {
     if (!this.access || !Number.isInteger(cost) || cost < 0 || this.tree < cost) return false;
-    this.tree -= cost; return true;
+    this.tree -= cost; this.runReport.treeSpent += cost; return true;
   }
   upgrade(id) {
     if (!['build', 'running', 'paused'].includes(this.phase)) return false;
@@ -302,6 +324,7 @@ export class Game {
   continueRun() {
     if (this.phase !== 'defeat' || !this.spend(PRICES.continue)) return false;
     this.health = 100; this.shield = 0; this.phase = 'running';
+    this.runReport.continues++;
     this.message = 'Tree of Life restored. Your towers and current wave remain.';
     return true;
   }
@@ -315,6 +338,7 @@ export class Game {
   resolveKills() {
     for (const e of this.enemies) {
       if (e.hp <= 0) {
+        this.runReport.sapEarned += e.kind === 'boss' ? 150 : 12;
         this.kills++; this.sap += e.kind === 'boss' ? 150 : 12; this.score += e.kind === 'boss' ? 1000 : 100;
         this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind, ...(this.mapId!==LEGACY_MAP.id?{mapId:this.mapId}:{}), ...(e.theme==='haunted-grove'?{theme:e.theme,bossName:'Hollow King'}:{}) });
       }
@@ -347,6 +371,8 @@ export class Game {
       const absorbed = Math.min(this.shield, damage); this.shield -= absorbed;
       const previousHealth = this.health;
       this.health = Math.max(0, this.health - damage + absorbed);
+      this.runReport.leaks[enemy.kind]++;
+      this.runReport.damage += previousHealth - this.health; this.runReport.absorbed += absorbed;
       this.events.push({ type: 'leak', x: 940, y: 640, kind: enemy.kind, damage: previousHealth - this.health, absorbed, ...(this.isEvent?{bossName:'Hollow King'}:{}) });
     }
     this.enemies = survivors;
@@ -383,6 +409,7 @@ export class Game {
     this.shots.forEach(shot => { shot.life -= dt; }); this.shots = this.shots.filter(shot => shot.life > 0);
     if (!this.queue.length && !this.enemies.length) {
       const previousSeasonRewards=this.seasonRewards;
+      this.runReport.cleared++; this.runReport.sapEarned += 85;
       this.sap += 85; this.score += this.health * 5;
       this.shots = [];
       this.phase = this.wave === this.waveCount ? 'victory' : 'build';
@@ -395,7 +422,7 @@ export class Game {
         if(this.isEvent){
           this.season.bestHealth=Math.max(this.season.bestHealth,this.health);
           this.season.teamClear ||= this.eventTeam.length>=3;
-          for(const reward of this.seasonRewards.filter(r=>!previousSeasonRewards.includes(r)))this.events.push({type:'season-reward',reward});
+          for(const reward of this.seasonRewards.filter(r=>!previousSeasonRewards.includes(r))){this.runReport.rewards.push(reward);this.events.push({type:'season-reward',reward});}
         } else this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
         this.events.push({ type: 'victory', x: 940, y: 640 });
       }
@@ -484,6 +511,7 @@ export class Game {
         delete enemy.behavior; delete enemy.bornAt; delete enemy.recoverAt;
       }
     }
+    game.runReport = restoreReport(data.runReport);
     game.message = 'Preview save restored. Continue your defense.';
     if (game.phase === 'running') game.phase = 'paused';
     return game;

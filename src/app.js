@@ -1,7 +1,7 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE } from './engine.js';
 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop } from './art.js';
-import { scoutWave, starterTip, PurchaseReview } from './playtest.js';
+import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
 import { CombatFeedback, bossStatus } from './combat.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 
@@ -327,7 +327,16 @@ function renderUI() {
   inspectorSignature = nextInspector;
   }
   const ended = ['defeat', 'victory'].includes(game.phase); $('outcome').hidden = !ended;
+  $('battle-report').hidden = !ended;
   if (ended) {
+    const report = battleReport(game);
+    $('report-coverage').textContent = report.complete ? 'Full run recorded' : 'Partial history · only activity recorded since this update is included below.';
+    $('report-stats').textContent = `${report.cleared} waves cleared · ${game.kills} total pests defeated · ${report.sapEarned.toLocaleString()} Sap earned · ${report.treeSpent.toLocaleString()} preview TREE spent · ${report.continues} continues`;
+    $('report-breaches').textContent = report.leaks.length ? report.leaks.map(p => `${p.name}: ${p.count}`).join(' · ') : 'No recorded breaches.';
+    $('report-damage').textContent = `${report.damage} health lost · ${report.absorbed} damage absorbed by Root Shield. Sap earned excludes starting Sap and planting refunds.`;
+    $('report-earned').textContent = report.earned.length ? `New this run: ${report.earned.join(', ')}.` : 'No new roster or seasonal unlocks recorded this run. Permanent progress stays saved.';
+    $('report-tip').textContent = report.tip;
+    $('report-goal').textContent = report.goal;
     const won = game.phase === 'victory';
     $('outcome-label').textContent = won ? 'THE FOREST REMEMBERS' : 'ROOTS CAN RISE AGAIN';
     $('outcome-title').textContent = won ? 'The Tree of Life stands.' : 'The Tree of Life has fallen.';

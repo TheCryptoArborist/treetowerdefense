@@ -26,7 +26,9 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.15
+## Fantasy forest build · v0.16
+
+End-of-run battle reports show breaches by pest, actual root damage and shield absorption, earned Sap, simulated TREE spending, continues, new roster/season unlocks, and a next goal. Reports survive reload/continue; older saves have explicitly partial history. See [battle reports](docs/battle-reports.md).
 
 - **Moonlit Marsh now has a distinct battlefield:** staggered causeways, wet pockets, direction markers and twelve build sites reward range and slow support. Saved original-route Marsh battles keep their geometry until a new run. The permanent pond landmark moves clear of the causeway. See [Moonlit Marsh rules and balance](docs/moonlit-map.md).
 
