@@ -4,3 +4,7 @@ test-results/
 *.log
 .env
 .env.*
+
+.netlify/
+dist/
+.openai/hosting.json
