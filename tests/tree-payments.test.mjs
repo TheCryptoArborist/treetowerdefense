@@ -1,6 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {TREE_TYPE,treeAmount,verifyTreeReceipt,createTreeReader} from '../server/payments/tree.mjs';
-const wallet='0x'+'1'.repeat(64),recipient='0x'+'2'.repeat(64),digest='77DCKTD1egsqSEYB1WaSurYNtnrdi85ArkjqP2hgQ4op';
+import {TREE_PAYMENT_RECIPIENT} from '../server/payments/config.mjs';
+const wallet='0x'+'1'.repeat(64),recipient=TREE_PAYMENT_RECIPIENT,digest='77DCKTD1egsqSEYB1WaSurYNtnrdi85ArkjqP2hgQ4op';
 function fixture(){const invoice={network:'mainnet',expectedDigest:digest,wallet,recipient,product:'continue',decimals:6,createdAt:1000,expiresAt:10000};const result={$kind:'Transaction',Transaction:{digest,status:{success:true},effects:{status:{success:true}},checkpoint:'123',timestampMs:2000,transaction:{sender:wallet},balanceChanges:[{address:wallet,coinType:TREE_TYPE,amount:'-20000000000'},{address:recipient,coinType:TREE_TYPE,amount:'20000000000'}]}};return{invoice,result};}
 test('TREE product base units match current game prices without floating point',()=>{for(const [product,amount]of Object.entries({shield:'3000000000',fertilizer:'5000000000',storm:'8000000000',continue:'20000000000','growth:2':'5000000000','growth:3':'10000000000'}))assert.equal(treeAmount(product,6),amount);assert.throws(()=>treeAmount('free-run',6));for(const bad of [undefined,-1,1.5,19,'6'])assert.throws(()=>treeAmount('continue',bad));});
 test('checkpointed successful receipt matches a previously bound invoice',()=>{const {result,invoice}=fixture();const proof=verifyTreeReceipt(result,invoice,3000);assert.equal(proof.amount,'20000000000');assert.equal(proof.digest,digest);assert(Object.isFrozen(proof));});
@@ -12,3 +13,5 @@ test('trusted reader fetches chain data instead of accepting browser payment cla
 test('metadata, wrong-network and unavailable chain reads do not fall back to authorization',async()=>{assert.throws(()=>createTreeReader({network:'testnet'}));await assert.rejects(createTreeReader({network:'mainnet',getCoinMetadata:async()=>({coinMetadata:null})}).decimals());await assert.rejects(createTreeReader({network:'mainnet',getTransaction:async()=>{throw Error('Indexer delay');}}).receipt(fixture().invoice,()=>3000));});
 
 test('an invoice expiring during chain lookup cannot be verified',async()=>{const {result,invoice}=fixture();let time=3000;const reader=createTreeReader({network:'mainnet',getTransaction:async()=>{time=11000;return result;}});await assert.rejects(reader.receipt(invoice,()=>time),/expired/);});
+
+test('substituting both invoice recipient and chain credit cannot redirect TREE purchases',()=>{const {result,invoice}=fixture();invoice.recipient='0x'+'3'.repeat(64);result.Transaction.balanceChanges[1].address=invoice.recipient;assert.throws(()=>verifyTreeReceipt(result,invoice,3000),/recipient is not configured/);});

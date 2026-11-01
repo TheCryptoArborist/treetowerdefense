@@ -2,6 +2,7 @@
 import {SuiGrpcClient} from '@mysten/sui/grpc';
 import {isValidTransactionDigest} from '@mysten/sui/utils';
 import {addressOf} from '../ownership.mjs';
+import {TREE_PAYMENT_RECIPIENT} from './config.mjs';
 export const TREE_TYPE='0x6c5a609f6d0288523ce4a6ed87d19ae127f62073ab75fd9b0b1c9b455d4895cf::tree::TREE';
 const PRICES=Object.freeze({shield:3000,fertilizer:5000,storm:8000,continue:20000,'growth:2':5000,'growth:3':10000});
 export function treeAmount(product,decimals){
@@ -15,6 +16,7 @@ function address(value){const a=addressOf(value);if(!a||/^0x0+$/.test(a))throw E
 export function verifyTreeReceipt(result,invoice,now=Date.now()){
  if(!invoice||invoice.network!=='mainnet'||!isValidTransactionDigest(invoice.expectedDigest))throw Error('Bound Mainnet invoice required');
  const buyer=address(invoice.wallet),recipient=address(invoice.recipient);
+ if(recipient!==TREE_PAYMENT_RECIPIENT)throw Error('Payment recipient is not configured for Canopy Defense');
  if(buyer===recipient)throw Error('Self-payment is not a purchase');
  if(!Number.isSafeInteger(invoice.createdAt)||!Number.isSafeInteger(invoice.expiresAt)||invoice.expiresAt<=invoice.createdAt||!Number.isSafeInteger(now)||now>=invoice.expiresAt)throw Error('Invoice expired or invalid');
  const expected=BigInt(treeAmount(invoice.product,invoice.decimals));

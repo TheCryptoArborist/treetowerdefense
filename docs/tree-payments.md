@@ -12,7 +12,7 @@ A live read-only metadata check returned **6 decimals**. A 20,000 TREE continue 
 
 ## Required integration before activation
 
-1. Obtain Peter's intended Canopy Defense Sui recipient address. The proposed address in TREE Force's documentation is explicitly unconfirmed; it is not copied as an active default here.
+1. **Recipient confirmed by Peter:** `0x6f1020c2fd6c91129f7cb5e0d651295e87f7245f96b7d090715c89b38197e77f`. Server configuration lives in `server/payments/config.mjs`; receipt validation rejects substituted recipients even if an invoice and receipt both name the replacement. This confirmation applies to Canopy Defense only; no other game's configuration is changed.
 2. Provision isolated transactional storage for wallet accounts, invoices, globally unique Mainnet digests and paid entitlements. Do not use deploy-scoped authentication Blobs or browser saves as a payment ledger. Preserve the existing 40 unrelated functions, Canopy access function and five schedules.
 3. Reuse the authenticated NFTree session. The server sets wallet, recipient, token, product, price, run and species/next-level from trusted records. Account-row locking must prevent purchasing the same permanent growth twice. Treat local achievements and combat outcomes as client reports, with no reward authority.
 4. Bind the signed transaction digest to an invoice before submission. Reject already bound/redeemed digests globally. A post-payment claim containing a digest must not set `expectedDigest`. Wallet signing/execution, cancellation, failed transaction, delayed indexing and interrupted checkout need explicit states; a network timeout must offer verification/recovery, not blindly send a second payment.
@@ -22,6 +22,6 @@ A live read-only metadata check returned **6 decimals**. A 20,000 TREE continue 
 
 ## Validation
 
-Nine payment tests cover catalog precision, positive receipt fixtures, wrong network/digest/sender/token/recipient/amount, missing finality, expired invoices, third-party inflows, chain read failures and expiry during lookup. These prove the validation component; they do not establish durable replay prevention, a production entitlement backend or a successful live purchase.
+Ten payment tests cover catalog precision, positive receipt fixtures, wrong network/digest/sender/token/recipient/amount, missing finality, expired invoices, third-party inflows, chain read failures and expiry during lookup. These prove the validation component; they do not establish durable replay prevention, a production entitlement backend or a successful live purchase.
 
 Reference: current Mysten `sui-sdks/typescript.md`, `frontend-apps/transactions.md`, `accessing-data/grpc.md`, and installed @mysten/sui 2.38.0 docs and Core types. No existing arcade wallet integration was migrated.
