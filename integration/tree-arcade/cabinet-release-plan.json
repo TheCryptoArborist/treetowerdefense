@@ -1,0 +1,7 @@
+{
+  "baselineLobbySha": "79ea6022a7a6f1391056211df8bfa975fafed40d",
+  "allowedExistingChanges": [
+    "/play/index.html"
+  ],
+  "newFile": "/play/canopy-defense/assets/brand/oak-guardian-preview.png"
+}
