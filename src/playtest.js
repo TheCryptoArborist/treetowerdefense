@@ -83,8 +83,8 @@ export function purchaseQuote(game, kind, towerId = null) {
     const tower = game.towers.find(item => item.id === towerId);
     if (!tower || tower.level >= 3) return { available: false, reason: 'This guardian cannot grow further.' };
     cost = game.upgradeCost(tower);
-    title = `Grow all ${TOWERS[tower.type].name} guardians`;
-    description = `${GROWTH_NAMES[tower.level - 1]} → ${GROWTH_NAMES[tower.level]}. Applies to every current and future ${TOWERS[tower.type].name}, and stays across runs.`;
+    title = game.collection?`Grow ${TOWERS[tower.type].name} #${tower.defenderSlot+1}`:`Grow all ${TOWERS[tower.type].name} guardians`;
+    description = `${GROWTH_NAMES[tower.level - 1]} → ${GROWTH_NAMES[tower.level]}. ${game.collection?'Only this numbered defender improves; its level stays across runs.':`Applies to every current and future ${TOWERS[tower.type].name}, and stays across runs.`}`;
     if (!active) reason = 'Start or resume a run before growing guardians.';
   } else if (Object.hasOwn(PRICES, kind)) {
     cost = PRICES[kind];

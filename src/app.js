@@ -39,8 +39,14 @@ try {
 } catch { game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.'; }
 if(paidMode&&!saved){try{const legacy=localStorage.getItem('canopy-defense-wallet-v1:'+holder.address);if(legacy){const restored=Game.restore(JSON.parse(legacy));if(restored)game=restored;}}catch{}}
 game.access=false;game.allowPreview(holder.rarity);
-if(paidMode){if(!paidRunId)paidRunId=(await payments.newRun()).id;game.applyPurchasedGrowth(initialPayments.growth);game.tree=Number((await payments.balance())/1000000n);}
+if(paidMode){if(!paidRunId)paidRunId=(await payments.newRun()).id;loadPurchasedGrowth(initialPayments);game.tree=Number((await payments.balance())/1000000n);}
 
+if(!paidMode)game.enableCollection();
+function loadPurchasedGrowth(status){
+ const ok=status.collection?.version===1?game.applyPurchasedCollection(status.growth,status.collection.defenders):!game.collection&&game.applyPurchasedGrowth(status.growth);
+ if(!ok)throw Error('Defender collection could not be loaded. Reconnect before purchasing.');
+}
+let deploymentChoice={type:null,slot:null};
 window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;}else{game.allowPreview(account.rarity);}renderUI();});
 let selectedType = 'pine';
 let selectedTower = null;
@@ -114,7 +120,7 @@ for (let i = 0; i < PADS.length; i++) {
 function selectDefender(type) {
   if (!game.access || !['build','running','paused'].includes(game.phase)) return;
   if (!game.isUnlocked(type)) { game.message = `${TOWERS[type].name} locked. ${UNLOCKS[type].label}.`; renderUI(); return; }
-  selectedType = type; selectedTower = null;
+  selectedType = type; selectedTower = null; deploymentChoice={type,slot:null};
   game.message = `${TOWERS[type].name} selected. Choose an empty build site (${TOWERS[type].cost} Sap).`;
   renderUI();
 }
@@ -123,7 +129,7 @@ function choosePad(pad) {
   if (!game.access) { accessDialog.showModal(); return; }
   const existing = game.towers.find(t => t.pad === pad);
   if (existing) { selectedTower = existing.id; selectedType = null; game.message = `${TOWERS[existing.type].name} selected. Upgrade or choose a new appearance.`; }
-  else if (selectedType) { const tower = game.place(selectedType, pad); if (tower) { selectedTower = tower.id; game.message = `${dName(tower)} planted. Grow this species or choose another site.`; } }
+  else if (selectedType) { const tower = game.place(selectedType, pad, deploymentChoice.type===selectedType?deploymentChoice.slot:null); if (tower) { selectedTower = tower.id; game.message = `${dName(tower)} planted. Upgrade this defender or choose another site.`; } }
   else game.message = 'Choose a defender from the planting menu first.';
   save(); renderUI();
 }
@@ -187,12 +193,12 @@ async function reviewPaidPurchase(kind,towerId){
  if(!storageAvailable){game.message='Enable browser storage before using paid run purchases.';renderUI();return;}
  const review=new PurchaseReview(game,kind,towerId);const details=review.details();if(!details.available){game.message=details.reason;renderUI();return;}
  paidReview={kind,towerId,...details};paidInvoice=null;$('purchase-error').hidden=true;purchaseDialog.showModal();renderPaidPurchase();checkoutBusy=true;
- try{save();const tower=game.towers.find(t=>t.id===towerId);paidInvoice=await payments.quote(kind==='upgrade'?{product:'growth',species:tower.type}:{product:kind,runId:paidRunId});if(paidInvoice.status!=='quoted')throw Error('A recorded payment already exists. Use Purchase history to recover it.');}
+ try{save();const tower=game.towers.find(t=>t.id===towerId);paidInvoice=await payments.quote(kind==='upgrade'?{product:'growth',species:tower.type,...(game.collection?{defenderSlot:tower.defenderSlot}:{})}:{product:kind,runId:paidRunId});if(paidInvoice.status!=='quoted')throw Error('A recorded payment already exists. Use Purchase history to recover it.');}
  catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();}
 }
 async function applyPaidItem(item){
  if(item.wallet!==holder.address)throw Error('Wrong wallet entitlement');
- if(item.product.startsWith('growth:')){const status=await payments.status();game.applyPurchasedGrowth(status.growth);appliedPayments.add(item.id);}
+ if(item.product.startsWith('growth:')){const status=await payments.status();loadPurchasedGrowth(status);appliedPayments.add(item.id);}
  else{
   if(item.run_id!==paidRunId)throw Error('This item belongs to an earlier run. Its payment is recorded in history.');
   if(!appliedPayments.has(item.id)){
@@ -222,7 +228,7 @@ async function renderPaymentHistory(){
   const status=await payments.status();list.replaceChildren();
   for(const row of status.invoices.slice(0,20)){
    const item=document.createElement('div');item.className='payment-history-row';
-   const text=document.createElement('p');text.textContent=`${row.product}${row.species?' · '+row.species:''} · ${row.status}${row.runId&&row.runId!==paidRunId?' · earlier run':''}`;item.append(text);
+   const text=document.createElement('p');text.textContent=`${row.product}${row.species?' · '+row.species+(row.defenderSlot!=null?' #'+(row.defenderSlot+1):' · legacy species purchase'):''} · ${row.status}${row.runId&&row.runId!==paidRunId?' · earlier run':''}`;item.append(text);
    const button=(label,action)=>{const b=document.createElement('button');b.className='secondary';b.textContent=label;b.disabled=checkoutBusy;b.onclick=action;item.append(b);};
    if(row.status==='bound'){
     button('Check payment',()=>recoverPaidPurchase(row.id));
@@ -238,7 +244,7 @@ async function renderPaymentHistory(){
 }
 if(paidMode){
  document.querySelector('.banner-detail').textContent='Sap plants defenders · TREE buys upgrades & supplies · SUI is network gas only';
- $('currency-tree-note').textContent='Real TREE is spent only after wallet approval. Species growth stays with your wallet; supplies and continues belong to this run. SUI is separate network gas, not an entry fee.';
+ $('currency-tree-note').textContent='Real TREE is spent only after wallet approval. Each numbered defender’s level stays with your wallet; supplies and continues belong to this run. SUI is separate network gas, not an entry fee.';
  document.querySelector('#purchase-dialog .eyebrow').textContent='TREE WALLET PURCHASE';
  document.querySelector('#purchase-dialog dt').textContent='Cost · TREE';
  $('confirm-purchase').textContent='Pay with wallet';
@@ -254,7 +260,7 @@ if(paidMode){
 
 async function newRun() {
   if(checkoutBusy)return false;
-  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return false;
+  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent defender growth and chapter progress are kept.')) return false;
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   game.newRun(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
@@ -268,10 +274,10 @@ $('new-run-button').addEventListener('click', ()=>newRun().catch(error=>{game.me
 $('outcome-new-run').addEventListener('click', ()=>newRun().catch(error=>{game.message=error.message;renderUI();}));
 $('reset-button').addEventListener('click', async() => {
   if(checkoutBusy)return;
-  if(paidMode){if(!confirm('Start a fresh battle? Paid species growth stays in your wallet account; this run and its run-specific purchases are abandoned.'))return;paidRunId=(await payments.newRun()).id;appliedPayments=new Set();game=new Game();game.allowPreview(holder.rarity);game.applyPurchasedGrowth((await payments.status()).growth);game.tree=Number((await payments.balance())/1000000n);save();renderUI();return;}
+  if(paidMode){if(!confirm('Start a fresh battle? Paid defender growth stays in your wallet account; this run and its run-specific purchases are abandoned.'))return;paidRunId=(await payments.newRun()).id;appliedPayments=new Set();game=new Game();game.allowPreview(holder.rarity);loadPurchasedGrowth(await payments.status());game.tree=Number((await payments.balance())/1000000n);save();renderUI();return;}
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
   if(!window.canopyAccess.account)return;
-  game = new Game();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
+  game = new Game();game.enableCollection();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
   if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
@@ -383,10 +389,10 @@ function renderUI() {
     button.querySelector('.chapter-stars').textContent = i > game.unlockedChapter ? 'Locked' : '★'.repeat(stars) + '☆'.repeat(3-stars);
     button.setAttribute('aria-label', `${CHAPTERS[i].name}: ${i > game.unlockedChapter ? 'locked' : `${stars} of 3 stars`}`);
   });
-  const nextCards = Object.values(game.forest.levels).join(':') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
+  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
-      const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.forest.levels[type];
+      const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.collection?Math.max(...game.collection.levels[type]):game.forest.levels[type];
       c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level); if(game.seasonLooks[type])paintSeasonLook(c,type,72,150,1.08);if(game.harvestLooks[type])paintHarvestLook(c,type,72,150,1.08);
     }); cardSignature = nextCards;
   }
@@ -410,7 +416,7 @@ function renderUI() {
     button.classList.toggle('active', selectedType === button.dataset.tower); button.setAttribute('aria-pressed', String(selectedType === button.dataset.tower)); const type = button.dataset.tower, status = game.unlockStatus(type);
     button.disabled = !active || !status.unlocked;
     button.classList.toggle('roster-locked', !status.unlocked);
-    button.querySelector('.roster-progress').textContent = status.unlocked ? `${GROWTH_NAMES[game.forest.levels[type]-1]} · unlocked` : `${status.label} · ${status.current}/${status.goal}`;
+    button.querySelector('.roster-progress').textContent = status.unlocked ? (game.collection?`${game.availableDefenders(type).length}/12 available · individual levels`:`${GROWTH_NAMES[game.forest.levels[type]-1]} · unlocked`) : `${status.label} · ${status.current}/${status.goal}`;
     button.setAttribute('aria-label', `${TOWERS[type].name}: ${TOWERS[type].role}. ${status.unlocked ? `${TOWERS[type].cost} Sap. ${TOWERS[type].description}` : `Locked. ${status.label}. Progress ${status.current} of ${status.goal}.`}`);
   });
   renderRosterProgress();
@@ -434,7 +440,7 @@ function renderUI() {
   if (nextInspector !== inspectorSignature) {
   if (tower) {
     const d = TOWERS[tower.type];
-    $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">TREE growth permanently upgrades every ${d.name}, now and in future runs. Sap only pays to plant them.</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><div class="target-orders"><label for="target-mode">Target priority</label><select id="target-mode" aria-describedby="target-detail">${Object.entries(TARGET_MODES).map(([mode,order]) => `<option value="${mode}" ${tower.targetMode === mode ? 'selected' : ''}>${order.name}</option>`).join('')}</select><p id="target-detail">${TARGET_MODES[tower.targetMode].detail}</p><small>This defender only · order included</small></div><button id="upgrade-button" class="primary">${tower.level === 3 ? 'Species growth complete ✓' : `Grow all ${d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button>${tower.level===3?'<p class="growth-note">TREE field supplies and continues remain available for future runs.</p>':''}<button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
+    $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${game.collection?'#'+(tower.defenderSlot+1)+' · ':''}${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">${game.collection?`TREE upgrades only ${d.name} #${tower.defenderSlot+1}. Its level stays in your collection when removed or when a new run starts.`:`TREE growth permanently upgrades every ${d.name}, now and in future runs.`} Sap only pays for deployment.</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><div class="target-orders"><label for="target-mode">Target priority</label><select id="target-mode" aria-describedby="target-detail">${Object.entries(TARGET_MODES).map(([mode,order]) => `<option value="${mode}" ${tower.targetMode === mode ? 'selected' : ''}>${order.name}</option>`).join('')}</select><p id="target-detail">${TARGET_MODES[tower.targetMode].detail}</p><small>This defender only · order included</small></div><button id="upgrade-button" class="primary">${tower.level === 3 ? (game.collection?'This defender is Ancient ✓':'Species growth complete ✓') : `Grow ${game.collection?d.name+' #'+(tower.defenderSlot+1):'all '+d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button>${tower.level===3?'<p class="growth-note">TREE field supplies and continues remain available for future runs.</p>':''}<button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
     shapeTree($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
     if(game.seasonLooks[tower.type])paintSeasonLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);if(game.harvestLooks[tower.type])paintHarvestLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);
     $('target-mode').disabled = !active;
@@ -449,7 +455,7 @@ function renderUI() {
     $('remove-button').disabled = !active;
     $('remove-button').addEventListener('click', () => act(() => { game.sell(tower.id); selectedTower = null; selectedType = tower.type; }));
   } else {
-    $('inspector').innerHTML = '<span class="eyebrow">ROOTED IN STRENGTH.</span><h3>Choose your defenders.</h3><p>Plant a defender, then select it to grow its whole species. Choose its target priority to intercept fast or tough pests. TREE upgrades stay with you across runs.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE grows their species</span></div>';
+    $('inspector').innerHTML = '<span class="eyebrow">ROOTED IN STRENGTH.</span><h3>Choose your defenders.</h3><p>Choose a numbered defender from your collection, plant it, then select it to upgrade that individual. Choose its target priority to intercept fast or tough pests. TREE upgrades stay with you across runs.</p><div class="legend"><span><i class="legend-dot sap"></i>Sap plants towers</span><span><i class="legend-dot tree"></i>TREE upgrades individuals</span></div>';
   }
   inspectorSignature = nextInspector;
   }
@@ -475,7 +481,23 @@ function renderUI() {
   }
 }
 
+$('defender-copy').addEventListener('change',event=>{deploymentChoice={type:selectedType,slot:Number(event.target.value)};});
+function renderCollection(){
+ const wrap=$('collection-picker'),select=$('defender-copy');
+ wrap.hidden=!game.collection||!selectedType||!game.isUnlocked(selectedType);
+ if(wrap.hidden)return;
+ const available=game.availableDefenders(selectedType).sort((a,b)=>b.level-a.level||a.slot-b.slot);
+ if(deploymentChoice.type!==selectedType||!available.some(d=>d.slot===deploymentChoice.slot))deploymentChoice={type:selectedType,slot:available[0]?.slot??null};
+ const signature=selectedType+':'+JSON.stringify(available);
+ if(select.dataset.signature!==signature){
+  select.replaceChildren(...available.map(d=>{const option=document.createElement('option');option.value=d.slot;option.textContent=`${TOWERS[selectedType].name} #${d.slot+1} · ${GROWTH_NAMES[d.level-1]} · level ${d.level}`;return option;}));
+  select.dataset.signature=signature;
+ }
+ select.disabled=!available.length;select.value=String(deploymentChoice.slot);
+ $('collection-summary').textContent=available.length?`${available.length}/12 available. TREE upgrades this defender only; Sap deploys it.`:'All 12 defenders of this type are deployed. Remove one to redeploy it.';
+}
 function renderRosterProgress() {
+ renderCollection();
   const types = Object.keys(TOWERS), unlocked = types.filter(type => game.isUnlocked(type));
   $('roster-summary').textContent = `${unlocked.length}/${types.length} defenders unlocked · earned progress stays across runs`;
   const next = types.filter(type => !game.isUnlocked(type)).map(type => ({type, ...game.unlockStatus(type)}));
@@ -499,7 +521,7 @@ function renderCombatUI() {
   }
   const notice = feedback.notice;
   const title = notice?.title || (game.phase === 'paused' ? 'BATTLE PAUSED' : game.phase === 'running' ? 'GUARDIANS ENGAGED' : game.phase === 'victory' ? 'FOREST PROTECTED' : game.phase === 'defeat' ? 'THE ROOTS HAVE FALLEN' : 'HOLD THE LINE');
-  const text = notice?.text || (game.phase === 'paused' ? 'Resume when you are ready.' : game.phase === 'running' ? 'Watch the route and protect the Tree of Life.' : 'Earned Sap plants guardians. TREE grows their species.');
+  const text = notice?.text || (game.phase === 'paused' ? 'Resume when you are ready.' : game.phase === 'running' ? 'Watch the route and protect the Tree of Life.' : 'Earned Sap plants guardians. TREE upgrades individuals.');
   $('battle-notice').dataset.tone = notice?.tone || 'normal';
   if ($('notice-title').textContent !== title) $('notice-title').textContent = title;
   if ($('notice-text').textContent !== text) $('notice-text').textContent = text;
@@ -571,7 +593,7 @@ function draw(clock, dt) {
     const [x,y] = game.map.pads[i], tower = game.towers.find(t => t.pad === i);
     const selected = tower && tower.id === selectedTower;
     if (selected || hoveredPad === i && selectedType && !tower) {
-      const range = selected ? TOWERS[tower.type].range + (tower.level-1)*18 : TOWERS[selectedType].range;
+      const range = selected ? TOWERS[tower.type].range + (tower.level-1)*18 : TOWERS[selectedType].range + ((game.collection?.levels[selectedType]?.[deploymentChoice.type===selectedType?deploymentChoice.slot:0]??game.forest.levels[selectedType])-1)*18;
       ctx.fillStyle='#f7ffcf28';ctx.strokeStyle='#365d3980';ctx.lineWidth=2;ctx.setLineDash([6,7]);ctx.beginPath();ctx.arc(x,y,range,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.setLineDash([]);
     }
     paintBuildSite(ctx,x,y,{selected,hovered:hoveredPad===i,recommended:suggestedPad===i,occupied:!!tower,number:i+1});

@@ -249,15 +249,48 @@ export class Game {
     } else this.style = style;
     return true;
   }
-  place(type, pad) {
+  enableCollection() {
+    if (this.collection?.version === 1) return true;
+    this.collection = {version:1, levels:Object.fromEntries(Object.keys(TOWERS).map(type=>[type,Array(12).fill(this.forest.levels[type])]))};
+    const used = {};
+    for (const tower of this.towers) tower.defenderSlot = (used[tower.type] = (used[tower.type] ?? -1) + 1);
+    return true;
+  }
+  availableDefenders(type) {
+    if (!this.collection || !Object.hasOwn(TOWERS,type)) return [];
+    return this.collection.levels[type].map((level,slot)=>({slot,level})).filter(d=>!this.towers.some(t=>t.type===type&&t.defenderSlot===d.slot));
+  }
+  applyPurchasedCollection(baseline, defenders) {
+    if(!baseline||!Array.isArray(defenders))return false;
+    const levels={};
+    for(const type of Object.keys(TOWERS)){
+      const level=baseline[type]??1;if(!Number.isInteger(level)||level<1||level>3)return false;
+      levels[type]=Array(12).fill(level);
+    }
+    const seen=new Set();
+    for(const d of defenders){
+      if(!d||!Object.hasOwn(TOWERS,d.species)||!Number.isInteger(d.slot)||d.slot<0||d.slot>=12||!Number.isInteger(d.level)||d.level<1||d.level>3||seen.has(d.species+':'+d.slot))return false;
+      seen.add(d.species+':'+d.slot);levels[d.species][d.slot]=Math.max(levels[d.species][d.slot],d.level);
+    }
+    this.enableCollection();this.collection.levels=levels;
+    for(const type of Object.keys(TOWERS))this.forest.levels[type]=baseline[type]??1;
+    for(const tower of this.towers)tower.level=levels[tower.type][tower.defenderSlot];
+    return true;
+  }
+  place(type, pad, defenderSlot = null) {
     if (!this.access || !['build', 'running', 'paused'].includes(this.phase) || !Object.hasOwn(TOWERS, type) || !Number.isInteger(pad) || !this.map.pads[pad]) return false;
     if (!this.isUnlocked(type)) { this.message = `${TOWERS[type].name} locked. ${UNLOCKS[type].label}.`; return false; }
     if (this.towers.some(t => t.pad === pad)) return false;
+    if(this.collection){
+      const available=this.availableDefenders(type);
+      if(defenderSlot===null)defenderSlot=available.sort((a,b)=>b.level-a.level||a.slot-b.slot)[0]?.slot;
+      if(!available.some(d=>d.slot===defenderSlot)){this.message='That defender is already deployed or unavailable.';return false;}
+    }
     const definition = TOWERS[type];
     if (this.sap < definition.cost) { this.message = 'Earn more Sap by defeating pests.'; return false; }
     this.sap -= definition.cost;
     const [x, y] = this.map.pads[pad];
-    const tower = { id: this.nextId++, type, pad, x, y, level: this.forest.levels[type], cooldown: 0, style: this.style, targetMode: 'first' };
+    const tower = { id: this.nextId++, type, pad, x, y, level: this.collection?this.collection.levels[type][defenderSlot]:this.forest.levels[type], ...(this.collection?{defenderSlot}:{}), cooldown: 0, style: this.style, targetMode: 'first' };
     this.towers.push(tower); this.message = `${definition.name} planted. Ready to defend.`;
     if(this.isEvent && !this.eventTeam.includes(type))this.eventTeam.push(type);
     this.events.push({ type: 'plant', x, y });
@@ -288,6 +321,12 @@ export class Game {
     const tower = this.towers.find(t => t.id === id);
     if (!tower || tower.level >= 3) return false;
     if (!this.spend(this.upgradeCost(tower))) { this.message = 'Not enough preview TREE.'; return false; }
+    if(this.collection){
+      tower.level++;this.collection.levels[tower.type][tower.defenderSlot]=tower.level;
+      this.events.push({type:'upgrade',x:tower.x,y:tower.y});
+      this.message=`${TOWERS[tower.type].name} #${tower.defenderSlot+1} grew to ${GROWTH_NAMES[tower.level-1]}. Only this defender is upgraded; its level stays across runs.`;
+      return true;
+    }
     this.forest.levels[tower.type] = tower.level + 1;
     for (const same of this.towers.filter(t => t.type === tower.type)) {
       same.level = this.forest.levels[tower.type]; this.events.push({ type: 'upgrade', x: same.x, y: same.y });
@@ -301,7 +340,7 @@ export class Game {
     if (!tower) return false;
     this.sap += Math.floor(TOWERS[tower.type].cost * 0.6);
     this.towers = this.towers.filter(t => t.id !== id);
-    this.message = 'Defender removed. 60% of planting Sap returned; permanent species growth is kept.';
+    this.message = 'Defender removed. 60% of planting Sap returned; permanent defender growth is kept.';
     return true;
   }
   startWave() {
@@ -513,7 +552,7 @@ export class Game {
       game.forest.stars = [...data.forest.stars];
       if (!Number.isInteger(data.chapter) || data.chapter < 0 || data.chapter > game.unlockedChapter) return null;
       game.chapter = data.chapter;
-      if (data.towers.some(t => t.level !== game.forest.levels[t.type])) return null;
+      if (!data.collection && data.towers.some(t => t.level !== game.forest.levels[t.type])) return null;
     } else {
       // Carry upgrades already purchased in the original preview into permanent growth.
       for (const tower of data.towers) game.forest.levels[tower.type] = Math.max(game.forest.levels[tower.type], tower.level);
@@ -533,7 +572,13 @@ export class Game {
     // Explicit fields only: browser saves are editable development data, never an entitlement proof.
     for (const key of ['phase', 'wave', 'health', 'shield', 'sap', 'score', 'kills', 'time', 'tree', 'rarity', 'style', 'access', 'spawnTimer', 'boostUntil', 'nextId']) game[key] = data[key];
     // Optional tactical orders default safely for old/edited saves without losing progress.
-    game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: game.forest.levels[t.type], x: map.pads[t.pad][0], y: map.pads[t.pad][1] }));
+    game.towers = data.towers.map(t => ({ ...t, targetMode: typeof t.targetMode === 'string' && Object.hasOwn(TARGET_MODES, t.targetMode) ? t.targetMode : 'first', level: data.collection?t.level:game.forest.levels[t.type], x: map.pads[t.pad][0], y: map.pads[t.pad][1] }));
+    if(data.collection!==undefined && data.collection!==null){
+      const c=data.collection;if(c.version!==1||!c.levels||!Object.keys(TOWERS).every(type=>Array.isArray(c.levels[type])&&c.levels[type].length===12&&c.levels[type].every(level=>Number.isInteger(level)&&level>=game.forest.levels[type]&&level<=3)))return null;
+      const deployed=new Set();
+      for(const t of game.towers){const key=t.type+':'+t.defenderSlot;if(!Number.isInteger(t.defenderSlot)||t.defenderSlot<0||t.defenderSlot>=12||deployed.has(key)||t.level!==c.levels[t.type][t.defenderSlot])return null;deployed.add(key);}
+      game.collection={version:1,levels:Object.fromEntries(Object.keys(TOWERS).map(type=>[type,[...c.levels[type]]]))};
+    }
     game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress,map) })); game.queue = [...data.queue];
     for(const enemy of game.enemies){if(mapId!==LEGACY_MAP.id)enemy.mapId=mapId;else delete enemy.mapId;}
     const season=data.season;

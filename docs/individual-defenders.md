@@ -1,0 +1,23 @@
+# Individual defender collection
+
+User-approved direction: TREE buys a level for one defender rather than an entire species. This first migration retains Sapling / Guardian / Ancient and the current 5,000 / 10,000 TREE prices per level. Ten levels, Tree of Life HQ progression and research are separate future work.
+
+## Collection rules
+
+Each species has twelve permanently numbered copies, matching the maximum twelve battlefield sites. Unlocking the species grants its copies without a recruitment charge. The collection is a game account feature, not a new tradable NFT. Choose an available copy in the roster picker; Sap deploys it. Each copy can appear only once on a battlefield. Removing it refunds the existing 60% Sap and returns it to the collection with its level; new runs clear deployment and Sap while retaining collection levels. Chapter and season travel use the same collection.
+
+A TREE upgrade affects only the selected copy. Other copies retain their levels. The copy number appears in the picker, inspector, purchase review, invoice history and server invoice. Three levels and combat multipliers are unchanged, so this changes purchase scope and progression choices rather than increasing the stat ceiling. Cosmetic rarity remains separate.
+
+## Existing purchases
+
+Keep the existing species growth table as a grandfathered minimum. Seed all twelve copies at that level, preserving both existing and future deployment benefits promised by the old purchase. Local simulated saves migrate their species levels and assign distinct numbers to deployed copies. Paid mode seeds only from verified server growth, then overlays authoritative individual levels. Edited local state never proves payment.
+
+The additive migration creates `canopy_payments.defenders`, seeds existing purchases, and adds nullable invoice/entitlement copy columns. It does not alter existing invoices, receipts, accounts, run IDs or growth prices. Already signed species invoices remain recoverable with their original species-wide scope. New individual invoices are tied to the stored wallet/species/copy, and redemption changes exactly one row atomically with its receipt and entitlement. Retries return the same entitlement. The existing one-pending-invoice-per-species constraint remains: recover/cancel that purchase before buying a different copy of the same species.
+
+## Activation and validation
+
+The new paid mode is opt-in with `CANOPY_INDIVIDUAL_DEFENDERS=true` on the isolated checkout-test backend only. Payment status reports `collection.version=1` plus server-owned copy rows; the client refuses to use a collection save with a backend that does not support collections. Legacy mode remains compatible. Do not disable the flag after individual purchases without a compatible replacement. Do not promote this backend to the regular game or production database before holder and phone acceptance.
+
+Local integration tests cover individual invoices, independent prices, duplicate redemption, late legacy recovery, atomic rollback, invalid slots, client replacement from server state, migrated copies, cross-run persistence, save validation and chapter/season travel. Actual wallet signing and holder UI acceptance remain unverified.
+
+Local validation: 188 passing tests, one Windows-only skip, zero failures; JavaScript syntax checks and `git diff --check` passed. The migration rehearsal starts from the old schema with paid species levels and confirms all twelve inherited copies without changing those old rows. Hosted activation is pending deployment.
