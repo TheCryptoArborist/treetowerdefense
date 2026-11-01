@@ -44,4 +44,5 @@ kit.stores.$connection.subscribe(c=>{
 });
 setInterval(()=>{if(principal&&principal.expiresAt<=Date.now())lock('Your session expired. Verify your NFTree again.');else if(principal&&!document.hidden)refresh();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+status.textContent='Connect an NFTree holder wallet to enter.';
 if(dialog.open)dialog.close();show();

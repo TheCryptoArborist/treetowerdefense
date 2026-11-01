@@ -1,5 +1,7 @@
 import {randomBytes,createHash} from 'node:crypto';
 import {verifyPersonalMessageSignature} from '@mysten/sui/verify';
+import {SuiGraphQLClient} from '@mysten/sui/graphql';
+const signatureClient=new SuiGraphQLClient({network:'mainnet',url:'https://graphql.mainnet.sui.io/graphql',fetch:(url,options)=>fetch(url,{...options,signal:AbortSignal.timeout(20000)})});
 import {addressOf,nftreeOwnership} from './ownership.mjs';
 const PREFIX='/play/canopy-defense/',COOKIE='__Secure-canopy-session';
 export const messageFor=c=>['Canopy Defense NFTree access','Origin: '+c.origin,'Network: sui:mainnet','Wallet: '+c.address,'Nonce: '+c.nonce,'Expires: '+new Date(c.expiresAt).toISOString(),'Sign in only. No transaction, token transfer, or token approval.'].join('\n');
@@ -32,7 +34,7 @@ export function createAccessHandler({store,ownership=nftreeOwnership,verify=veri
    }
    if(b?.action!=='verify'||!addressOf(b.address)||!/^([a-f0-9]{64})$/.test(b.nonce||'')||typeof b.signature!=='string'||b.signature.length>4000)return reply({error:'Invalid sign-in proof'},400);
    const key='challenge/'+b.nonce,c=await store.get(key,{type:'json'});if(!c||c.expiresAt<=now()||c.origin!==origin||c.address!==addressOf(b.address))return reply({error:'Sign-in expired. Request a new message.'},401);
-   try{await verify(new TextEncoder().encode(messageFor(c)),b.signature,{address:c.address});}catch{return reply({error:'Wallet signature could not be verified'},401);}
+   try{await verify(new TextEncoder().encode(messageFor(c)),b.signature,{address:c.address,client:signatureClient});}catch{return reply({error:'Wallet signature could not be verified'},401);}
    const used=await store.setJSON('used/'+b.nonce,{expiresAt:c.expiresAt},{onlyIfNew:true});if(!used.modified)return reply({error:'Sign-in message already used'},401);await store.delete(key);
    const owned=await ownership(c.address);if(owned.count<1)return reply({error:'An NFTree is required in this wallet or its Kiosk'},403);
    const token=nonce(),session={address:c.address,origin,verifiedAt:now(),expiresAt:now()+15*60000};await store.setJSON('session/'+hash(token),session,{onlyIfNew:true});return reply({verified:true,...owned,expiresAt:session.expiresAt},200,{'Set-Cookie':cookie(token,900)});
