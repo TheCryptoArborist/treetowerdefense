@@ -15,3 +15,5 @@ test('metadata, wrong-network and unavailable chain reads do not fall back to au
 test('an invoice expiring during chain lookup cannot be verified',async()=>{const {result,invoice}=fixture();let time=3000;const reader=createTreeReader({network:'mainnet',getTransaction:async()=>{time=11000;return result;}});await assert.rejects(reader.receipt(invoice,()=>time),/expired/);});
 
 test('substituting both invoice recipient and chain credit cannot redirect TREE purchases',()=>{const {result,invoice}=fixture();invoice.recipient='0x'+'3'.repeat(64);result.Transaction.balanceChanges[1].address=invoice.recipient;assert.throws(()=>verifyTreeReceipt(result,invoice,3000),/recipient is not configured/);});
+
+test('late recovery accepts only an originally timely checkpointed transfer',()=>{const {result,invoice}=fixture();assert.throws(()=>verifyTreeReceipt(result,invoice,11000));assert.equal(verifyTreeReceipt(result,invoice,11000,{allowLateRecovery:true}).digest,digest);result.Transaction.timestampMs=10001;assert.throws(()=>verifyTreeReceipt(result,invoice,11000,{allowLateRecovery:true}));});

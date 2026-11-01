@@ -1,6 +1,6 @@
 # TREE payments — staged verification foundation
 
-Status: server-side primitives and tests only. No payment endpoint, wallet transfer handler, database migration or production deployment is included. NFTree access and the live simulated shop are unchanged. Passing receipt validation is **not** permission to apply an upgrade or continue.
+Status: server-side receipt validation, transactional purchase ledger and an additive database migration are implemented. The migration is tested locally; it has not been applied to the hosted database. No payment endpoint, wallet transfer handler or production deployment is included. NFTree access and the live simulated shop are unchanged. Passing receipt validation is **not** permission to apply an upgrade or continue.
 
 ## Implemented
 
@@ -13,7 +13,7 @@ A live read-only metadata check returned **6 decimals**. A 20,000 TREE continue 
 ## Required integration before activation
 
 1. **Recipient confirmed by Peter:** `0x6f1020c2fd6c91129f7cb5e0d651295e87f7245f96b7d090715c89b38197e77f`. Server configuration lives in `server/payments/config.mjs`; receipt validation rejects substituted recipients even if an invoice and receipt both name the replacement. This confirmation applies to Canopy Defense only; no other game's configuration is changed.
-2. Provision isolated transactional storage for wallet accounts, invoices, globally unique Mainnet digests and paid entitlements. Do not use deploy-scoped authentication Blobs or browser saves as a payment ledger. Preserve the existing 40 unrelated functions, Canopy access function and five schedules.
+2. **Ledger implemented, hosted migration pending:** `canopy_payments` stores wallet accounts, server-issued runs, invoices, unique Canopy payment digests, receipts, permanent species levels and one-time entitlements. Apply the committed migration through a reviewed preview deploy before production activation. Do not use deploy-scoped authentication Blobs or browser saves as a payment ledger. Preserve the existing 40 unrelated functions, Canopy access function and five schedules.
 3. Reuse the authenticated NFTree session. The server sets wallet, recipient, token, product, price, run and species/next-level from trusted records. Account-row locking must prevent purchasing the same permanent growth twice. Treat local achievements and combat outcomes as client reports, with no reward authority.
 4. Bind the signed transaction digest to an invoice before submission. Reject already bound/redeemed digests globally. A post-payment claim containing a digest must not set `expectedDigest`. Wallet signing/execution, cancellation, failed transaction, delayed indexing and interrupted checkout need explicit states; a network timeout must offer verification/recovery, not blindly send a second payment.
 5. In one database transaction, recheck session/invoice expiry and eligibility under locks, insert the unique receipt, create the entitlement and mark the invoice paid. A retry returns the same entitlement rather than granting another. A paid receipt whose battle context changes must remain recoverable, never disappear with a new deployment or local save reset.
@@ -25,3 +25,17 @@ A live read-only metadata check returned **6 decimals**. A 20,000 TREE continue 
 Ten payment tests cover catalog precision, positive receipt fixtures, wrong network/digest/sender/token/recipient/amount, missing finality, expired invoices, third-party inflows, chain read failures and expiry during lookup. These prove the validation component; they do not establish durable replay prevention, a production entitlement backend or a successful live purchase.
 
 Reference: current Mysten `sui-sdks/typescript.md`, `frontend-apps/transactions.md`, `accessing-data/grpc.md`, and installed @mysten/sui 2.38.0 docs and Core types. No existing arcade wallet integration was migrated.
+
+## Transactional ledger milestone
+
+`server/payments/ledger.mjs` requires injected trusted authorization, signed-transaction inspection, Mainnet receipt lookup and metadata lookup. It is not callable from the browser. `database.mjs` adapts Netlify Database's pool to parameterized transactions on one leased connection. No HTTP route or automatic payment activation is introduced.
+
+Wallet account and invoice row locks serialize purchases. Repeated/concurrent permanent-growth quotes return the pending invoice. Growth prices use durable species levels, not a browser's claimed level or funds. Signed digests are unique across Canopy invoices. Successful redemption inserts the receipt, advances growth, creates one entitlement and marks payment in one transaction. Retries return the existing entitlement. Supplies/continues have one durable consumption against their server-issued run. New service instances read the same paid records.
+
+Unsigned expired quotes can be replaced. Bound invoices remain reserved for recovery: a payment checkpointed within its original quote window can be verified later, after reauthentication, even when receipt lookup was delayed. Changing the caller's clock does not authorize a late on-chain payment. The default standalone verifier still rejects expired invoices; only the server ledger requests recovery. A transfer executed outside the quote window, or a signed transaction that fails permanently, requires a reconciliation path before checkout activation; the code does not silently delete or release its bound record.
+
+The additive migration is `netlify/database/migrations/20261101023000_canopy_payments.sql`. It creates only the Canopy schema and revokes public access. The existing TREE site reports Netlify Database enabled with no applied migrations. Only read-only hosted status was queried; no hosted rows, schema, deployment, environment variables or other games changed.
+
+Ten local ledger integration tests execute the migration against Netlify's embedded Postgres-compatible engine and cover duplicate/concurrent requests, wallet isolation, receipt replay, cancel/recovery, expired quotes, read failures, logout races, atomic rollback and consumption. Embedded tests serialize transactions internally, so these are not proof of independent PostgreSQL connection contention. A separate CI job runs the same suite against disposable PostgreSQL 16 connections; report its observed result separately. Positive identity, signed-digest and receipt data in ledger tests are fixtures, never a live paid purchase.
+
+Still needed: hosted migration verification, concrete signed-byte inspection and HTTP session adapter, wallet signing/execution and recovery UI, migration of the game from preview spending to authoritative entitlements, failed/stale transaction reconciliation, and actual holder/mobile acceptance. Real TREE payments remain disabled.

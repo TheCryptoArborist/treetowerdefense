@@ -6,7 +6,7 @@ A playable, mobile-friendly tower-defense prototype for the TREE Arcade.
 
 ## Status
 
-This repository contains the **development preview**, not a mainnet launch. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. TREE balances and purchases remain simulated; the game sends no transactions, transfers no tokens, and awards no money or token rewards. Saved gameplay remains editable browser data. See [NFTree access](docs/nftree-access.md).
+This repository contains the **development preview**, not a mainnet launch. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. TREE balances and purchases remain simulated; the game sends no transactions, transfers no tokens, and awards no money or token rewards. Saved gameplay remains editable browser data. See [NFTree access](docs/nftree-access.md). The [TREE purchase ledger](docs/tree-payments.md) is implemented and tested separately; hosted migration and checkout integration remain pending.
 
 ## TREE Arcade home
 

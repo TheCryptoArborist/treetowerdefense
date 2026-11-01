@@ -13,12 +13,12 @@ export function treeAmount(product,decimals){
 function address(value){const a=addressOf(value);if(!a||/^0x0+$/.test(a))throw Error('Invalid payment address');return a;}
 // Only call with an authenticated wallet and a server-owned invoice loaded from durable storage.
 // expectedDigest must be bound to that invoice before execution, never copied from a claim.
-export function verifyTreeReceipt(result,invoice,now=Date.now()){
+export function verifyTreeReceipt(result,invoice,now=Date.now(),{allowLateRecovery=false}={}){
  if(!invoice||invoice.network!=='mainnet'||!isValidTransactionDigest(invoice.expectedDigest))throw Error('Bound Mainnet invoice required');
  const buyer=address(invoice.wallet),recipient=address(invoice.recipient);
  if(recipient!==TREE_PAYMENT_RECIPIENT)throw Error('Payment recipient is not configured for Canopy Defense');
  if(buyer===recipient)throw Error('Self-payment is not a purchase');
- if(!Number.isSafeInteger(invoice.createdAt)||!Number.isSafeInteger(invoice.expiresAt)||invoice.expiresAt<=invoice.createdAt||!Number.isSafeInteger(now)||now>=invoice.expiresAt)throw Error('Invoice expired or invalid');
+ if(!Number.isSafeInteger(invoice.createdAt)||!Number.isSafeInteger(invoice.expiresAt)||invoice.expiresAt<=invoice.createdAt||!Number.isSafeInteger(now)||(!allowLateRecovery&&now>=invoice.expiresAt))throw Error('Invoice expired or invalid');
  const expected=BigInt(treeAmount(invoice.product,invoice.decimals));
  const tx=result?.$kind==='Transaction'?result.Transaction:null;
  if(!tx||tx.digest!==invoice.expectedDigest||tx.status?.success!==true||tx.effects?.status?.success!==true)throw Error('Payment did not succeed');
@@ -41,11 +41,11 @@ export function createTreeReader(client=new SuiGrpcClient({network:'mainnet',bas
  if(client.network!=='mainnet')throw Error('Mainnet required');
  return Object.freeze({
   async decimals(){const {coinMetadata}=await client.getCoinMetadata({coinType:TREE_TYPE,signal:AbortSignal.timeout(20000)});if(!coinMetadata||!Number.isInteger(coinMetadata.decimals)||coinMetadata.decimals<0||coinMetadata.decimals>18)throw Error('TREE metadata unavailable');return coinMetadata.decimals;},
-  async receipt(invoice,now=Date.now){
+  async receipt(invoice,now=Date.now,options={}){
    // The caller supplies an invoice from its database, never a browser receipt payload.
    if(!isValidTransactionDigest(invoice?.expectedDigest))throw Error('Bound digest required');
    const result=await client.getTransaction({digest:invoice.expectedDigest,include:{effects:true,balanceChanges:true,transaction:true},signal:AbortSignal.timeout(20000)});
-   return verifyTreeReceipt(result,invoice,now());
+   return verifyTreeReceipt(result,invoice,now(),options);
   }
  });
 }
