@@ -89,3 +89,11 @@ Observed on the canonical domain: gate and gateway 200, gateway matches the loca
 Next acceptance remains an actual NFTree holder login, a TREE purchase/recovery and a mobile-wallet round trip. Use a funded holder wallet other than the configured recipient. Signing in is free; purchases in the checkout-test route spend real TREE plus SUI gas. The agent has not signed a live holder login, executed a payment or verified whether the user's Slush warning is gone.
 
 CI workflow runs `41327688400` and `41327684220` for source `bc1872cd120d5dbe4a20b1017970a35171e33830` also completed successfully, including Ubuntu, Windows and PostgreSQL 16 jobs.
+
+## Holder gateway presentation update
+
+Peter confirmed successful NFT verification and login on the canonical preview. The entry screen now presents the existing Oak Guardian art against forest terrain, a Connect → Verify → Defend trail, and a distinct verified-holder/enter state driven by the existing wallet/session state. It describes actual chapters, defenders and seasonal looks; it adds no login rewards or artificial progress. Signing, ownership validation, prices and transaction handling are unchanged.
+
+UI source `5f9eed736bfebe20b127d89c42ce29b3aa18734f` is served by isolated deploy `6ae76e90ddf445b53f4b6d83`, routed through production deployment `6ae76f2d9ef9b6c34dfba6e7`. The original 41 function identities/configurations and five schedules match exactly. Only the existing checkout-test rewrite target changed; all other 283 static file hashes remain unchanged. Canonical desktop visuals were inspected, and the gate is 200 while unauthenticated access/payment/source calls remain 401. Responsive CSS is implemented; actual mobile layout and post-sign-in visual acceptance remain manual checks. The local suite passes 166 tests, with one Windows-only skip, plus syntax checks. Real TREE purchase/recovery acceptance remains pending.
+
+Latest UI source CI workflow runs `41328610651` and `41328605027` completed successfully.
