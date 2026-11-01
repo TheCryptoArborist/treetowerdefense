@@ -1,9 +1,9 @@
 {
   "release": "Canopy TREE checkout isolated preview",
   "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
-  "deployId": "6ae76e90ddf445b53f4b6d83",
+  "deployId": "6ae779a7606d80668ff269ff",
   "state": "ready",
-  "sourceCommit": "5f9eed736bfebe20b127d89c42ce29b3aa18734f",
+  "sourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
   "publishedAt": null,
   "context": "branch-deploy",
   "previewUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
@@ -18,7 +18,7 @@
       "applied": true
     }
   ],
-  "productionBaseline": "6ae76c3ebcffbd716b974f9f",
+  "productionBaseline": "6ae76f2d9ef9b6c34dfba6e7",
   "productionPublication": "Routing-only publication; regular game and all existing functions unchanged",
   "checks": {
     "anonymousPayments": 401,
@@ -36,18 +36,18 @@
     "challengeOrigin": "https://tree-token.xyz",
     "wrongOriginChallenge": 403,
     "localTests": {
-      "total": 167,
-      "passed": 166,
+      "total": 173,
+      "passed": 172,
       "skipped": 1,
       "failed": 0
     },
     "holderLogin": "Confirmed successful by Peter before gateway redesign",
     "gatewayVisualReview": "Desktop canonical page verified; narrow layout implemented but not device-tested",
     "workflowRuns": [
-      41328610651,
-      41328605027
+      41332681774,
+      41332677720
     ],
-    "ciSourceCommit": "5f9eed736bfebe20b127d89c42ce29b3aa18734f"
+    "ciSourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d"
   },
   "limitations": [
     "Real TREE purchase/recovery and mobile wallet acceptance pending",
@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae76f2d9ef9b6c34dfba6e7",
-    "upstreamDeployId": "6ae76e90ddf445b53f4b6d83",
-    "backendSourceCommit": "5f9eed736bfebe20b127d89c42ce29b3aa18734f",
-    "releaseSourceCommit": "5f9eed736bfebe20b127d89c42ce29b3aa18734f",
+    "productionDeployId": "6ae77a35cc69828cb3fe0ebd",
+    "upstreamDeployId": "6ae779a7606d80668ff269ff",
+    "backendSourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
+    "releaseSourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
     "existingStaticFilesPreserved": 283,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -78,12 +78,12 @@
     "verifiedState": "Forest unlocked; Enter the forest CTA",
     "signingAndPaymentRules": "unchanged"
   },
-  "pendingSeasonalRelease": {
+  "seasonalRelease": {
     "name": "Harvest of the Canopy",
     "sourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
     "backendDeployId": "6ae779a7606d80668ff269ff",
     "candidateDeployId": "6ae77a35cc69828cb3fe0ebd",
-    "state": "ready, unpublished; automatic approval review requires explicit routing publication approval",
+    "state": "live",
     "productionBaseline": "6ae76f2d9ef9b6c34dfba6e7",
     "onlyChangedStaticFile": "/_redirects",
     "functionsMatch": true,
@@ -97,6 +97,13 @@
       41332681774,
       41332677720
     ],
-    "ci": "success"
+    "ci": "success",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "publishedDeployId": "6ae77a35cc69828cb3fe0ebd",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "userPublicationApproval": true
   }
 }

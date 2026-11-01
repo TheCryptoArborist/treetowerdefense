@@ -33,6 +33,8 @@ This is a local render of the actual game art and seasonal layers, not a hosted 
 
 ## Release status
 
-Source `6c8fee69718ef03b704a90df7c13e192af8d537d` passes 172 local tests with one Windows-only skip, syntax checks, and CI workflows `41332681774` / `41332677720`. Isolated backend deploy `6ae779a7606d80668ff269ff` succeeded. Routing candidate `6ae77a35cc69828cb3fe0ebd` is ready but unpublished. Its 41 function identities/configurations and five schedules match baseline `6ae76f2d9ef9b6c34dfba6e7`; the only changed static file is `_redirects`.
+Live at `https://tree-token.xyz/play/canopy-defense/checkout-test/`. Source `6c8fee69718ef03b704a90df7c13e192af8d537d` passes 172 local tests with one Windows-only skip, syntax checks and CI workflows `41332681774` / `41332677720`. Isolated backend deploy `6ae779a7606d80668ff269ff` is served through routing-only production release `6ae77a35cc69828cb3fe0ebd`.
 
-Publication was blocked by automatic approval review because changing the canonical preview route affects the shared production site. The live site remains on the baseline. Explicit approval is needed for this routing-only production publication. No NFT/payment rule changes or production database mutations are included.
+Peter explicitly authorized canonical routing publication after automatic approval review requested production-impact approval. Post-publication checks confirm the same 41 function identities/configurations and five schedules as baseline `6ae76f2d9ef9b6c34dfba6e7`. Only `_redirects` changed; all other 283 static file hashes remain identical. No NFT/payment rules or production database changes were made.
+
+The canonical page returns 200 and includes the Harvest card; anonymous access, payment and game-source requests remain 401. The November entry screen was visually inspected on the canonical domain. Hosted holder gameplay/mobile acceptance for this season remains to be performed by a player; the agent has not bypassed NFT gating or executed any live payment.
