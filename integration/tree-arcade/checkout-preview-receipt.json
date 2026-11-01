@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7a122ad7e3d8166cb78a7",
-    "upstreamDeployId": "6ae7a04bbda517d9c4799666",
-    "backendSourceCommit": "3919ba85b8975c9415f34e1b29de515aca9efa0e",
-    "releaseSourceCommit": "3919ba85b8975c9415f34e1b29de515aca9efa0e",
+    "productionDeployId": "6ae7a30025ff441e4157b208",
+    "upstreamDeployId": "6ae7a2a2570d2e1e129346be",
+    "backendSourceCommit": "730991a0796c5d31518ccb326c7fcbb57036381c",
+    "releaseSourceCommit": "730991a0796c5d31518ccb326c7fcbb57036381c",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -128,5 +128,26 @@
     "anonymousGameSource": 401,
     "holderGameplayAcceptance": "pending",
     "onlyChangedStaticFile": "/_redirects"
+  },
+  "veteranReadinessRelease": {
+    "state": "live",
+    "sourceCommit": "730991a0796c5d31518ccb326c7fcbb57036381c",
+    "backendDeployId": "6ae7a2a2570d2e1e129346be",
+    "publishedDeployId": "6ae7a30025ff441e4157b208",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 179,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41347637018,
+      41347634854
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "holderGameplayAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false
   }
 }

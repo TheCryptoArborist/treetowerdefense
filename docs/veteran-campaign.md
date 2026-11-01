@@ -46,3 +46,5 @@ The piercing formation produces identical per-wave health, leaks, tower counts, 
 - No purchase is required for acceptance. Actual TREE purchase/recovery acceptance remains a separate unverified task.
 
 Regular-game promotion remains pending holder gameplay and phone acceptance.
+
+Tactical-guidance release: source `730991a0796c5d31518ccb326c7fcbb57036381c`, backend `6ae7a2a2570d2e1e129346be`, routing release `6ae7a30025ff441e4157b208`. Live on the same canonical checkout-test path. Validation: 179 passing tests, one Windows-only skip, zero failures; syntax checks and both CI runs passed. Regular-game promotion and holder/phone acceptance remain pending.
