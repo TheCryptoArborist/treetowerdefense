@@ -8,4 +8,12 @@ Chapter choices now precede Veteran mode. Veteran is a clearly labeled native di
 
 CSS uses navy, teal, mint and restrained gold, with a framed cast scene, stronger typography, consistent spacing and explicit call-to-action links. Small-screen rules keep both characters visible, stack chapter cards and keep controls touch-sized. The existing NFTree entry gate is unchanged; the game shell remains hidden until verified access.
 
-Validation: all 193 tests passed with one Windows-only skip; JavaScript syntax and whitespace checks passed. HTML tag nesting and unique IDs were checked, and esbuild parsed CSS for Safari 17 with zero warnings. The source-resolution Oak export was visually inspected. Signed-in browser layout, phone interaction and full rendered-page visual acceptance remain pending. Hosted update pending.
+Validation: all 193 tests passed with one Windows-only skip; JavaScript syntax and whitespace checks passed. HTML tag nesting and unique IDs were checked, and esbuild parsed CSS for Safari 17 with zero warnings. The source-resolution Oak export was visually inspected. Signed-in browser layout, phone interaction and full rendered-page visual acceptance remain pending. The canonical checkout-test update is live.
+
+## Release
+
+URL: https://tree-token.xyz/play/canopy-defense/checkout-test/
+
+Source `82ecf7c0579bd230d8c7e4ba72bc9caca95db33d`; backend `6ae7c65db1995270696e6593`; routing release `6ae7c6ca73c2c5158f3bfe33`. Both CI runs passed (41360555839 and 41360552145). The home HTML, stylesheet and Oak PNG return 200; the served PNG matches the source hash. Anonymous game source/access/payments return 401. Preserved all 284 existing static entries, 41 function identities/configurations and five schedules; only the checkout-test rewrite changed. Regular game and purchase logic are unchanged.
+
+The review browser was observed at the NFTree sign-in screen with no wallet connected. No authentication bypass or fabricated signed-in screenshot was used. Full signed-in desktop and phone visual acceptance remains pending in a holder session.

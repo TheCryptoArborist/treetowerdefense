@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7c0ad9b844a7d581817d1",
-    "upstreamDeployId": "6ae7c0448dd5cdf1f03fc40f",
-    "backendSourceCommit": "af2c5ea0c4397716a69711ce5a525e74b8865c26",
-    "releaseSourceCommit": "af2c5ea0c4397716a69711ce5a525e74b8865c26",
+    "productionDeployId": "6ae7c6ca73c2c5158f3bfe33",
+    "upstreamDeployId": "6ae7c65db1995270696e6593",
+    "backendSourceCommit": "82ecf7c0579bd230d8c7e4ba72bc9caca95db33d",
+    "releaseSourceCommit": "82ecf7c0579bd230d8c7e4ba72bc9caca95db33d",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -273,5 +273,35 @@
     "holderAcceptance": "pending",
     "phoneAcceptance": "pending",
     "regularGamePromoted": false
+  },
+  "homePolishRelease": {
+    "state": "live",
+    "sourceCommit": "82ecf7c0579bd230d8c7e4ba72bc9caca95db33d",
+    "backendDeployId": "6ae7c65db1995270696e6593",
+    "publishedDeployId": "6ae7c6ca73c2c5158f3bfe33",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 193,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41360555839,
+      41360552145
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "canonicalGate": 200,
+    "stylesheet": 200,
+    "oakArt": 200,
+    "oakArtMatchesSource": true,
+    "anonymousAccess": 401,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false,
+    "actualCharacter": "Ancient Oak, cropped from game atlas",
+    "treeHeroPreserved": true
   }
 }
