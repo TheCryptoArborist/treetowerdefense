@@ -1,0 +1,8 @@
+{
+  "baselineDeploy": "6ae67be89c00401a31fe0c32",
+  "replace": "/play/index.html",
+  "add": "/play/canopy-defense/assets/brand/oak-guardian-preview.png",
+  "button": "VIEW PREVIEW",
+  "character": "Oak, Woodland appearance, Guardian level, rendered by src/art.js paintTree",
+  "status": "Prepared; not deployed"
+}
