@@ -8,4 +8,10 @@ Scouting labels and portraits use the same stage helper as spawning. Veteran rei
 
 `node tools/render-enemy-growth.mjs` renders `enemy-growth-preview.jpg` directly from the game painter. It is an artwork comparison, not a screenshot of a hosted signed-in battle. Only the final column shows the boss because it arrives in the final wave.
 
-Validation: 192 passing tests, one Windows-only skip, zero failures; syntax and whitespace checks passed. Tests cover real health and visual growth, all campaign/event scout-to-spawn stages, save compatibility, enrage eligibility and defeat silhouettes. Existing campaign, Veteran, payment and individual-collection checks remain passing. Signed-in holder and phone visual acceptance remain pending. Canonical test deployment pending.
+Validation: 192 passing tests, one Windows-only skip, zero failures; syntax and whitespace checks passed. Tests cover real health and visual growth, all campaign/event scout-to-spawn stages, save compatibility, enrage eligibility and defeat silhouettes. Existing campaign, Veteran, payment and individual-collection checks remain passing. Signed-in holder and phone visual acceptance remain pending. Live in the canonical checkout-test preview; see release details below.
+
+## Release
+
+Canonical URL: https://tree-token.xyz/play/canopy-defense/checkout-test/
+
+Source `6ef7b5627a16a3725a163af744901bc2314f61b3`; backend `6ae7b88dd62e7b1f4fe7b649`; routing release `6ae7b8f36df0a5a02b5a7735`. Both CI validation runs passed (41355631913 and 41355627087). Preserved all 284 existing static entries, 41 function identities/configurations and five schedules; only `/_redirects` changed. Entry 200; anonymous source, access and payment endpoints 401. Individual defender checkout remains enabled, and no migration or purchase-price change was introduced. The regular game is unchanged. Signed-in holder and phone visual acceptance remain pending.
