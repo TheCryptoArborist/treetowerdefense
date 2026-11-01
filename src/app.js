@@ -4,6 +4,7 @@ import { paintTree as shapeTree, paintLifeTree, paintPest, paintPestHealth, pain
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
 import { CombatFeedback, bossStatus } from './combat.js';
 import {applyEntitlement} from './paid.js';
+import {checkoutReviewState} from './checkout-review.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 
 const $ = id => document.getElementById(id);
@@ -186,15 +187,23 @@ function renderPaidPurchase(){
  $('purchase-title').textContent=paidReview.title;$('purchase-description').textContent=paidReview.description;
  $('purchase-cost').textContent=paidInvoice?Number(BigInt(paidInvoice.amount)/1000000n).toLocaleString():'Loading…';
  $('purchase-balance').textContent=game.tree.toLocaleString();$('purchase-after').textContent=paidInvoice?Math.max(0,game.tree-Number(BigInt(paidInvoice.amount)/1000000n)).toLocaleString():'—';
- $('confirm-purchase').disabled=checkoutBusy||!paidInvoice||paidInvoice.status!=='quoted';$('cancel-purchase').disabled=checkoutBusy;
+ const state=checkoutReviewState({invoice:paidInvoice,pending:payments.pending,busy:checkoutBusy,phase:payments.phase});
+ $('confirm-purchase').disabled=state.disabled;$('confirm-purchase').textContent=state.label;$('cancel-purchase').disabled=checkoutBusy;
+ $('purchase-progress').hidden=!state.progress;$('purchase-progress').textContent=state.progress;
+ $('purchase-recovery').hidden=!state.recoveryId;
+}
+async function quotePaidReview(){
+ const {kind,towerId}=paidReview,tower=game.towers.find(t=>t.id===towerId);
+ if(kind==='upgrade'&&!tower)throw Error('Select the defender again before upgrading.');
+ paidInvoice=await payments.quote(kind==='upgrade'?{product:'growth',species:tower.type,...(game.collection?{defenderSlot:tower.defenderSlot}:{})}:{product:kind,runId:paidRunId});
 }
 async function reviewPaidPurchase(kind,towerId){
  if(purchaseDialog.open||checkoutBusy)return;
  if(!storageAvailable){game.message='Enable browser storage before using paid run purchases.';renderUI();return;}
  const review=new PurchaseReview(game,kind,towerId);const details=review.details();if(!details.available){game.message=details.reason;renderUI();return;}
  paidReview={kind,towerId,...details};paidInvoice=null;$('purchase-error').hidden=true;purchaseDialog.showModal();renderPaidPurchase();checkoutBusy=true;
- try{save();const tower=game.towers.find(t=>t.id===towerId);paidInvoice=await payments.quote(kind==='upgrade'?{product:'growth',species:tower.type,...(game.collection?{defenderSlot:tower.defenderSlot}:{})}:{product:kind,runId:paidRunId});if(paidInvoice.status!=='quoted')throw Error('A recorded payment already exists. Use Purchase history to recover it.');}
- catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();}
+ try{save();await quotePaidReview();if(paidInvoice.status!=='quoted')throw Error('A recorded payment already exists. Review it below.');}
+ catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();await renderPaymentHistory();}
 }
 async function applyPaidItem(item){
  if(item.wallet!==holder.address)throw Error('Wrong wallet entitlement');
@@ -211,38 +220,66 @@ async function applyPaidItem(item){
  save();inspectorSignature=null;game.tree=Number((await payments.balance())/1000000n);renderUI();
 }
 async function confirmPaidPurchase(){
+ if(!checkoutBusy&&paidInvoice&&['cancelled','expired'].includes(paidInvoice.status)&&!payments.pending){
+  checkoutBusy=true;$('purchase-error').hidden=true;renderPaidPurchase();
+  try{await quotePaidReview();}catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();await renderPaymentHistory();}return;
+ }
  if(checkoutBusy||!paidInvoice||paidInvoice.status!=='quoted')return;checkoutBusy=true;renderPaidPurchase();
  try{const item=await payments.pay(paidInvoice);await applyPaidItem(item);checkoutBusy=false;purchaseDialog.close();paidReview=null;paidInvoice=null;}
  catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();await renderPaymentHistory();}
 }
 async function recoverPaidPurchase(id,resume=false){
- if(checkoutBusy)return;checkoutBusy=true;
- try{const item=await (resume?payments.resume(id):payments.recover(id));await applyPaidItem(item);game.message='Recorded purchase recovered.';}
- catch(error){game.message=error.message;}
- finally{checkoutBusy=false;renderUI();await renderPaymentHistory();}
+ if(checkoutBusy)return;checkoutBusy=true;renderPaidPurchase();
+ try{const item=await (resume?payments.resume(id):payments.recover(id));await applyPaidItem(item);game.message='Recorded purchase recovered.';checkoutBusy=false;if(purchaseDialog.open&&paidInvoice?.id===id)purchaseDialog.close();}
+ catch(error){if(purchaseDialog.open)checkoutError(error);else game.message=error.message;}
+ finally{checkoutBusy=false;renderPaidPurchase();renderUI();await renderPaymentHistory();}
+}
+function appendPaymentActions(item,row,status){
+ const button=(label,action)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=label;b.disabled=checkoutBusy;b.onclick=action;item.append(b);};
+ if(row.status==='bound'){
+  button('Check payment',()=>recoverPaidPurchase(row.id));
+  button('Submit recorded payment',()=>{if(confirm('Submit the exact transaction you already signed? This reuses the same transaction and cannot create a second payment.'))recoverPaidPurchase(row.id,true);});
+  button('Resolve failed transaction',()=>resolvePaidPurchase(row.id,false));
+ }
+ if(row.status==='paid')button('Recover purchase',()=>recoverPaidPurchase(row.id));
+ if(row.status==='quoted')button('Cancel unpaid checkout',()=>resolvePaidPurchase(row.id,true));
+}
+async function resolvePaidPurchase(id,cancel){
+ if(checkoutBusy)return;checkoutBusy=true;renderPaidPurchase();
+ try{await (cancel?payments.cancel(id):payments.reconcile(id));if(paidInvoice?.id===id)paidInvoice={...paidInvoice,status:'cancelled'};game.message=cancel?'Unpaid checkout cancelled. Create a new checkout when ready.':'Failed transaction resolved. Create a new checkout when ready.';if(purchaseDialog.open)$('purchase-error').hidden=true;}
+ catch(error){if(purchaseDialog.open)checkoutError(error);else game.message=error.message;}
+ finally{checkoutBusy=false;renderPaidPurchase();renderUI();await renderPaymentHistory();}
+}
+function renderPurchaseRecovery(status){
+ if(!paidReview)return;
+ const current=status.invoices.find(r=>r.id===paidInvoice?.id);if(current)paidInvoice=current;
+ renderPaidPurchase();
+ const {recoveryId}=checkoutReviewState({invoice:paidInvoice,pending:payments.pending,busy:checkoutBusy});
+ if(!recoveryId)return;
+ const row=status.invoices.find(r=>r.id===recoveryId),actions=$('purchase-recovery-actions');actions.replaceChildren();
+ const descriptions={quoted:'No submitted payment is recorded for this checkout. Cancel the unpaid checkout below before creating another.',bound:'Your signed transaction is recorded. Check its receipt, or explicitly submit that same transaction. A new wallet payment is blocked.',paid:'Payment is recorded. Recover the purchased upgrade or item below.',cancelled:'This checkout was cancelled. Use Create new checkout to review the price again.',expired:'This unpaid quote expired. Use Create new checkout to review the price again.'};
+ $('purchase-recovery-status').textContent=row?descriptions[row.status]||'Refresh purchase history to check this payment.':'Could not find the recorded checkout. Refresh purchase history before retrying.';
+ if(row){if(paidInvoice?.id===row.id)paidInvoice=row;appendPaymentActions(actions,row,status);}
+ const refresh=document.createElement('button');refresh.type='button';refresh.className='secondary';refresh.textContent='Refresh purchase status';refresh.disabled=checkoutBusy;refresh.onclick=renderPaymentHistory;actions.append(refresh);
+ renderPaidPurchase();
 }
 async function renderPaymentHistory(){
  if(!paidMode)return;
  const list=$('payment-history-list');
  try{
   const status=await payments.status();list.replaceChildren();
+  renderPurchaseRecovery(status);
   for(const row of status.invoices.slice(0,20)){
    const item=document.createElement('div');item.className='payment-history-row';
    const text=document.createElement('p');text.textContent=`${row.product}${row.species?' · '+row.species+(row.defenderSlot!=null?' #'+(row.defenderSlot+1):' · legacy species purchase'):''} · ${row.status}${row.runId&&row.runId!==paidRunId?' · earlier run':''}`;item.append(text);
-   const button=(label,action)=>{const b=document.createElement('button');b.className='secondary';b.textContent=label;b.disabled=checkoutBusy;b.onclick=action;item.append(b);};
-   if(row.status==='bound'){
-    button('Check payment',()=>recoverPaidPurchase(row.id));
-    button('Submit recorded payment',()=>{if(confirm('Submit the exact transaction you already signed? This reuses the same transaction and cannot create a second payment.'))recoverPaidPurchase(row.id,true);});
-    button('Resolve failed transaction',async()=>{try{await payments.reconcile(row.id);game.message='Finalized failed transaction resolved. You can create a fresh checkout.';}catch(error){game.message=error.message;}renderUI();await renderPaymentHistory();});
-   }
-   if(row.status==='paid'&&!appliedPayments.has(status.entitlements.find(e=>e.invoice_id===row.id)?.id))button('Recover purchase',()=>recoverPaidPurchase(row.id));
-   if(row.status==='quoted')button('Cancel unpaid quote',async()=>{try{await payments.cancel(row.id);}catch(error){game.message=error.message;}await renderPaymentHistory();});
+   if(row.status!=='paid'||!appliedPayments.has(status.entitlements.find(e=>e.invoice_id===row.id)?.id))appendPaymentActions(item,row,status);
    list.append(item);
   }
   if(!status.invoices.length)list.textContent='No TREE purchases yet.';
- }catch(error){list.textContent=error.message;}
+ }catch(error){list.textContent=error.message;if(paidReview&&$('purchase-recovery').hidden===false)$('purchase-recovery-status').textContent='Could not check the recorded purchase: '+error.message;}
 }
 if(paidMode){
+ payments.subscribe(renderPaidPurchase);
  document.querySelector('.banner-detail').textContent='Sap plants defenders · TREE buys upgrades & supplies · SUI is network gas only';
  $('currency-tree-note').textContent='Real TREE is spent only after wallet approval. Each numbered defender’s level stays with your wallet; supplies and continues belong to this run. SUI is separate network gas, not an entry fee.';
  document.querySelector('#purchase-dialog .eyebrow').textContent='TREE WALLET PURCHASE';
