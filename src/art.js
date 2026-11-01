@@ -497,13 +497,23 @@ function paintEvolvedPest(c,e,clock,appearance,colors) {
   if(e.veteran&&beetle)line(c,[[-9,-21],[0,-25],[9,-21]],'#f2d390',2);
 }
 
+function pestAngle(e) {
+  const map=mapFor(e.mapId),ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
+  return ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
+}
+export function pestHealthBounds(e) {
+  const appearance=pestAppearance(e),size=appearance.scale,boss=e.kind==='boss',moth=e.kind==='moth';
+  const reach=appearance.tier>0?(moth?48:36):(moth?36:26),front=appearance.tier>0?(boss||e.kind==='beetle'?-65:-56):boss?-53:-39,tail=appearance.tier>0?35:24;
+  const angle=pestAngle(e),cos=Math.cos(angle),sin=Math.sin(angle);
+  const top=(-Math.abs(sin)*reach+Math.min(front*cos,tail*cos))*size;
+  const halfWidth=boss?20:16;
+  return {x:e.x-halfWidth*size,y:Math.max(7,e.y+top-9),width:halfWidth*2*size,height:5};
+}
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const appearance=pestAppearance(e),size=appearance.scale;
   const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='harvest-canopy'?{termite:['#bb864b','#493323'],beetle:['#ad7639','#493526'],moth:['#d1aa68','#60492e'],blight:['#987048','#493528'],boss:['#b8914c','#433324']}[e.kind]:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
-  const map=mapFor(e.mapId);
-  const ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
-  const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
+  const angle=pestAngle(e);
   c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
   const march=Math.sin(clock*14+e.id)*3;
@@ -567,7 +577,15 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   if(e.poisonUntil>time){ellipse(c,-18,0,4,4,'#ae79bf80');ellipse(c,18,-8,3,3,'#ae79bf80');}
   if(e.slowUntil>time){c.strokeStyle='#a3d2c0';c.lineWidth=2;c.beginPath();c.ellipse(0,4,25,30,0,0,TAU);c.stroke();}
   c.restore();
-  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,Math.max(7,e.y-(appearance.tier>0?70:boss?58:45)*size),40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,Math.max(7,e.y-(appearance.tier>0?70:boss?58:45)*size),40*size*Math.max(0,e.hp/e.maxHp),5);}
+  if(healthBar)paintPestHealth(c,e);
+}
+// Draw after all enemy bodies and effects so a later sprite cannot erase a bar.
+export function paintPestHealth(c,e) {
+  const boss=e.kind==='boss';if(!(e.hp<e.maxHp||boss))return;
+  const appearance=pestAppearance(e),{x,y,width}=pestHealthBounds(e);
+  c.save();c.fillStyle='#080f13';c.fillRect(x-1,y-1,width+2,7);
+  c.fillStyle='#28382f';c.fillRect(x,y,width,5);c.fillStyle=appearance.enraged?'#ed825f':'#c3a379';
+  c.fillRect(x,y,width*Math.max(0,Math.min(1,e.hp/e.maxHp)),5);c.restore();
 }
 export function paintCombatEffects(c,feedback,reducedMotion=false) {
   for(const defeat of feedback.defeats){

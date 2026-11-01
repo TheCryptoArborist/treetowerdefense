@@ -1,6 +1,6 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
 import { CombatFeedback, bossStatus } from './combat.js';
 import {applyEntitlement} from './paid.js';
@@ -606,9 +606,10 @@ function draw(clock, dt) {
     }
   }
   ctx.textAlign='left';
-  for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion});
+  for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
   paintCombatEffects(ctx,feedback,reducedMotion);
   for (const shot of aiming.shots) paintShot(ctx,shot);
+  for (const e of game.enemies) paintPestHealth(ctx,e);
   if (!held && aiming.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of events) {
     if (['attack','chain','hit','wave-start','wave-clear','boss-arrival','roster-unlock','season-reward'].includes(event.type)) continue;

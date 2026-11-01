@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Game,pestAppearance,pestTier} from '../src/engine.js';
+import {Game,pestAppearance,pestTier,pointAt} from '../src/engine.js';
 import {scoutWave} from '../src/playtest.js';
 test('enemy silhouettes and real health increase through early, middle and late waves',()=>{
  const g=new Game();g.allowPreview();
@@ -30,4 +30,16 @@ test('only Veteran bosses show enrage and defeat silhouettes preserve their grow
  const g=new Game();g.allowPreview();g.forest.stars=[3,3,3];g.startCampaign('veteran');g.wave=10;const b=g.spawn('boss');b.hp=b.maxHp*.49;
  assert.equal(pestAppearance(b).enraged,true);assert.equal(pestAppearance({...b,veteran:false}).enraged,false);assert.equal(pestAppearance({...b,kind:'beetle'}).enraged,false);
  b.enraged=true;b.hp=0;g.resolveKills();const event=g.events.find(e=>e.type==='kill');assert.equal(event.appearanceTier,2);assert.equal(pestAppearance(event).scale,pestAppearance(b).scale);assert.equal(pestAppearance(event).enraged,true);
+});
+
+import {pestHealthBounds} from '../src/art.js';
+test('health bars follow rotated enemy silhouettes and stay inside the top edge',()=>{
+ const e={kind:'beetle',appearanceTier:2,hp:50,maxHp:100};
+ const right={...e,...pointAt(100),progress:100},up={...e,...pointAt(330),progress:330};
+ const a=pestHealthBounds(right),b=pestHealthBounds(up),size=pestAppearance(e).scale;
+ assert.ok(right.y-a.y<up.y-b.y,'right-facing shell needs less vertical space than the upward horn');
+ assert.ok(a.y+5<right.y-30*size,'bar clears the top of the horizontal shell');
+ assert.ok(b.y+5<up.y-60*size,'bar clears the upward horn');
+ assert.equal(pestHealthBounds({...e,x:50,y:0}).y,7);
+ assert.ok(a.width<40*size,'regular bars leave separation in a dense escort');
 });

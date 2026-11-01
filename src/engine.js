@@ -11,7 +11,8 @@ export function pestAppearance(enemy) {
   const tier=[0,1,2].includes(enemy.appearanceTier)?enemy.appearanceTier:0;
   const boss=enemy.kind==='boss',moth=enemy.kind==='moth';
   const base=boss?1.85:enemy.kind==='beetle'?1.12:enemy.kind==='blight'?1.06:moth?.92:.88;
-  return {tier,label:['Broodling','Hardened','Elite'][tier],scale:base*(boss?[1,1.1,1.22][tier]:moth?[1,1.06,1.14][tier]:[1,1.18,1.38][tier]),enraged:boss&&enemy.veteran===true&&(enemy.enraged===true||enemy.hp<enemy.maxHp*.5)};
+  const footprint=[0,1,2].includes(enemy.appearanceTier)?(boss?.82:.66):1;
+  return {tier,label:['Broodling','Hardened','Elite'][tier],scale:footprint*base*(boss?[1,1.1,1.22][tier]:moth?[1,1.06,1.14][tier]:[1,1.18,1.38][tier]),enraged:boss&&enemy.veteran===true&&(enemy.enraged===true||enemy.hp<enemy.maxHp*.5)};
 }
 export const PATH = [[-35, 215], [265, 215], [265, 145], [635, 145], [635, 355], [875, 355], [875, 545], [515, 545], [515, 430], [80, 430], [80, 640], [940, 640]];
 export const PADS = [[130, 135], [345, 225], [540, 230], [740, 170], [735, 305], [525, 350], [355, 350], [170, 510], [370, 510], [620, 620], [800, 625], [945, 445]];
