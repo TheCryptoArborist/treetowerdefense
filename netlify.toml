@@ -10,3 +10,5 @@
   command = "node tools/refuse-production.mjs"
 [[plugins]]
   package = "./tools/netlify-canopy-package"
+[context.deploy-preview.environment]
+  CANOPY_CANONICAL_CHECKOUT_PREVIEW = "true"
