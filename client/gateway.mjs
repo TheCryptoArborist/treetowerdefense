@@ -8,7 +8,19 @@ document.querySelector('mysten-dapp-kit-connect-button').instance=kit;
 let principal=null,address=null,busy=false,revision=0,loaded=false,startedWallet=null;
 const listeners=new Set();
 window.canopyPayments=createPayments({kit,account:()=>principal});
-const notify=()=>listeners.forEach(fn=>fn(principal));
+function paintGate(){
+ const stage=principal?2:address?1:0;
+ dialog.dataset.stage=principal?'ready':busy?'verifying':address?'verify':'connect';
+ document.querySelectorAll('[data-gate-step]').forEach((step,i)=>{
+  step.classList.toggle('complete',i<stage);step.classList.toggle('current',i===stage);
+  if(i===stage)step.setAttribute('aria-current','step');else step.removeAttribute('aria-current');
+  step.querySelector('b').textContent=i<stage?'✓':String(i+1).padStart(2,'0');
+ });
+ document.getElementById('gate-stage-label').textContent=principal?'HOLDER VERIFIED · FOREST UNLOCKED':busy?'AWAITING YOUR SIGN-IN APPROVAL':address?'WALLET CONNECTED · ONE STEP TO GO':'YOUR ADVENTURE STARTS HERE';
+ document.getElementById('access-title').textContent=principal?'Your forest awaits.':address?'Claim your place in the canopy.':'Answer the call of the canopy.';
+ verifyButton.hidden=!!principal;
+}
+const notify=()=>{paintGate();listeners.forEach(fn=>fn(principal));};
 const show=()=>{if(!dialog.open)dialog.showModal();};
 const lock=text=>{principal=null;enter.hidden=true;shell.hidden=true;status.textContent=text;notify();show();};
 const post=async body=>{const r=await fetch('./api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',credentials:'same-origin'});const d=await r.json();if(!r.ok)throw Error(d.error||'Could not verify NFTree access');return d;};
@@ -17,7 +29,7 @@ async function refresh(){
  if(!address||busy)return;const stamp=revision;try{const r=await fetch('./api/access',{cache:'no-store',credentials:'same-origin'});const d=await r.json();if(stamp!==revision)return;if(!r.ok)throw Error(d.error||'Verify your NFTree to enter');principal=validate(d);status.textContent=`Verified holder · ${principal.count} NFTree${principal.count===1?'':'s'}. Ready to defend.`;enter.hidden=false;notify();}catch(e){if(stamp===revision)lock(e.message);}
 }
 verifyButton.onclick=async()=>{
- if(!address||busy)return;busy=true;verifyButton.disabled=true;const stamp=revision;
+ if(!address||busy)return;busy=true;verifyButton.disabled=true;paintGate();const stamp=revision;
  try{
   status.textContent='Preparing your sign-in message…';const c=await post({action:'challenge',address});
   const expected=['Canopy Defense NFTree access','Origin: '+location.origin,'Network: sui:mainnet','Wallet: '+address,'Nonce: '+c.nonce,'Expires: '+new Date(c.expiresAt).toISOString(),'Sign in only. No transaction, token transfer, or token approval.'].join('\n');
@@ -25,7 +37,7 @@ verifyButton.onclick=async()=>{
   document.getElementById('sign-in-message').textContent=c.message;document.getElementById('sign-in-details').open=true;status.textContent='Approve the displayed sign-in message in your wallet. This has no transaction or payment.';
   const signed=await kit.signPersonalMessage({message:new TextEncoder().encode(c.message)});if(stamp!==revision)throw Error('Wallet changed. Verify again.');
   const d=await post({action:'verify',address,nonce:c.nonce,signature:signed.signature});if(stamp!==revision){await post({action:'logout'});return;}principal=validate(d);enter.hidden=false;status.textContent=`NFTree holder verified · ${d.count} NFTree${d.count===1?'':'s'}.`;notify();
- }catch(e){if(stamp===revision)lock(e.message||'Sign-in was cancelled. Please retry.');}finally{busy=false;verifyButton.disabled=!address;}
+ }catch(e){if(stamp===revision)lock(e.message||'Sign-in was cancelled. Please retry.');}finally{busy=false;verifyButton.disabled=!address;paintGate();}
 };
 enter.onclick=async()=>{
  if(!principal||principal.expiresAt<=Date.now())return lock('Your session expired. Verify your NFTree again.');
@@ -49,4 +61,4 @@ kit.stores.$connection.subscribe(c=>{
 setInterval(()=>{if(principal&&principal.expiresAt<=Date.now())lock('Your session expired. Verify your NFTree again.');else if(principal&&!document.hidden)refresh();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 status.textContent='Connect an NFTree holder wallet to enter.';
-if(dialog.open)dialog.close();show();
+paintGate();if(dialog.open)dialog.close();show();

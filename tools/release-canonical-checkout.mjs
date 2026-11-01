@@ -20,7 +20,14 @@ if(mode==='prepare'){
  const upstream=process.argv[3];assert(/^[a-f0-9]{24}$/.test(upstream));
  const site=api('getSite',{site_id:siteId}),d=api('getDeploy',{deploy_id:site.published_deploy.id});
  assert.equal(d.locked,true);assert.equal(d.available_functions.length,41);assert.equal(d.function_schedules.length,5);assert(!d.edge_functions_present);assert(!d.server);
- const originalFiles=inventory();assert(!originalFiles['/_redirects'],'Review existing redirects before overlay');assert(Object.keys(originalFiles).length>250);
+ const originalFiles=inventory();assert(Object.keys(originalFiles).length>250);
+ if(originalFiles['/_redirects']){
+  const receipt=JSON.parse(fs.readFileSync('integration/tree-arcade/checkout-preview-receipt.json'));
+  const prior=receipt.canonicalRouting.upstreamDeployId;
+  assert(/^[a-f0-9]{24}$/.test(prior));
+  const oldRule=`/play/canopy-defense/checkout-test/* https://${prior}--tree-token.netlify.app/play/canopy-defense/:splat 200!\n`;
+  assert.equal(originalFiles['/_redirects'],digest(oldRule),'Live routing changed; review all existing rules before updating');
+ }
  const rewrite=`/play/canopy-defense/checkout-test/* https://${upstream}--tree-token.netlify.app/play/canopy-defense/:splat 200!\n`;
  const s={baseline:d.id,upstream,originalFiles,files:{...originalFiles,'/_redirects':digest(rewrite)},rewrite,functions:d.available_functions,schedules:d.function_schedules,runtime:Object.fromEntries(['functions_region','functions_region_overrides','server','edge_functions_present'].map(k=>[k,d[k]]))};save(s);
  console.log(JSON.stringify({baseline:s.baseline,filesPreserved:Object.keys(originalFiles).length,functionsPreserved:s.functions.length,schedulesPreserved:s.schedules.length}));
