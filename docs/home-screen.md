@@ -1,5 +1,7 @@
 # Polished Canopy home screen
 
+Artwork correction: the two-character collage described below has been superseded by the unified Oak / Archer Watchtower forest scene. See [home-scene.md](home-scene.md) for the current asset, generation prompt and release. The other menu improvements below remain.
+
 Tree Hero stays in the opening artwork, paired with a full-resolution Ancient Oak cropped from the actual `oak-warriors.png` game atlas. `tools/render-home-guardian.mjs` uses the game's atlas bounds to reproduce `assets/brand/oak-home.png`; no substitute character or external image service is used.
 
 The hero has a two-line game title, concise forest-defense copy, total campaign/defender/event features and two navigation links. Enter the battlefield scrolls to the existing canvas; it does not reset a run, launch a wave or spend currency. Choose a chapter scrolls to the existing campaign controls. The forest card includes the existing rank/summary plus an accessible campaign-star progress bar updated from actual standard stars.
