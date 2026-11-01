@@ -34,6 +34,8 @@ enter.onclick=async()=>{
 };
 disconnect.onclick=async()=>{revision++;lock('Wallet disconnected. Connect an NFTree holder wallet to enter.');await post({action:'logout'}).catch(()=>{});await kit.disconnectWallet();};
 dialog.addEventListener('cancel',e=>e.preventDefault());
+dialog.addEventListener('close',()=>{if(!principal||!loaded||shell.hidden)show();});
+document.getElementById('preview-button').addEventListener('click',show);
 window.canopyAccess=Object.freeze({get account(){return principal;},subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},open:show});
 kit.stores.$connection.subscribe(c=>{
  const next=c.isConnected&&c.account?.chains?.includes('sui:mainnet')?c.account.address:null;

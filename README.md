@@ -10,7 +10,7 @@ This repository contains the **development preview**, not a mainnet launch. NFTr
 
 ## TREE Arcade home
 
-Canonical game path: https://tree-token.xyz/play/canopy-defense/ (publish only after release verification). Lobby and return links use https://tree-token.xyz/play/. The cabinet is labeled development preview; ownership and purchases remain simulated. See [Arcade integration](docs/arcade-integration.md).
+Canonical game path: https://tree-token.xyz/play/canopy-defense/ (publish only after release verification). Lobby and return links use https://tree-token.xyz/play/. The cabinet is labeled development preview; gameplay requires verified NFTree ownership and TREE purchases remain simulated. See [Arcade integration](docs/arcade-integration.md).
 
 ## Current gated development workflow
 
@@ -71,7 +71,7 @@ End-of-run battle reports show breaches by pest, actual root damage and shield a
 - Planting sites, automatic targeting, range previews, three permanent species levels, supplies, victory, and defeat.
 - Grow each defender species from **Sapling → Guardian → Ancient**. A TREE upgrade improves every current and future defender of that species.
 - Chapters unlock in order. Earn 1–3 stars from remaining health, grow the Tree of Life, and add permanent landmarks: an arborist cottage, flower garden, and lily pond.
-- A simulated NFTree gate, rarity selector, six cosmetic themes, cumulative rarity unlocks, and per-tower customization.
+- A signed, server-verified NFTree gate, six cosmetic themes, cumulative rarity unlocks, and per-tower customization.
 - TREE-priced upgrades, Root Shield, Fertilizer, Leaf Storm, and a continue that preserves the current wave and towers.
 - Earned **Sap** for ordinary tower planting; defeating pests and clearing waves earns more Sap.
 - Desktop pointer/keyboard controls and mobile touch controls, including labeled build-site buttons.
@@ -179,7 +179,7 @@ Artwork is generated from the three supplied character references, then used in 
 
 ## Mainnet integration milestone
 
-Before real payments or access enforcement, confirm the NFTree collection/type, rarity metadata, ownership arrangements, TREE decimals, purchase recipient, and final prices. Ownership and transaction results need authoritative validation. Client-side localStorage is not authentication or payment proof, and local scores must not authorize prizes.
+NFTree access now verifies the official collection/type, on-chain rarity metadata and wallet/Kiosk ownership. Before real payments, confirm TREE decimals, purchase recipient and final prices, and validate transaction results authoritatively. Client-side localStorage is not authentication or payment proof, and local scores must not authorize prizes.
 
 For Sui implementation, check the current [MystenLabs/skills README](https://github.com/MystenLabs/skills) every task, then load applicable current skills and references. Reviewed for this prototype boundary:
 
