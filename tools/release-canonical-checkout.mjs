@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {preservedFunctionConfig} from './netlify-function-config.mjs';
 const siteId='aa62f324-b880-47d6-85b8-4ba0700ff5bf';
 const statePath='.netlify/canonical-checkout-release.json';
 const mode=process.argv[2];
@@ -27,10 +28,10 @@ if(mode==='prepare'){
  const s=JSON.parse(fs.readFileSync(statePath));
  if(mode==='candidate'){
   current(s);assert(!s.candidate);
-  const configs={};for(const f of s.functions){const c={};for(const[a,b]of Object.entries({dn:'display_name',g:'generator',bd:'build_data',m:'memory',p:'priority',rg:'region',tr:'traffic_rules',es:'event_subscriptions'}))if(f[a]!=null)c[b]=f[a];if(f.ro)c.routes=f.ro.map(r=>Object.fromEntries(Object.entries({pattern:r.p,literal:r.l,expression:r.e,methods:r.m,prefer_static:r.ps}).filter(([,v])=>v!=null)));configs[f.n]=c;}
+  const configs=Object.fromEntries(s.functions.map(f=>[f.n,preservedFunctionConfig(f)]));
   const d=api('createSiteDeploy',{site_id:siteId,title:'Canopy checkout preview under TREE Arcade',body:{files:s.files,functions:Object.fromEntries(s.functions.map(f=>[f.n,f.d])),functions_config:configs,function_schedules:s.schedules,draft:false,async:false,branch:'main'}});
-  s.candidate=d.id;save(s);assert.equal(d.required_functions?.length||0,0);assert.equal(d.required_edge_functions?.length||0,0);assert.equal(d.required_server?.length||0,0);assert.deepEqual(d.required,[digest(s.rewrite)]);
-  api('uploadDeployFile',{deploy_id:d.id,path:'_redirects',body:s.rewrite});console.log(JSON.stringify({candidate:d.id,changedFiles:1}));
+  s.candidate=d.id;save(s);assert.equal(d.required_functions?.length||0,0);assert.equal(d.required_edge_functions?.length||0,0);assert.equal(d.required_server?.length||0,0);assert((d.required||[]).every(hash=>hash===digest(s.rewrite)),'Unexpected static upload required');
+  if(d.required?.length)api('uploadDeployFile',{deploy_id:d.id,path:'_redirects',body:s.rewrite});console.log(JSON.stringify({candidate:d.id,changedFiles:1}));
  }else if(mode==='verify-live'){
   const site=api('getSite',{site_id:siteId});assert.equal(site.published_deploy.id,s.candidate);assert.equal(site.published_deploy.locked,true);assert.deepEqual(inventory(),s.files);verify(s);console.log(JSON.stringify({published:s.candidate,filesPreserved:Object.keys(s.originalFiles).length,functionsPreserved:s.functions.length,schedulesPreserved:s.schedules.length}));
  }else{
