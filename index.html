@@ -44,6 +44,10 @@
       </div><p class="season-note">Cosmetics only · earned looks stay across seasons · optional TREE supplies, growth and continues use simulated funds.</p>
     </details>
     <p id="map-tactics" class="map-tactics"></p>
+    <section class="currency-guide panel" aria-label="What Sap and TREE pay for">
+      <article class="currency-sap"><span class="eyebrow">SAP · EARNED DURING A RUN</span><h2>Plant your defense.</h2><p>Earn Sap from insects and cleared waves. Spend it to plant defenders and towers.</p><small>Start with 300 · carries between waves · resets on a fresh run. Sap is not a wallet token and cannot buy permanent upgrades.</small></article>
+      <article class="currency-tree"><span class="eyebrow">TREE · WALLET TOKEN</span><h2>Grow your species. Fuel your strategy.</h2><p>TREE pays for permanent species upgrades, Root Shield, Fertilizer, Leaf Storm and continues. It does not buy Sap.</p><small id="currency-tree-note">This development build uses simulated TREE. Permanent growth carries between runs; supplies and continues apply to the current run.</small></article>
+    </section>
     <section class="hud" aria-label="Game statistics">
       <div class="life-stat"><span class="stat-label">TREE OF LIFE</span><strong id="health-value">100<span> / 100</span></strong><div class="health-track"><i id="health-bar"></i></div><small id="shield-value">Root shield: 0</small></div>
       <div><span class="stat-label">WAVE</span><strong id="wave-value">00<span> / 10</span></strong><small id="phase-value">Prepare your forest</small></div>
@@ -72,17 +76,17 @@
           <h3>Progress earned</h3><p id="report-earned"></p>
           <h3>Your next goal</h3><p id="report-goal"></p>
         </section>
-        <div class="defenders-panel"><div class="panel-heading"><h2>Build your defense</h2><span>SAP PLANTS · TREE GROWS</span></div><p id="roster-summary" class="roster-summary"></p><div id="tower-cards" class="tower-cards"></div><p id="next-unlock" class="roster-next"></p></div>
+        <div class="defenders-panel"><div class="panel-heading"><h2>Build your defense</h2><span>PLANT WITH SAP · UPGRADE WITH TREE</span></div><p id="roster-summary" class="roster-summary"></p><div id="tower-cards" class="tower-cards"></div><p id="next-unlock" class="roster-next"></p></div>
         <section class="wave-scout" aria-labelledby="scout-title"><div class="panel-heading"><h2 id="scout-title">Scout wave 1</h2><span id="scout-total">8 PESTS</span></div><div id="scout-pests" class="scout-pests"></div><p id="scout-tip" class="panel-intro"></p></section>
         <div class="battle-toolbar"><div><span id="battle-status" class="eyebrow">PREPARE YOUR FOREST</span><p id="message" role="status">Place your defenders, then send the first wave.</p></div><div class="run-controls"><button id="pause-button" class="secondary" disabled>Pause</button><button id="wave-button" class="primary">Send wave 1 →</button></div></div>
         <details class="build-sites"><summary>Choose a build site <span>Touch & keyboard controls</span></summary><div id="pad-buttons" class="pad-buttons"></div></details>
       </section>
       <aside class="custom-panel panel">
         <div id="inspector" class="inspector"><span class="eyebrow">ROOTED IN STRENGTH.</span><h3>Choose your defenders.</h3><p>Plant a defender, then select it to grow its whole species. Your TREE upgrades stay with you across runs.</p></div>
-        <section class="supply-section"><div class="panel-heading"><h2>Field supplies</h2><span>PREVIEW TREE</span></div>
-          <button class="supply-button" data-supply="shield"><span class="supply-icon">◇</span><span><strong>Root Shield</strong><small>50 extra protection</small></span><b>3,000</b></button>
-          <button class="supply-button" data-supply="fertilizer"><span class="supply-icon">✦</span><span><strong>Fertilizer</strong><small>+50% damage · 20s</small></span><b>5,000</b></button>
-          <button class="supply-button" data-supply="storm"><span class="supply-icon">ϟ</span><span><strong>Leaf Storm</strong><small>180 damage to all pests</small></span><b>8,000</b></button>
+        <section class="supply-section"><div class="panel-heading"><h2>Field supplies</h2><span>COST · PREVIEW TREE</span></div>
+          <button class="supply-button" data-supply="shield"><span class="supply-icon">◇</span><span><strong>Root Shield</strong><small>50 extra protection</small></span><b>3,000 TREE</b></button>
+          <button class="supply-button" data-supply="fertilizer"><span class="supply-icon">✦</span><span><strong>Fertilizer</strong><small>+50% damage · 20s</small></span><b>5,000 TREE</b></button>
+          <button class="supply-button" data-supply="storm"><span class="supply-icon">ϟ</span><span><strong>Leaf Storm</strong><small>180 damage to all pests</small></span><b>8,000 TREE</b></button>
         </section>
         <section class="studio-section"><div class="panel-heading"><h2>Canopy studio</h2><span>LOOKS ONLY</span></div><p id="style-instruction" class="panel-intro">Choose the style for your next defender.</p><div id="style-grid" class="style-grid"></div><p class="rarity-note">Your NFTree rarity includes every appearance tier below it.</p></section>
         <div class="guide-note"><span>✿</span><p>Clear chapters to grow the Tree of Life, build forest landmarks, and earn up to three stars. Stars are game progress, with no cash or token value.</p></div>
@@ -132,6 +136,7 @@
           <button id="enter-holder-game" class="primary" hidden>Enter the forest →</button>
           <button id="disconnect-wallet" class="quiet" hidden>Disconnect wallet</button>
         </div>
+        <p class="gateway-currencies">SAP plants defenders · TREE buys upgrades, supplies &amp; continues.</p>
         <p class="gateway-included"><span aria-hidden="true">◇</span> NFTree access includes new runs and seasons.</p>
         <details id="sign-in-details"><summary>Review sign-in message</summary><pre id="sign-in-message"></pre></details>
         <div class="gateway-links"><a href="https://tree-token.xyz/play/canopy-defense/preview/">Watch the gameplay ↗</a><a href="https://nftree.net/mint#mint" target="_blank" rel="noopener noreferrer">Get an NFTree ↗</a></div>
