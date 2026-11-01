@@ -18,4 +18,10 @@ Native desktop-frame inspection shows clearer defenders and pest types, with vis
 
 Run `node tools/render-battle-readability.mjs` in the primary runtime with native canvas and ffmpeg. This recreates the MP4, crowded escort frame, enrage frame, scaled battlefield and JSON report in `docs/battle-readability/`. Capture headings are review annotations outside the battlefield, not a reproduction of hosted app HTML.
 
-The MP4 passed a complete ffmpeg decode and is 800×640 at 20 fps. Local checks: 193 passing tests, one Windows-only skip, zero failures; syntax and whitespace checks passed. A regression checks that health bars clear rotated shells/horns and stay inside the top edge. Canonical checkout-test deployment pending.
+The MP4 passed a complete ffmpeg decode and is 800×640 at 20 fps. Local checks: 193 passing tests, one Windows-only skip, zero failures; syntax and whitespace checks passed. A regression checks that health bars clear rotated shells/horns and stay inside the top edge. Live on the canonical checkout-test path; see release below.
+
+## Release
+
+URL: https://tree-token.xyz/play/canopy-defense/checkout-test/
+
+Source `af2c5ea0c4397716a69711ce5a525e74b8865c26`; backend `6ae7c0448dd5cdf1f03fc40f`; routing release `6ae7c0ad9b844a7d581817d1`. Both CI runs passed (41358429676 and 41358424673). Preserved all 284 static entries, 41 function identities/configurations and five schedules; only the checkout-test rewrite changed. Entry 200; anonymous source/access/payments 401. Regular game, payment rules and database schema are unchanged. Holder and phone interaction testing remain pending.

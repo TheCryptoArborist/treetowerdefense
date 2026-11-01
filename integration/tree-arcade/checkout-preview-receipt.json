@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7bb86eff49de4838ff79e",
-    "upstreamDeployId": "6ae7bb1a9a800a8083fe0e67",
-    "backendSourceCommit": "487d2efc5ee43ddc3b45958af016e0fd563b06a4",
-    "releaseSourceCommit": "487d2efc5ee43ddc3b45958af016e0fd563b06a4",
+    "productionDeployId": "6ae7c0ad9b844a7d581817d1",
+    "upstreamDeployId": "6ae7c0448dd5cdf1f03fc40f",
+    "backendSourceCommit": "af2c5ea0c4397716a69711ce5a525e74b8865c26",
+    "releaseSourceCommit": "af2c5ea0c4397716a69711ce5a525e74b8865c26",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -242,5 +242,36 @@
     "phoneAcceptance": "pending",
     "regularGamePromoted": false,
     "comparison": "docs/enemy-morphology-preview.jpg"
+  },
+  "battleReadabilityRelease": {
+    "state": "live",
+    "sourceCommit": "af2c5ea0c4397716a69711ce5a525e74b8865c26",
+    "backendDeployId": "6ae7c0448dd5cdf1f03fc40f",
+    "publishedDeployId": "6ae7c0ad9b844a7d581817d1",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 193,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41358429676,
+      41358424673
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "combatBalanceChanged": false,
+    "capture": "docs/battle-readability/action-preview.mp4",
+    "captureSeconds": 24.1,
+    "nativePeakEnemies": 23,
+    "fixtureEndHealth": 46,
+    "fixtureConsumables": 0,
+    "holderAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false
   }
 }
