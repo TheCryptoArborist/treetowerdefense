@@ -1,12 +1,12 @@
 {
   "release": "Canopy TREE checkout isolated preview",
   "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
-  "deployId": "6ae7502b9a2f4d2e09e7aa6f",
+  "deployId": "6ae76aa62aa4b7b652f0b4e1",
   "state": "ready",
-  "sourceCommit": "1deac5ccc35efaa40c927805edabec77834efadc",
+  "sourceCommit": "e06185146ef761461036afe85c5ec7d52865d835",
   "publishedAt": null,
   "context": "branch-deploy",
-  "previewUrl": "https://canopy-checkout-test--tree-token.netlify.app/play/canopy-defense/",
+  "previewUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
   "databaseBranch": "canopy-checkout-test",
   "migrations": [
     {
@@ -18,8 +18,8 @@
       "applied": true
     }
   ],
-  "productionBaseline": "6ae69fa9b3d4702fcc61177c",
-  "productionPublication": "not performed",
+  "productionBaseline": "6ae7673cbbf1e1e579d6fb19",
+  "productionPublication": "Routing-only publication; regular game and all existing functions unchanged",
   "checks": {
     "anonymousPayments": 401,
     "anonymousGameSource": 401,
@@ -28,14 +28,24 @@
     "windowsCI": "success",
     "linuxCI": "success",
     "postgres16CI": "success",
-    "workflowRuns": [
-      41269375493,
-      41269372984
-    ],
     "gatewayMatchesLocal": true,
-    "walletPicker": "Slush available",
+    "walletPicker": "Slush available on canonical domain",
     "databaseStatus": "Both migrations applied; no pending, missing or out-of-order migrations",
-    "productionDeployUnchanged": true
+    "anonymousAccess": 401,
+    "canonicalChallenge": 200,
+    "challengeOrigin": "https://tree-token.xyz",
+    "wrongOriginChallenge": 403,
+    "localTests": {
+      "total": 167,
+      "passed": 166,
+      "skipped": 1,
+      "failed": 0
+    },
+    "workflowRuns": [
+      41327688400,
+      41327684220
+    ],
+    "ciSourceCommit": "bc1872cd120d5dbe4a20b1017970a35171e33830"
   },
   "limitations": [
     "Real NFTree-holder checkout and mobile wallet acceptance pending",
@@ -43,25 +53,20 @@
   ],
   "recoveryCleanupDeployed": true,
   "canonicalRouting": {
-    "state": "source committed; not deployed",
-    "sourceCommit": "a58f825f454b551e93b6d91a7300c6c754751064",
-    "requiredPublicUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "failedDeployId": "6ae76995b5e42831ef80a7f3",
-    "site": "tree-token",
-    "branch": "canopy-checkout-test",
-    "error": "Invalid event 'stageCanopyPackage' while loading local build plugin",
-    "localDiagnostic": "CLI .netlify/functions/canopy-access.zip is invalid; separately built .netlify/canopy-functions/canopy-access.zip is valid",
-    "tests": {
-      "total": 166,
-      "passed": 165,
-      "skipped": 1,
-      "failed": 0
-    },
-    "productionRoutePublished": false,
-    "previousFailure": {
-      "deployId": "6ae753f690349b4d48e7aa2f",
-      "error": "400: could not write function bundle to disk: read upload zip: zip: not a valid zip file"
-    },
-    "packagingCorrection": "Validated pinned package staging implemented; plugin helper export corrected locally; forward deployment pending"
+    "state": "live",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "productionDeployId": "6ae76c3ebcffbd716b974f9f",
+    "upstreamDeployId": "6ae76aa62aa4b7b652f0b4e1",
+    "backendSourceCommit": "e06185146ef761461036afe85c5ec7d52865d835",
+    "releaseSourceCommit": "bc1872cd120d5dbe4a20b1017970a35171e33830",
+    "existingStaticFilesPreserved": 283,
+    "functionsPreservedExactly": 41,
+    "schedulesPreservedExactly": 5,
+    "newStaticFiles": [
+      "_redirects"
+    ],
+    "browserRedirectsToNetlify": false,
+    "productionDatabaseChanged": false,
+    "regularGameCheckoutEnabled": false
   }
 }
