@@ -14,6 +14,7 @@ export class CombatFeedback {
         this.reactions.delete(event.id);
         this.defeats.push({ ...event, life: event.kind === 'boss' ? .9 : .5, max: event.kind === 'boss' ? .9 : .5 });
         if (event.kind === 'boss') this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} FALLS`, 'Your guardians have broken the advance.', 'success', 4);
+      } else if(event.type==='boss-enrage'){this.announce('BOSS ENRAGED','Below half health: 30% faster movement. Keep slows and rear coverage ready.','danger',5);
       } else if (event.type === 'boss-arrival') {
         this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} HAS ARRIVED`, 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
       } else if (event.type === 'wave-start') {

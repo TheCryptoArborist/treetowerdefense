@@ -118,6 +118,7 @@ export function battleReport(game) {
   let goal = next ? `${TOWERS[next].name}: ${game.unlockStatus(next).label} (${game.unlockStatus(next).current}/${game.unlockStatus(next).goal}).` : 'Full roster earned. Improve chapter stars or try another defender combination.';
   if (game.isEvent) goal = !game.seasonRewards.includes('grove-badge') ? 'Clear all five Haunted Grove waves to earn the Grove Defender badge.' : !game.seasonRewards.includes('lantern-oak') ? 'Finish Haunted Grove with at least 80 health to earn Lantern Oak.' : !game.seasonRewards.includes('web-watchtower') ? 'Win Haunted Grove after planting three defender types to earn the Web-carved Watchtower.' : 'All Haunted Grove rewards earned. Equip your looks in the event panel.';
   if(game.isHarvest)goal=game.harvestRewards.length===4?'All Harvest rewards earned. Equip your looks in the event panel.':'Protect five Harvest waves; finish at 80 health for Copperleaf Oak, plant three defender types for Harvest banners, and finish at 100 health for the amber Tree of Life.';
+  if(game.isVeteran)goal=`Earn all nine Veteran stars (${game.veteranStars.reduce((a,b)=>a+b,0)}/9). Counter shells with piercing and poison; reserve slow coverage for enraging bosses.`;
   return { ...r, leaks, earned: [...r.unlocks.map(type => TOWERS[type].name), ...r.rewards.map(reward => REWARD_NAMES[reward])], goal,
     tip: worst ? worst.counter : 'Your defense stopped every recorded pest. Try a different formation or pursue your next unlock.' };
 }

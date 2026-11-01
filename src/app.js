@@ -305,8 +305,17 @@ $('enter-event').addEventListener('click',async()=>{
 });
 for(const[id,type]of [['lantern-look','oak'],['web-look','watchtower']])$(id).addEventListener('change',event=>act(()=>game.setSeasonLook(type,event.target.checked)));
 for(const[id,type]of [['copper-look','oak'],['harvest-tower-look','watchtower'],['amber-look','tree']])$(id).addEventListener('change',event=>act(()=>game.setHarvestLook(type,event.target.checked)));
+for(const[id,difficulty]of [['veteran-start','veteran'],['standard-start','standard']])$(id).addEventListener('click',async()=>{
+ if(checkoutBusy||!game.access||difficulty==='veteran'&&!game.veteranUnlocked)return;
+ if(!confirm('Start a fresh '+difficulty+' campaign? This replaces the current battle. Permanent growth, unlocks and seasonal cosmetics stay; current-run supplies do not carry over.'))return;
+ if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
+ if(game.startCampaign(difficulty)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();}
+});
 let seasonArtSignature='';
 function renderSeason(){
+ $('veteran-start').disabled=!game.access||!game.veteranUnlocked;
+ $('standard-start').disabled=!game.access;
+ $('veteran-progress').textContent=game.veteranUnlocked?`${game.isVeteran?'VETERAN ACTIVE · ':''}${game.veteranStars.reduce((a,b)=>a+b,0)}/9 Veteran stars earned · no entry fee`:'Unlock Veteran by protecting all three standard chapters.';
   const rewards=game.seasonRewards,harvest=game.harvestRewards;
   $('harvest-badge-progress').textContent=harvest.includes('harvest-badge')?'Earned ✓':`${game.harvest.bestWave}/5 best waves cleared`;
   $('copper-progress').textContent=harvest.includes('copperleaf-oak')?'Earned ✓':`Best completed run: ${game.harvest.bestHealth}/80 health`;
@@ -368,7 +377,7 @@ function renderUI() {
   $('map-name').textContent = game.runName.toUpperCase();
   $('map-tactics').textContent = game.chapter>0 && !game.isEvent && game.mapId==='crossing-v1' ? `Saved battle · original route preserved. Start a new run to explore the new ${CHAPTERS[game.chapter].name} layout.` : game.map.tip;
   document.querySelectorAll('[data-chapter]').forEach(button => {
-    const i = Number(button.dataset.chapter), stars = game.forest.stars[i];
+    const i = Number(button.dataset.chapter), stars = (game.isVeteran?game.veteranStars:game.forest.stars)[i];
     button.disabled = !game.access || i > game.unlockedChapter;
     button.classList.toggle('active', i === game.chapter && !game.isEvent); button.setAttribute('aria-pressed', String(i === game.chapter && !game.isEvent));
     button.querySelector('.chapter-stars').textContent = i > game.unlockedChapter ? 'Locked' : '★'.repeat(stars) + '☆'.repeat(3-stars);
@@ -461,7 +470,7 @@ function renderUI() {
     const stars = game.health >= 80 ? 3 : game.health >= 40 ? 2 : 1;
     $('outcome-stars').textContent = won && !game.isEvent ? '★'.repeat(stars) + '☆'.repeat(3-stars) : '';
     $('next-chapter').hidden = !won || game.isEvent || game.chapter >= CHAPTERS.length-1;
-    $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${CHAPTERS[game.chapter].name} protected. ${stars}/3 stars. Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : 'Continue to restore health and keep your towers and current wave. Preview prices only.';
+    $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : 'Continue to restore health and keep your towers and current wave. Preview prices only.';
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
   }
 }
@@ -483,7 +492,7 @@ function renderCombatUI() {
   $('boss-panel').hidden = !visible;
   $('boss-health').hidden = boss.state !== 'present';
   if (visible) {
-    $('boss-title').textContent = game.bossName.toUpperCase();
+    $('boss-title').textContent = game.bossName.toUpperCase()+(game.isVeteran&&boss.state==='present'&&boss.hp<boss.maxHp*.5?' · ENRAGED':'');
     const text = boss.state === 'incoming' ? 'Approaching behind the escort' : `${Math.ceil(boss.hp).toLocaleString()} / ${Math.ceil(boss.maxHp).toLocaleString()} HP`;
     if ($('boss-health-text').textContent !== text) $('boss-health-text').textContent = text;
     if (boss.state === 'present') { $('boss-health').max = boss.maxHp; $('boss-health').value = boss.hp; }
@@ -527,7 +536,7 @@ function renderScout() {
     paintPest(c,{kind:group.kind,x:0,y:0,id:0,...(game.isEvent?{theme:game.mode}:{}),hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0);
     $('scout-pests').append(card);
   }
-  $('scout-tip').textContent = scout.tip || (game.phase === 'victory' ? 'Replay to improve your stars, or explore the next unlocked chapter.' : `The ${game.bossName} is the final challenge. There are no further waves in this run.`);
+  $('scout-tip').textContent = (game.isVeteran?'VETERAN: reinforced beetle shells resist ordinary hits; Watchtower, Cypress and poison counter them. Bosses move 30% faster below half health. ':'')+(scout.tip || (game.phase === 'victory' ? 'Replay to improve your stars, or explore the next unlocked chapter.' : `The ${game.bossName} is the final challenge. There are no further waves in this run.`));
 }
 
 // Local sprite artwork and procedural scenery; no remote art or font downloads.

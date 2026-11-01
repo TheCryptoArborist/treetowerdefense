@@ -125,7 +125,7 @@ export function mothDashing(enemy, time) {
   return enemy.behavior === 1 && enemy.kind === 'moth' && (time - enemy.bornAt) % 4 >= 2 && (time - enemy.bornAt) % 4 < 2.65;
 }
 export function enemySpeed(enemy, time) {
-  return enemy.speed * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
+  return enemy.speed * (enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5?1.3:1) * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
 }
 export function blightHealing(enemy, time) {
   return enemy.behavior === 1 && enemy.kind === 'blight' && enemy.hp > 0 && enemy.hp < enemy.maxHp && enemy.poisonUntil <= time && enemy.recoverAt <= time;
@@ -161,6 +161,7 @@ export class Game {
     this.forest = { levels: Object.fromEntries(Object.keys(TOWERS).map(type => [type, 1])), stars: CHAPTERS.map(() => 0), rosterVersion: 1, bestWaves: CHAPTERS.map(() => 0), unlocked: ['oak', 'pine'] };
     this.chapter = 0;
     this.mode = 'campaign';
+    this.difficulty='standard';this.veteranStars=[0,0,0];
     this.season = { bestWave: 0, bestHealth: 0, teamClear: false };
     this.seasonLooks = { oak: false, watchtower: false };
     this.harvest={bestWave:0,bestHealth:0,teamClear:false};this.harvestLooks={oak:false,watchtower:false,tree:false};
@@ -178,6 +179,9 @@ export class Game {
     this.mapId = this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
     this.eventTeam = []; this.eventVersion = this.isEvent ? 1 : null;
   }
+  get veteranUnlocked(){return this.forest.stars.every(s=>s>0);}
+  get isVeteran(){return this.difficulty==='veteran'&&!this.isEvent;}
+  startCampaign(difficulty='standard'){if(!this.access||!['standard','veteran'].includes(difficulty)||difficulty==='veteran'&&!this.veteranUnlocked)return false;this.difficulty=difficulty;return this.chooseChapter(0);}
   get isEvent() { return [HAUNTED_GROVE.id,HARVEST_CANOPY.id].includes(this.mode); }
   get isHarvest(){return this.mode===HARVEST_CANOPY.id;}
   get event(){return this.isHarvest?HARVEST_CANOPY:HAUNTED_GROVE;}
@@ -188,11 +192,11 @@ export class Game {
   setHarvestLook(type,enabled){const reward={oak:'copperleaf-oak',watchtower:'harvest-watchtower',tree:'amber-life-tree'}[type];if(!this.access||typeof enabled!=='boolean'||!reward||!this.harvestRewards.includes(reward))return false;this.harvestLooks[type]=enabled;return true;}
   get map() { return mapFor(this.mapId); }
   get waveCount() { return this.isEvent ? 5 : 10; }
-  get runName() { return this.isEvent ? this.event.name : CHAPTERS[this.chapter].name; }
+  get runName() { return this.isEvent ? this.event.name : (this.isVeteran?'Veteran · ':'')+CHAPTERS[this.chapter].name; }
   get seasonRewards() { return [this.season.bestWave===5 && 'grove-badge',this.season.bestHealth>=80 && 'lantern-oak',this.season.teamClear && 'web-watchtower'].filter(Boolean); }
   startEvent(mode=HAUNTED_GROVE.id) {
     if(!this.access || !this.forest.stars[0] || ![HAUNTED_GROVE.id,HARVEST_CANOPY.id].includes(mode))return false;
-    this.mode=mode;this.newRun();this.message=`${this.runName}: five waves. Protect the Tree of Life and earn seasonal looks.`;return true;
+    this.difficulty='standard';this.mode=mode;this.newRun();this.message=`${this.runName}: five waves. Protect the Tree of Life and earn seasonal looks.`;return true;
   }
   setSeasonLook(type, enabled) {
     const reward = type==='oak'?'lantern-oak':type==='watchtower'?'web-watchtower':null;
@@ -312,9 +316,11 @@ export class Game {
   }
   spawn(kind) {
     const base = this.isEvent ? 45 + this.wave * 25 : (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
-    const hp = kind === 'boss' ? this.isEvent ? (this.isHarvest?1450:1200) : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
+    let hp = kind === 'boss' ? this.isEvent ? (this.isHarvest?1450:1200) : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
+    if(this.isVeteran)hp*=2.4;
     const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
       slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: this.map.path[0][0], y: this.map.path[0][1] };
+    if(this.isVeteran){e.veteran=true;e.speed*=1.18;}
     if(this.mapId!==LEGACY_MAP.id)e.mapId=this.mapId;
     if (this.enemyRules === 1) Object.assign(e, { behavior: 1, bornAt: this.time, recoverAt: this.time + 2 });
     if(this.isEvent)e.theme=this.mode;
@@ -361,6 +367,7 @@ export class Game {
   }
   strike(enemy, damage, source, style = 0) {
     // Presentation events report actual hits; they never determine combat or rewards.
+    if(enemy.veteran&&enemy.kind==='beetle'&&!['watchtower','cypress'].includes(source))damage*=.7;
     const dealt = Math.min(Math.max(0, enemy.hp), damage);
     enemy.hp -= damage;
     if (dealt > 0 && enemy.behavior === 1) enemy.recoverAt = this.time + 2;
@@ -387,8 +394,9 @@ export class Game {
     if (this.phase !== 'running' || !this.access || !Number.isFinite(dt) || dt <= 0) return;
     dt = Math.min(dt, 0.05); this.time += dt;
     this.spawnTimer -= dt;
-    if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = this.isEvent ? this.event.gaps[this.wave-1] : waveSpawnInterval(this.wave); }
+    if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = this.isEvent ? this.event.gaps[this.wave-1] : waveSpawnInterval(this.wave)*(this.isVeteran?.7:1); }
     for (const enemy of this.enemies) {
+      if(enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5&&!enemy.enraged){enemy.enraged=true;this.events.push({type:'boss-enrage'});}
       if (enemy.poisonUntil > this.time) enemy.hp -= enemy.poisonDamage * dt;
       if (blightHealing(enemy,this.time)) enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * .006 * dt);
       enemy.progress += enemySpeed(enemy,this.time) * dt;
@@ -445,7 +453,7 @@ export class Game {
       this.shots = [];
       this.phase = this.wave === this.waveCount ? 'victory' : 'build';
       if(this.isEvent)this.seasonProgress.bestWave=Math.max(this.seasonProgress.bestWave,this.wave);
-      else this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
+      else if(!this.isVeteran)this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
       this.events.push({ type: 'wave-clear', wave: this.wave, sap: 85 });
       if(this.isEvent)this.events.at(-1).waveCount=5;
       if (this.phase === 'victory') {
@@ -454,7 +462,7 @@ export class Game {
           this.seasonProgress.bestHealth=Math.max(this.seasonProgress.bestHealth,this.health);
           this.seasonProgress.teamClear ||= this.eventTeam.length>=3;
           for(const reward of this.activeSeasonRewards.filter(r=>!previousSeasonRewards.includes(r))){this.runReport.rewards.push(reward);this.events.push({type:'season-reward',reward});}
-        } else this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
+        } else if(this.isVeteran)this.veteranStars[this.chapter]=Math.max(this.veteranStars[this.chapter],stars);else this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
         this.events.push({ type: 'victory', x: 940, y: 640 });
       }
       const earned = this.refreshUnlocks();
@@ -540,6 +548,10 @@ export class Game {
       game.harvest.teamClear=game.harvest.bestWave===5&&harvest.teamClear===true;
     }
     for(const[type,reward]of Object.entries({oak:'copperleaf-oak',watchtower:'harvest-watchtower',tree:'amber-life-tree'}))game.harvestLooks[type]=data.harvestLooks?.[type]===true&&game.harvestRewards.includes(reward);
+    game.veteranStars=Array.isArray(data.veteranStars)&&data.veteranStars.length===3?data.veteranStars.map(v=>Number.isInteger(v)&&v>=0&&v<=3?v:0):[0,0,0];
+    if(data.difficulty==='veteran'){if(game.isEvent||!game.veteranUnlocked)return null;game.difficulty='veteran';}
+    else if(data.difficulty!==undefined&&data.difficulty!=='standard')return null;
+    for(const enemy of game.enemies){if(game.isVeteran)enemy.veteran=true;else{delete enemy.veteran;delete enemy.enraged;}}
     game.eventTeam=game.isEvent?[...new Set([...(Array.isArray(data.eventTeam)?data.eventTeam.filter(t=>typeof t==='string'&&Object.hasOwn(TOWERS,t)):[]),...game.towers.map(t=>t.type)])]:[];
     for(const[type,reward]of [['oak','lantern-oak'],['watchtower','web-watchtower']])game.seasonLooks[type]=data.seasonLooks?.[type]===true&&game.seasonRewards.includes(reward);
     // Preserve old active runs, including future queued spawns, under their original rules.
