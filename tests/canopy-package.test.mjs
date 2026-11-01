@@ -6,7 +6,7 @@ import path from 'node:path';
 import {deflateRawSync} from 'node:zlib';
 import CRC32 from 'crc-32';
 import {validateZip} from '../tools/netlify-canopy-package/zip.mjs';
-import {stageCanopyPackage} from '../tools/netlify-canopy-package/index.js';
+import {stageCanopyPackage} from '../tools/netlify-canopy-package/stage.mjs';
 function zip(){
  const names=['___netlify-entry-point.mjs','netlify/functions/canopy-access.mjs'];let offset=0;const entries=[],directory=[];
  for(const name of names){const n=Buffer.from(name),plain=Buffer.from('export default ()=>new Response("fixture");'),data=deflateRawSync(plain),crc=CRC32.buf(plain)>>>0;
@@ -30,4 +30,9 @@ test('staging replaces a malformed CLI package and retains routes/runtime in its
   const deployed=JSON.parse(await fs.readFile(path.join(dist,'manifest.json')));assert.deepEqual(deployed.functions[0].routes,fn.routes);assert.deepEqual(deployed.functions[0].trafficRules,fn.trafficRules);assert.equal(deployed.functions[0].path,path.join(dist,'canopy-access.zip'));
   await fs.writeFile(path.join(packageDir,'manifest.json'),JSON.stringify({functions:[fn,{name:'unrelated'}]}));await assert.rejects(stageCanopyPackage({packageDir,dist}),/isolated Canopy/);
  }finally{await fs.rm(root,{recursive:true,force:true});}
+});
+
+test('plugin entry point exports only supported Netlify events',async()=>{
+ const plugin=await import('../tools/netlify-canopy-package/index.js');
+ assert.deepEqual(Object.keys(plugin),['onPostBuild']);
 });

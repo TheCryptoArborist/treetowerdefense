@@ -46,17 +46,22 @@
     "state": "source committed; not deployed",
     "sourceCommit": "a58f825f454b551e93b6d91a7300c6c754751064",
     "requiredPublicUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "failedDeployId": "6ae753f690349b4d48e7aa2f",
+    "failedDeployId": "6ae76995b5e42831ef80a7f3",
     "site": "tree-token",
     "branch": "canopy-checkout-test",
-    "error": "400: could not write function bundle to disk: read upload zip: zip: not a valid zip file",
+    "error": "Invalid event 'stageCanopyPackage' while loading local build plugin",
     "localDiagnostic": "CLI .netlify/functions/canopy-access.zip is invalid; separately built .netlify/canopy-functions/canopy-access.zip is valid",
     "tests": {
-      "total": 163,
-      "passed": 162,
+      "total": 166,
+      "passed": 165,
       "skipped": 1,
       "failed": 0
     },
-    "productionRoutePublished": false
+    "productionRoutePublished": false,
+    "previousFailure": {
+      "deployId": "6ae753f690349b4d48e7aa2f",
+      "error": "400: could not write function bundle to disk: read upload zip: zip: not a valid zip file"
+    },
+    "packagingCorrection": "Validated pinned package staging implemented; plugin helper export corrected locally; forward deployment pending"
   }
 }
