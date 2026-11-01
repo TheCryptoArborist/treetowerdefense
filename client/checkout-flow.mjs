@@ -18,6 +18,7 @@ export function createCheckoutFlow({sign,bind,execute,redeem,submitStored}){
   async resume(id){if(busy)throw Error('Checkout is busy');busy=true;uncertain=id;try{await submitStored(id);const item=await redeem(id);uncertain=null;return item;}finally{busy=false;}},
   async recover(id){if(busy)throw Error('Checkout is busy');busy=true;uncertain=id;try{const item=await redeem(id);uncertain=null;return item;}finally{busy=false;}},
   // Called only after a trusted history read confirms no signed/bound/paid invoice exists.
+  observeHistory(rows){if(!busy&&uncertain&&rows.some(row=>row.id===uncertain&&['cancelled','expired'].includes(row.status)))uncertain=null;},
   clearUnsigned(id){if(!busy&&uncertain===id)uncertain=null;}
  });
 }

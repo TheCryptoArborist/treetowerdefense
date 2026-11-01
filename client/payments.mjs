@@ -15,10 +15,10 @@ export function createPayments({kit,account}){
   redeem:id=>request({action:'redeem',id})
  });
  return Object.freeze({
-  status:()=>request(),
+  status:async()=>{const status=await request();flow.observeHistory(status.invoices??[]);return status;},
   newRun:()=>request({action:'run'}),
   quote:input=>request({action:'quote',...input}),
-  pay:invoice=>flow.pay(invoice),recover:id=>flow.recover(id),resume:id=>flow.resume(id),reconcile:id=>request({action:'reconcile',id}),
+  pay:invoice=>flow.pay(invoice),recover:id=>flow.recover(id),resume:id=>flow.resume(id),reconcile:async id=>{const result=await request({action:'reconcile',id});flow.clearUnsigned(id);return result;},
   cancel:async id=>{const r=await request({action:'cancel',id});flow.clearUnsigned(id);return r;},
   consume:(id,runId)=>request({action:'consume',id,runId}),
   async balance(){const owner=wallet();const {balance}=await client.getBalance({owner,coinType:TREE});if(wallet()!==owner)throw Error('Wallet changed');return BigInt(balance.balance);}

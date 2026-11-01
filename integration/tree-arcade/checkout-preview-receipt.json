@@ -1,0 +1,47 @@
+{
+  "release": "Canopy TREE checkout isolated preview",
+  "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+  "deployId": "6ae6b0ded1f95cf355018300",
+  "state": "ready",
+  "sourceCommit": "1c70d04b3a8645241baab6b3aa005af3389c60d6",
+  "publishedAt": null,
+  "context": "branch-deploy",
+  "previewUrl": "https://6ae6b0ded1f95cf355018300--tree-token.netlify.app/play/canopy-defense/",
+  "databaseBranch": "canopy-checkout-test",
+  "migrations": [
+    {
+      "name": "20261101023000_canopy_payments",
+      "applied": true
+    },
+    {
+      "name": "20261101040000_checkout_recovery",
+      "applied": true
+    }
+  ],
+  "productionBaseline": "6ae69fa9b3d4702fcc61177c",
+  "productionPublication": "not performed",
+  "checks": {
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "publicPreview": 200,
+    "publicGate": 200,
+    "windowsCI": "success",
+    "linuxCI": "success",
+    "postgres16CI": "success",
+    "workflowRuns": [
+      41269005983,
+      41269003181
+    ]
+  },
+  "limitations": [
+    "Real NFTree-holder checkout and mobile wallet acceptance pending",
+    "No real payment was executed by the agent",
+    "Final pending-state cleanup is source-only and requires a forward preview update"
+  ],
+  "cliStatusError": {
+    "requestedBranch": "feature/tree-arcade-home",
+    "message": "No database branch found for \"feature/tree-arcade-home\". Has a deploy been published for this branch?",
+    "actualBranchConfirmedByDeployRecord": "canopy-checkout-test",
+    "action": "Stopped further Netlify operations under database skill guidance"
+  }
+}

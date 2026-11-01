@@ -1,6 +1,6 @@
 # TREE payments — staged verification foundation
 
-Status: server-side receipt validation, transactional purchase ledger and an additive database migration are implemented. The migration is tested locally; it has not been applied to the hosted database. Authenticated payment endpoints, signed wallet checkout and recovery are implemented for an isolated preview. Production checkout remains disabled. NFTree access and the live simulated shop are unchanged. Passing receipt validation is **not** permission to apply an upgrade or continue.
+Status: server-side receipt validation, transactional purchase ledger and an additive database migration are implemented. Both migrations are now applied to the isolated `canopy-checkout-test` preview database branch, not production. Authenticated payment endpoints, signed wallet checkout and recovery are implemented for an isolated preview. Production checkout remains disabled. NFTree access and the live simulated shop are unchanged. Passing receipt validation is **not** permission to apply an upgrade or continue.
 
 ## Implemented
 
@@ -53,3 +53,11 @@ The account history offers verification, re-submission of the already signed tra
 Paid gameplay uses a separate local save envelope and server-issued run ID. Preview campaign progress can carry over, but preview TREE and preview growth never become paid credit: wallet balance and durable account growth overwrite them. The server consumes supplies/continues once per original run. Applying a verified item and its local applied-ID marker are saved in one browser write. Lost response recovery returns the same entitlement; fresh battles have new run IDs. Permanent species levels remain in the database. Battle progress is browser-local and editable, with no reward authority; clearing it or abandoning a run does not create refunds or transferable credit. Run-item cross-device battle restoration is not implemented.
 
 `CANOPY_CHECKOUT_ENABLED=true` is an explicit deployment-only opt-in. Production stays disabled until hosted migration, real holder wallet and mobile acceptance are verified. The new `netlify.toml` builds only isolated Canopy previews and blocks ordinary production builds, which would omit the existing arcade's unrelated files/functions. Preview files omit private sources and serve them only through the holder gate. A full production release must preserve all 40 unrelated functions and five schedules plus the existing Canopy gate.
+
+## Hosted preview result
+
+Preview deploy `6ae6b0ded1f95cf355018300` is ready from commit `1c70d04b3a8645241baab6b3aa005af3389c60d6`. Netlify's deploy record confirms both migrations applied to database branch `canopy-checkout-test`; it was not published to production. Anonymous payment and source requests return 401, while the public introduction remains available. Both CI workflow runs passed Linux, Windows and PostgreSQL 16. See [preview receipt](../integration/tree-arcade/checkout-preview-receipt.json).
+
+A separate CLI status query mistakenly targeted the Git branch `feature/tree-arcade-home` and returned `No database branch found for "feature/tree-arcade-home". Has a deploy been published for this branch?` Further Netlify operations stopped as required by the database skill; the existing successful deploy record independently identifies the actual alias/database branch.
+
+A final recovery-state cleanup now clears an in-memory pending invoice when trusted history says it was cancelled or expired, including lost cancellation responses and resolved failures. This small follow-up is tested and committed but not deployed to the preview yet. Apply that forward update before a funded holder acceptance test. No hosted application data was queried and no actual token purchase was executed.
