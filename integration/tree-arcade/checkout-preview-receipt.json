@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7cb4f2543792222234d70",
-    "upstreamDeployId": "6ae7cadce814394bf5995668",
-    "backendSourceCommit": "4d9b7c5e79011b2bb926a4e681f368ed0011ef7c",
-    "releaseSourceCommit": "4d9b7c5e79011b2bb926a4e681f368ed0011ef7c",
+    "productionDeployId": "6ae7cf37915acf229383c5ea",
+    "upstreamDeployId": "6ae7cebf8dc9ef377f3fc837",
+    "backendSourceCommit": "bb69cd29d2aa302e430ddcb86ea3cd6641790a46",
+    "releaseSourceCommit": "bb69cd29d2aa302e430ddcb86ea3cd6641790a46",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -327,6 +327,31 @@
     "anonymousPayments": 401,
     "holderVisualAcceptance": "pending",
     "phoneAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "checkoutRecoveryRelease": {
+    "state": "live",
+    "sourceCommit": "bb69cd29d2aa302e430ddcb86ea3cd6641790a46",
+    "backendDeployId": "6ae7cebf8dc9ef377f3fc837",
+    "publishedDeployId": "6ae7cf37915acf229383c5ea",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 199,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41363480330,
+    "canonicalGate": 200,
+    "gateway": 200,
+    "recoveryMarkupVerified": true,
+    "progressBundleVerified": true,
+    "anonymousReviewModule": 401,
+    "anonymousGameSource": 401,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "holderWalletAcceptance": "pending",
+    "originalInterruptionCause": "not established from screenshot",
     "regularGamePromoted": false
   }
 }
