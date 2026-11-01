@@ -34,7 +34,9 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.16
+## Fantasy forest build · v0.17
+
+- **November active season: Harvest of the Canopy.** Five authored waves, the Hollow Harvester, copper foliage and earnable Oak, Watchtower and Tree of Life cosmetics. Halloween progress and earned looks are preserved in the archived collection; saved Haunted Grove battles still resume. See [Harvest rules and validation](docs/harvest-canopy.md).
 
 End-of-run battle reports show breaches by pest, actual root damage and shield absorption, earned Sap, simulated TREE spending, continues, new roster/season unlocks, and a next goal. Reports survive reload/continue; older saves have explicitly partial history. See [battle reports](docs/battle-reports.md).
 

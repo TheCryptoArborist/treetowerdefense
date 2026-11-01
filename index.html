@@ -24,15 +24,25 @@
       <figure class="hero-art"><img src="assets/brand/tree-hero.png" width="1024" height="1024" fetchpriority="high" alt="The purple and green Tree Hero standing beneath a golden forest sky."><figcaption>ROOTED IN THE TREE ECOSYSTEM</figcaption></figure>
     </section>
     <nav class="chapter-trail" aria-label="Forest chapters" id="chapter-trail"></nav>
-    <section class="season-panel panel" aria-labelledby="season-title">
-      <div class="season-heading"><div><p class="eyebrow">HALLOWEEN · PLAYABLE EVENT PREVIEW</p><h2 id="season-title">Haunted Grove</h2><p>Keep the lanterns burning through five waves and face the Hollow King. Earn permanent looks through play.</p></div><button id="enter-event" class="primary">Enter Haunted Grove →</button></div>
-      <p id="season-access" class="season-access"></p><p class="season-note">NFTree access includes this event. No admission fee. Preview has no end date. Campaign growth carries with you.</p>
+    <section class="season-panel harvest-panel panel" aria-labelledby="season-title">
+      <div class="season-heading"><div><p class="eyebrow">NOVEMBER · HARVEST SEASON</p><h2 id="season-title">Harvest of the Canopy</h2><p>Copper leaves. Gathering swarms. One last harvest before winter. Protect the Tree of Life's seed reserves through five waves and face the Hollow Harvester.</p></div><button id="enter-event" class="primary">Enter the Harvest →</button></div>
+      <p id="season-access" class="season-access"></p><p class="season-note">Included with NFTree access · no entry fee · permanent roster and species growth carry into the event.</p>
+      <div class="season-goals harvest-goals">
+        <article><span class="season-badge" aria-hidden="true">✦</span><h3>Harvest Defender</h3><p>Protect all five waves.</p><strong id="harvest-badge-progress"></strong></article>
+        <article><canvas id="copper-preview" width="144" height="176" aria-hidden="true"></canvas><h3>Copperleaf Oak</h3><p>Complete the Harvest at 80+ health.</p><strong id="copper-progress"></strong><label><input id="copper-look" type="checkbox"> Equip copper foliage</label></article>
+        <article><canvas id="harvest-tower-preview" width="144" height="176" aria-hidden="true"></canvas><h3>Harvest Watchtower</h3><p>Win using three planted defender types.</p><strong id="harvest-team-progress"></strong><label><input id="harvest-tower-look" type="checkbox"> Equip harvest banners</label></article>
+        <article><canvas id="amber-preview" width="144" height="176" aria-hidden="true"></canvas><h3>Amber Tree of Life</h3><p>Finish the Harvest at 100 health.</p><strong id="amber-progress"></strong><label><input id="amber-look" type="checkbox"> Equip amber canopy</label></article>
+      </div><p class="season-note">Earned cosmetics stay across runs and seasons. Looks never change combat stats. Supplies, growth and continues use TREE; planting uses earned Sap.</p>
+    </section>
+    <details class="season-archive"><summary>Halloween collection · keep your earned looks</summary>
+      <div class="season-heading"><div><p class="eyebrow">ARCHIVED SEASON · COSMETICS COLLECTION</p><h2 id="archived-season-title">Haunted Grove</h2><p>Your Halloween progress and earned cosmetics are preserved. A saved Haunted Grove battle can still be finished.</p></div><button id="archived-event-entry" hidden class="primary">Enter Haunted Grove →</button></div>
+      <p id="archived-season-access" class="season-access"></p><p class="season-note">NFTree access includes this event. No admission fee. New seasonal runs now use Harvest of the Canopy. Campaign growth carries with you.</p>
       <div class="season-goals">
         <article><span class="season-badge" aria-hidden="true">✦</span><h3>Haunted Grove badge</h3><p>Clear all five waves.</p><strong id="badge-progress"></strong></article>
         <article><canvas id="lantern-preview" width="144" height="176" aria-hidden="true"></canvas><h3>Lantern Oak</h3><p>Finish with at least 80 health.</p><strong id="lantern-progress"></strong><label><input id="lantern-look" type="checkbox"> Equip on all Oak defenders</label></article>
         <article><canvas id="web-preview" width="144" height="176" aria-hidden="true"></canvas><h3>Web-carved Watchtower</h3><p>Finish using three different defender types.</p><strong id="web-progress"></strong><label><input id="web-look" type="checkbox"> Equip on all Watchtowers</label></article>
       </div><p class="season-note">Cosmetics only · earned looks stay across seasons · optional TREE supplies, growth and continues use simulated funds.</p>
-    </section>
+    </details>
     <p id="map-tactics" class="map-tactics"></p>
     <section class="hud" aria-label="Game statistics">
       <div class="life-stat"><span class="stat-label">TREE OF LIFE</span><strong id="health-value">100<span> / 100</span></strong><div class="health-track"><i id="health-bar"></i></div><small id="shield-value">Root shield: 0</small></div>
@@ -103,7 +113,7 @@
     <div class="gateway-layout">
       <section class="gateway-scene" aria-label="Canopy Defense guardian">
         <a class="gateway-home" href="https://tree-token.xyz/play/">← TREE ARCADE</a>
-        <div class="gateway-brand"><span class="eyebrow">THE TREE OF LIFE NEEDS YOU</span><h2>Canopy<br><em>Defense</em></h2><p>Build your forest.<br>Hold the line.</p></div>
+        <div class="gateway-brand"><span class="eyebrow">NOVEMBER · HARVEST OF THE CANOPY</span><h2>Canopy<br><em>Defense</em></h2><p>Build your forest.<br>Hold the line.</p></div>
         <div class="gateway-guardian" role="img" aria-label="Ancient Oak guardian with wooden armor and a leaf-carved shield"></div>
         <div class="gateway-character"><span>MEET YOUR DEFENDERS</span><strong>Oak Guardian</strong><small>Rooted in strength. Ready for battle.</small></div>
       </section>

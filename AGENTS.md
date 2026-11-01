@@ -2,7 +2,7 @@
 
 Read README.md for accepted product decisions and current prototype limitations.
 
-- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; Haunted Grove is playable in v0.12; Thanksgiving and Christmas events remain planned.
+- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; Haunted Grove is playable in v0.12; Harvest of the Canopy is the November active event; Christmas remains planned.
 
 - Check the live https://github.com/MystenLabs/skills README before every project task. For Sui technical decisions, load the applicable current SKILL.md and supporting files before acting. If access fails, report it and do not claim the live guidance was consulted.
 - The protected tree is named **Tree of Life**.
@@ -34,3 +34,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Moonlit Marsh uses staggered causeways and all geometry consumers share marsh-v1. Both missing mapId and explicit crossing-v1 Moonlit saves keep the old route through reload/continue. Wet pockets and the relocated permanent pond must remain clear of route and build sites. See docs/moonlit-map.md.
 
 - v0.17 canonical gameplay is NFTree-gated by the isolated canopy-access function. Never restore the simulated rarity/access picker. Public preview/video stay public. Preserve the 40 pre-existing functions and five schedules; only the new Canopy gate may be added/updated. Protected src modules must not be present in the public static inventory. Session/nonce proofs must never be read from localStorage or trusted as payment entitlements. See docs/nftree-access.md.
+
+- November active season is Harvest of the Canopy (`harvest-canopy`, eventVersion 1), a separate five-wave event with Hollow Harvester. Keep Haunted Grove saved runs, progress, reward IDs and equipped Halloween looks. New seasonal entry starts Harvest; legacy engine `startEvent()` still defaults to Haunted Grove for save/test compatibility. Harvest progress and looks are separate (`harvest`, `harvestLooks`), never campaign stars or payment proof. See docs/harvest-canopy.md.

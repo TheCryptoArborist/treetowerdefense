@@ -425,7 +425,7 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const size=boss?1.85:e.kind==='beetle'?1.12:blight?1.06:moth?.92:.88;
-  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
+  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='harvest-canopy'?{termite:['#bb864b','#493323'],beetle:['#ad7639','#493526'],moth:['#d1aa68','#60492e'],blight:['#987048','#493528'],boss:['#b8914c','#433324']}[e.kind]:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
   const map=mapFor(e.mapId);
   const ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
   const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
@@ -615,4 +615,24 @@ export function paintHauntedBackdrop(c) {
   for(let i=0;i<6;i++)line(c,[[0,0],[Math.cos(i*Math.PI/10)*95,Math.sin(i*Math.PI/10)*95]],'#a398b050',1);
   for(const r of [24,48,72]){c.strokeStyle='#a398b050';c.lineWidth=1;c.beginPath();c.arc(0,0,r,0,Math.PI/2);c.stroke();}
   c.restore();
+}
+
+// Harvest ornaments are optional visual layers; combat geometry stays unchanged.
+export function paintHarvestLook(c,type,x,y,scale=1){
+ c.save();c.translate(x,y);c.scale(scale,scale);
+ if(type==='oak'||type==='tree'){
+  const high=type==='tree'?-100:-82,spread=type==='tree'?55:28;
+  for(let i=0;i<9;i++){const angle=i*2.4,px=Math.cos(angle)*spread,py=high+Math.sin(angle)*18;c.save();c.translate(px,py);c.rotate(angle);ellipse(c,0,0,type==='tree'?14:9,4,['#c57932','#e0ad54','#ad5930'][i%3],'#75422a',.8);line(c,[[-7,0],[7,0]],'#f2cc78',.8);c.restore();}
+  if(type==='tree'){const glow=c.createRadialGradient(0,-75,5,0,-75,90);glow.addColorStop(0,'#eeb94825');glow.addColorStop(1,'#eeb94800');ellipse(c,0,-75,90,90,glow);}
+ }else if(type==='watchtower'){
+  line(c,[[-25,-67],[-25,-26]],'#9e8049',2);polygon(c,[[-25,-65],[-5,-62],[-10,-48],[-25,-50]],'#af6334','#efbe66',1.2);line(c,[[-20,-59],[-14,-54]],'#f1ce7c',2);
+ }
+ c.restore();
+}
+export function paintHarvestBackdrop(c){
+ c.save();c.fillStyle='#9d542c22';c.fillRect(0,0,WIDTH,HEIGHT);
+ // Leaves and seed-store ornaments stay at the border, clear of the route and pads.
+ for(let i=0;i<45;i++){const x=18+(i*137)%960,y=i%2?24+(i*11)%30:675+(i*7)%25;c.save();c.translate(x,y);c.rotate(i*1.7);ellipse(c,0,0,6+i%4,3,['#b86b31','#d9a34a','#925132'][i%3],'#70462b',.6);c.restore();}
+ for(const[x,y]of [[36,110],[947,282],[670,40]]){polygon(c,[[x-15,y],[x-13,y-19],[x+13,y-19],[x+15,y]],'#785439','#d4a15c',2);for(let i=0;i<3;i++)ellipse(c,x-8+i*8,y-21,4,5,'#a7753a','#5f442a',1);line(c,[[x-14,y-8],[x+14,y-8]],'#cb9856',2);}
+ c.restore();
 }
