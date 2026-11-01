@@ -379,6 +379,9 @@ function renderUI() {
   const tower = game.towers.find(t => t.id === selectedTower);
   $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
   const starCount = game.forest.stars.reduce((a,b) => a+b,0);
+  $('home-campaign-progress').value=starCount;
+  $('home-star-total').textContent=`${starCount} / 9 ★`;
+  $('home-veteran-state').textContent=game.isVeteran?'Veteran campaign active':game.veteranUnlocked?'Unlocked · ready for your next challenge':'Unlock after all three chapters';
   $('forest-summary').textContent = game.forestRank ? `${starCount}/9 stars · permanent defender growth saved` : 'Clear a chapter to build your first landmark.';
   $('map-name').textContent = game.runName.toUpperCase();
   $('map-tactics').textContent = game.chapter>0 && !game.isEvent && game.mapId==='crossing-v1' ? `Saved battle · original route preserved. Start a new run to explore the new ${CHAPTERS[game.chapter].name} layout.` : game.map.tip;
