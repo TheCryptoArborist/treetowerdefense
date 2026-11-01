@@ -1,0 +1,118 @@
+{
+  "release": "Canopy Defense v0.17 NFTree-gated access",
+  "canonicalGame": "https://tree-token.xyz/play/canopy-defense/",
+  "publicPreview": "https://tree-token.xyz/play/canopy-defense/preview/",
+  "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+  "baselineDeploy": "6ae6967ce44ea7832c974d76",
+  "published": {
+    "id": "6ae69fa9b3d4702fcc61177c",
+    "state": "ready",
+    "locked": true,
+    "publishedAt": "2026-11-01T02:11:35.297Z",
+    "commit": "0eb80c048bba49b7acbb03a24a6a4e547178c72d",
+    "functions": 41,
+    "existingFunctionsPreserved": 40,
+    "schedules": 5
+  },
+  "privateFunction": {
+    "name": "canopy-access",
+    "sha256": "8bca11eb41ca6657102b82ff28ff927e5fc529687af4a6f002152ff3384b3e4a",
+    "runtime": "nodejs22.x",
+    "invocationMode": "stream"
+  },
+  "preservation": {
+    "existingFunctions": 40,
+    "schedules": 5,
+    "staticFiles": 283,
+    "backendIdentityComparison": "exact except creation timestamp; all original identities/configurations matched",
+    "schedulesComparison": "exact"
+  },
+  "changedStaticFiles": [
+    {
+      "path": "/play/index.html",
+      "sha1": "b9687025fcb337b10385648c84d2f57592c7b5aa"
+    },
+    {
+      "path": "/play/canopy-defense/index.html",
+      "sha1": "bc8cd43524f9be6903827e17e6ac0d907144a2a0"
+    },
+    {
+      "path": "/play/canopy-defense/preview/index.html",
+      "sha1": "f9ccfeebf6e405524519961f5a6739d96e219c55"
+    },
+    {
+      "path": "/play/canopy-defense/gateway.js",
+      "sha1": "b9a486cdead61eb2d0fa891c2a2accb35392fe53"
+    }
+  ],
+  "removedPublicSourceFiles": [
+    "/play/canopy-defense/src/aiming.js",
+    "/play/canopy-defense/src/app.js",
+    "/play/canopy-defense/src/art.js",
+    "/play/canopy-defense/src/combat.js",
+    "/play/canopy-defense/src/engine.js",
+    "/play/canopy-defense/src/playtest.js"
+  ],
+  "candidateChecks": {
+    "origin": "https://6ae69fa9b3d4702fcc61177c--tree-token.netlify.app",
+    "gameGate": 200,
+    "modulesDenied": [
+      "app.js",
+      "engine.js",
+      "art.js",
+      "aiming.js",
+      "combat.js",
+      "playtest.js"
+    ],
+    "anonymousAPI": 401,
+    "signedNonholderDenied": 403,
+    "noNonholderSession": true,
+    "replayDenied": 401,
+    "crossOriginDenied": 403,
+    "publicPreview": 200,
+    "publicVideo": 200,
+    "lobbyCopy": 200,
+    "checkedAt": "2026-11-01T02:11:11.996Z"
+  },
+  "productionChecks": {
+    "origin": "https://tree-token.xyz",
+    "gameGate": 200,
+    "modulesDenied": [
+      "app.js",
+      "engine.js",
+      "art.js",
+      "aiming.js",
+      "combat.js",
+      "playtest.js"
+    ],
+    "anonymousAPI": 401,
+    "signedNonholderDenied": 403,
+    "noNonholderSession": true,
+    "replayDenied": 401,
+    "crossOriginDenied": 403,
+    "publicPreview": 200,
+    "publicVideo": 200,
+    "lobbyCopy": 200,
+    "checkedAt": "2026-11-01T02:11:58.759Z"
+  },
+  "validation": {
+    "tests": 124,
+    "passed": 123,
+    "skipped": 1,
+    "skipReason": "Windows launcher test on Linux",
+    "syntaxChecks": "passed",
+    "browser": {
+      "walletPicker": "passed",
+      "escapeGateRecovery": "passed",
+      "anonymousGameHidden": "passed"
+    },
+    "chainReadChecks": {
+      "officialNFTreeHoldings": "passed",
+      "standardKioskDynamicFieldOwnership": "passed",
+      "personalKioskScan": "passed"
+    },
+    "holderWalletSignIn": "pending real NFTree holder signature",
+    "mobileWalletRoundTrip": "pending real device"
+  },
+  "payments": "TREE funds and purchases remain simulated; no token transaction or approval is requested"
+}
