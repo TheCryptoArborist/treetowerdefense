@@ -555,7 +555,7 @@ function renderScout() {
     const card = document.createElement('div'); card.className = 'scout-pest';
     card.innerHTML = `<canvas width="96" height="92" aria-hidden="true"></canvas><strong>${group.name} <b>×${group.count}</b></strong><small>${group.trait}</small><small>${group.counter}</small>`;
     const c = card.querySelector('canvas').getContext('2d'), scale = group.kind === 'boss' ? .5 : .65; c.translate(48,59); c.scale(scale,scale);
-    paintPest(c,{kind:group.kind,x:0,y:0,id:0,...(game.isEvent?{theme:game.mode}:{}),hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0);
+    paintPest(c,{kind:group.kind,appearanceTier:group.appearanceTier,veteran:game.isVeteran,x:0,y:0,id:0,...(game.isEvent?{theme:game.mode}:{}),hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0,{healthBar:false,reducedMotion:true});
     $('scout-pests').append(card);
   }
   $('scout-tip').textContent = (scout.tip || (game.phase === 'victory' ? 'Replay to improve your stars, or explore the next unlocked chapter.' : `The ${game.bossName} is the final challenge. There are no further waves in this run.`));

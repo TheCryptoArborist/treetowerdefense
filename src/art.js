@@ -1,4 +1,4 @@
-import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor } from './engine.js';
+import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor, pestAppearance } from './engine.js';
 import { GUARDIAN_SCALE } from './aiming.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
@@ -424,7 +424,7 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
 }
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
-  const size=boss?1.85:e.kind==='beetle'?1.12:blight?1.06:moth?.92:.88;
+  const appearance=pestAppearance(e),size=appearance.scale;
   const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='harvest-canopy'?{termite:['#bb864b','#493323'],beetle:['#ad7639','#493526'],moth:['#d1aa68','#60492e'],blight:['#987048','#493528'],boss:['#b8914c','#433324']}[e.kind]:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
   const map=mapFor(e.mapId);
   const ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
@@ -460,12 +460,20 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     for(let i=0;i<3;i++)polygon(c,[[-10,-9+i*9],[-8,-14+i*9],[8,-14+i*9],[11,-8+i*9],[7,-2+i*9],[-7,-2+i*9]],shell,'#17241b',1.6);
     line(c,[[-7,-10],[-5,15]],'#c2c99a90',1.8);
   }
+  // Growth details reinforce each silhouette without implying new combat abilities.
+  if(appearance.tier>0 && e.kind==='beetle'){
+    for(const side of [-1,1])for(let i=0;i<appearance.tier+1;i++)polygon(c,[[side*9,-9+i*10],[side*(17+appearance.tier*2),-13+i*10],[side*15,-3+i*10],[side*10,2+i*10]],appearance.tier===2?'#b59766':'#879584','#1b271f',1.5);
+  }
+  if(appearance.tier>0 && moth)for(const side of [-1,1])line(c,[[side*27,-18],[side*31,-6],[side*24,5]],appearance.tier===2?'#d5b775':'#b9ad8d',2);
+  if(appearance.tier>0 && e.kind==='termite')for(let i=0;i<appearance.tier+1;i++)line(c,[[-8,-2+i*7],[0,1+i*7],[8,-2+i*7]],'#c8a274',2);
+  if(appearance.tier>0 && blight)for(const side of [-1,1])ellipse(c,side*13,4,2+appearance.tier,4,'#ae7c9a','#452d46',1);
+  if(e.veteran&&e.kind==='beetle')line(c,[[-7,-13],[0,-18],[7,-13]],'#e1c781',2.5);
   if(e.kind==='beetle'||boss){line(c,[[0,-10],[0,22]],'#111b16',2);line(c,[[-7,-7],[-9,12]],'#b1b79870',1.5);}
   ellipse(c,0,-10,boss?14:8,10,shell,'#1b241c',2);ellipse(c,0,-23,boss?10:7,7,colors[1],'#121a14',2);
   for(const side of [-1,1]){
     line(c,[[side*4,-26],[side*11,-33],[side*14,-39]],colors[0],1.5);
     polygon(c,[[side*3,-28],[side*10,-37],[side*6,-29],[side*2,-27]],'#cfb879','#1c2319',1);
-    ellipse(c,side*5,-25,1.4,1.8,blight?'#d699c6':'#d5aa5e');
+    ellipse(c,side*5,-25,1.4,1.8,appearance.enraged?'#ff694d':blight?'#d699c6':'#d5aa5e');
   }
   if(blight||boss)for(const side of [-1,1])for(let i=0;i<4;i++){
     polygon(c,[[side*8,-8+i*7],[side*(18+(boss?4:0)),-15+i*7],[side*11,1+i*7]],boss?'#877355':'#8a6588','#1e261e',1.5);
@@ -474,10 +482,14 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     for(const side of [-1,1])polygon(c,[[side*6,-20],[side*22,-38],[side*19,-53],[side*12,-43],[side*13,-35],[side*3,-24]],'#b5a073','#272d24',2);
     line(c,[[-6,-9],[-3,16]],'#ba965370',3);
   }
+  if(appearance.enraged){
+    for(const side of [-1,1])line(c,[[side*13,-35],[side*18,-42],[side*19,-49]],'#f1764f',3);
+    line(c,[[-8,-8],[-5,3],[-6,16]],'#f1764f',2.5);
+  }
   if(e.poisonUntil>time){ellipse(c,-18,0,4,4,'#ae79bf80');ellipse(c,18,-8,3,3,'#ae79bf80');}
   if(e.slowUntil>time){c.strokeStyle='#a3d2c0';c.lineWidth=2;c.beginPath();c.ellipse(0,4,25,30,0,0,TAU);c.stroke();}
   c.restore();
-  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-45*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-45*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
+  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-(boss?58:45)*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-(boss?58:45)*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
 }
 export function paintCombatEffects(c,feedback,reducedMotion=false) {
   for(const defeat of feedback.defeats){

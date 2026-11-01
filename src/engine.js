@@ -1,5 +1,18 @@
 export const WIDTH = 1000;
 export const HEIGHT = 720;
+// Visual stages follow existing wave/chapter health progression; never combat multipliers.
+export function pestTier(chapter, wave, mode='campaign') {
+  if(!Number.isInteger(wave)||wave<1)return 0;
+  const event=['harvest-canopy','haunted-grove'].includes(mode);
+  const progress=event?wave*2:wave+Math.max(0,Math.min(2,Number.isInteger(chapter)?chapter:0))*2;
+  return progress>=8?2:progress>=4?1:0;
+}
+export function pestAppearance(enemy) {
+  const tier=[0,1,2].includes(enemy.appearanceTier)?enemy.appearanceTier:0;
+  const boss=enemy.kind==='boss',moth=enemy.kind==='moth';
+  const base=boss?1.85:enemy.kind==='beetle'?1.12:enemy.kind==='blight'?1.06:moth?.92:.88;
+  return {tier,label:['Broodling','Hardened','Elite'][tier],scale:base*(boss?[1,1.1,1.22][tier]:moth?[1,1.06,1.14][tier]:[1,1.18,1.38][tier]),enraged:boss&&enemy.veteran===true&&(enemy.enraged===true||enemy.hp<enemy.maxHp*.5)};
+}
 export const PATH = [[-35, 215], [265, 215], [265, 145], [635, 145], [635, 355], [875, 355], [875, 545], [515, 545], [515, 430], [80, 430], [80, 640], [940, 640]];
 export const PADS = [[130, 135], [345, 225], [540, 230], [740, 170], [735, 305], [525, 350], [355, 350], [170, 510], [370, 510], [620, 620], [800, 625], [945, 445]];
 export const RARITIES = ['Common', 'Rare', 'Epic', 'Legendary', 'Mythic', '1-of-1'];
@@ -358,7 +371,7 @@ export class Game {
     const base = this.isEvent ? 45 + this.wave * 25 : (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
     let hp = kind === 'boss' ? this.isEvent ? (this.isHarvest?1450:1200) : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     if(this.isVeteran)hp*=2.4;
-    const e = { id: this.nextId++, kind, progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
+    const e = { id: this.nextId++, kind, appearanceTier:pestTier(this.chapter,this.wave,this.mode), progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
       slowUntil: 0, poisonUntil: 0, poisonDamage: 0, x: this.map.path[0][0], y: this.map.path[0][1] };
     if(this.isVeteran){e.veteran=true;e.speed*=1.18;}
     if(this.mapId!==LEGACY_MAP.id)e.mapId=this.mapId;
@@ -418,7 +431,7 @@ export class Game {
       if (e.hp <= 0) {
         this.runReport.sapEarned += e.kind === 'boss' ? 150 : 12;
         this.kills++; this.sap += e.kind === 'boss' ? 150 : 12; this.score += e.kind === 'boss' ? 1000 : 100;
-        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind, ...(this.mapId!==LEGACY_MAP.id?{mapId:this.mapId}:{}), ...(this.isEvent?{theme:e.theme,bossName:this.bossName}:{}) });
+        this.events.push({ type: 'kill', id: e.id, x: e.x, y: e.y, progress: e.progress, kind: e.kind, ...(e.appearanceTier!==undefined?{appearanceTier:e.appearanceTier}:{}), ...(e.veteran?{veteran:true,enraged:e.enraged===true}:{}), ...(this.mapId!==LEGACY_MAP.id?{mapId:this.mapId}:{}), ...(this.isEvent?{theme:e.theme,bossName:this.bossName}:{}) });
       }
     }
     this.enemies = this.enemies.filter(e => e.hp > 0);
