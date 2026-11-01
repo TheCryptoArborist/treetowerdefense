@@ -77,5 +77,26 @@
     "progress": "Connect / Verify / Defend reflects actual wallet and verified session",
     "verifiedState": "Forest unlocked; Enter the forest CTA",
     "signingAndPaymentRules": "unchanged"
+  },
+  "pendingSeasonalRelease": {
+    "name": "Harvest of the Canopy",
+    "sourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
+    "backendDeployId": "6ae779a7606d80668ff269ff",
+    "candidateDeployId": "6ae77a35cc69828cb3fe0ebd",
+    "state": "ready, unpublished; automatic approval review requires explicit routing publication approval",
+    "productionBaseline": "6ae76f2d9ef9b6c34dfba6e7",
+    "onlyChangedStaticFile": "/_redirects",
+    "functionsMatch": true,
+    "schedulesMatch": true,
+    "localTests": {
+      "passed": 172,
+      "skipped": 1,
+      "failed": 0
+    },
+    "workflowRuns": [
+      41332681774,
+      41332677720
+    ],
+    "ci": "success"
   }
 }

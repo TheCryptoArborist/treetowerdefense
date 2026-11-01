@@ -30,3 +30,9 @@ Validation covers admission, queue/scout agreement, seasonal boss feedback, inde
 ![Harvest battlefield rendered with the game engine art](harvest-battle-preview.jpg)
 
 This is a local render of the actual game art and seasonal layers, not a hosted gameplay screenshot.
+
+## Release status
+
+Source `6c8fee69718ef03b704a90df7c13e192af8d537d` passes 172 local tests with one Windows-only skip, syntax checks, and CI workflows `41332681774` / `41332677720`. Isolated backend deploy `6ae779a7606d80668ff269ff` succeeded. Routing candidate `6ae77a35cc69828cb3fe0ebd` is ready but unpublished. Its 41 function identities/configurations and five schedules match baseline `6ae76f2d9ef9b6c34dfba6e7`; the only changed static file is `_redirects`.
+
+Publication was blocked by automatic approval review because changing the canonical preview route affects the shared production site. The live site remains on the baseline. Explicit approval is needed for this routing-only production publication. No NFT/payment rule changes or production database mutations are included.
