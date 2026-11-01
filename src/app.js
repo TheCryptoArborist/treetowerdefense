@@ -470,7 +470,7 @@ function renderUI() {
     const stars = game.health >= 80 ? 3 : game.health >= 40 ? 2 : 1;
     $('outcome-stars').textContent = won && !game.isEvent ? '★'.repeat(stars) + '☆'.repeat(3-stars) : '';
     $('next-chapter').hidden = !won || game.isEvent || game.chapter >= CHAPTERS.length-1;
-    $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : 'Continue to restore health and keep your towers and current wave. Preview prices only.';
+    $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : `Continue to restore health and keep your towers and current wave. Costs 20,000 ${paidMode?'TREE plus SUI network gas':'preview TREE'}. A fresh run is included with NFTree access.`;
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
   }
 }
@@ -522,10 +522,10 @@ function renderGuide() {
   }
 }
 function renderScout() {
-  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}:${game.mode}`;
+  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}:${game.mode}:${game.difficulty}`;
   if (signature === scoutSignature) return;
   scoutSignature = signature;
-  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules, game.mode);
+  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules, game.mode, game.difficulty);
   $('scout-title').textContent = game.wave === game.waveCount ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave} · ${scout.title}`;
   $('scout-total').textContent = scout.total ? `${scout.total} PESTS${scout.wave === game.waveCount ? ' · BOSS WAVE' : ''}` : `${game.waveCount} OF ${game.waveCount}`;
   $('scout-pests').replaceChildren();
@@ -536,7 +536,7 @@ function renderScout() {
     paintPest(c,{kind:group.kind,x:0,y:0,id:0,...(game.isEvent?{theme:game.mode}:{}),hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0);
     $('scout-pests').append(card);
   }
-  $('scout-tip').textContent = (game.isVeteran?'VETERAN: reinforced beetle shells resist ordinary hits; Watchtower, Cypress and poison counter them. Bosses move 30% faster below half health. ':'')+(scout.tip || (game.phase === 'victory' ? 'Replay to improve your stars, or explore the next unlocked chapter.' : `The ${game.bossName} is the final challenge. There are no further waves in this run.`));
+  $('scout-tip').textContent = (scout.tip || (game.phase === 'victory' ? 'Replay to improve your stars, or explore the next unlocked chapter.' : `The ${game.bossName} is the final challenge. There are no further waves in this run.`));
 }
 
 // Local sprite artwork and procedural scenery; no remote art or font downloads.

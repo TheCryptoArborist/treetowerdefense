@@ -18,7 +18,7 @@ export class CombatFeedback {
       } else if (event.type === 'boss-arrival') {
         this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} HAS ARRIVED`, 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
       } else if (event.type === 'wave-start') {
-        const briefing = scoutWave(event.chapter ?? 0, event.wave, event.enemyRules ?? 1,event.mode);
+        const briefing = scoutWave(event.chapter ?? 0, event.wave, event.enemyRules ?? 1,event.mode,event.difficulty);
         const final=event.wave===(event.waveCount??10);
         this.announce(final ? `FINAL WAVE · ${event.mode==='harvest-canopy'?'HOLLOW HARVESTER':event.mode==='haunted-grove'?'HOLLOW KING':'BLIGHT KING'} INCOMING` : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, final ? 'danger' : 'normal', 4);
       } else if (event.type === 'wave-clear' && event.wave < (event.waveCount??10)) {

@@ -309,6 +309,7 @@ export class Game {
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
     this.queue = this.isEvent ? eventLineup(this.wave,this.mode) : waveLineup(this.chapter, this.wave);
     this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter, enemyRules: this.enemyRules });
+    if(this.isVeteran)this.events.at(-1).difficulty='veteran';
     if(this.isEvent)Object.assign(this.events.at(-1),{mode:this.mode,waveCount:5});
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
     if(this.isEvent)this.message=this.wave===5?`Final wave. The ${this.bossName} approaches!`:`${this.runName} wave ${this.wave}: protect the forest reserves.`;
