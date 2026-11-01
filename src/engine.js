@@ -257,6 +257,13 @@ export class Game {
     this.message = `${TOWERS[tower.type].name} at site ${tower.pad + 1}: target ${TARGET_MODES[mode].name.toLowerCase()}.`;
     return true;
   }
+  applyPurchasedGrowth(levels) {
+    if(!levels||typeof levels!=='object')return false;
+    for(const type of Object.keys(TOWERS)){const level=levels[type]??1;if(!Number.isInteger(level)||level<1||level>3)return false;}
+    for(const type of Object.keys(TOWERS))this.forest.levels[type]=levels[type]??1;
+    for(const tower of this.towers)tower.level=this.forest.levels[tower.type];
+    return true;
+  }
   upgradeCost(tower) { return tower.level === 1 ? 5000 : 10000; }
   spend(cost) {
     if (!this.access || !Number.isInteger(cost) || cost < 0 || this.tree < cost) return false;
@@ -311,18 +318,32 @@ export class Game {
     return false;
   }
   supply(kind) {
+    if(!this.canUseSupply(kind))return false;
+    if(!this.spend(PRICES[kind])){this.message='Not enough preview TREE.';return false;}
+    return this.applyPurchasedSupply(kind);
+  }
+  canUseSupply(kind) {
+    if(!this.access)return false;
     if (!['build', 'running', 'paused'].includes(this.phase) || !Object.hasOwn(PRICES, kind) || kind === 'continue') return false;
     if (kind === 'shield' && this.shield >= 50) { this.message = 'Root shield is already full.'; return false; }
     if (kind === 'storm' && (!this.enemies.length || this.phase !== 'running')) { this.message = 'Use Leaf Storm when pests are on the path.'; return false; }
     if (kind === 'fertilizer' && this.boostUntil > this.time) { this.message = 'Fertilizer is already active.'; return false; }
-    if (!this.spend(PRICES[kind])) { this.message = 'Not enough preview TREE.'; return false; }
+    return true;
+  }
+  // Client mirrors only; payment authority is the server ledger, never this method.
+  applyPurchasedSupply(kind) {
+    if(!this.canUseSupply(kind))return false;
     if (kind === 'shield') { this.shield = 50; this.message = 'Root shield: 50 extra protection.'; }
     if (kind === 'fertilizer') { this.boostUntil = this.time + 20; this.message = 'Fertilizer: +50% damage for 20 battle seconds.'; }
     if (kind === 'storm') { this.enemies.forEach(e => this.strike(e, 180, 'storm')); this.resolveKills(); this.events.push({ type: 'storm' }); this.message = 'Leaf Storm unleashed.'; }
     return true;
   }
   continueRun() {
-    if (this.phase !== 'defeat' || !this.spend(PRICES.continue)) return false;
+    if(this.phase!=='defeat'||!this.spend(PRICES.continue))return false;
+    return this.applyPurchasedContinue();
+  }
+  applyPurchasedContinue() {
+    if(!this.access||this.phase!=='defeat')return false;
     this.health = 100; this.shield = 0; this.phase = 'running';
     this.runReport.continues++;
     this.message = 'Tree of Life restored. Your towers and current wave remain.';

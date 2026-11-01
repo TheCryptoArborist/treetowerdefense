@@ -1,3 +1,4 @@
+import {createPayments} from './payments.mjs';
 import {createDAppKit} from '@mysten/dapp-kit-core';
 import {SuiGrpcClient} from '@mysten/sui/grpc';
 import '@mysten/dapp-kit-core/web';
@@ -6,6 +7,7 @@ const dialog=document.getElementById('access-dialog'),status=document.getElement
 document.querySelector('mysten-dapp-kit-connect-button').instance=kit;
 let principal=null,address=null,busy=false,revision=0,loaded=false,startedWallet=null;
 const listeners=new Set();
+window.canopyPayments=createPayments({kit,account:()=>principal});
 const notify=()=>listeners.forEach(fn=>fn(principal));
 const show=()=>{if(!dialog.open)dialog.showModal();};
 const lock=text=>{principal=null;enter.hidden=true;shell.hidden=true;status.textContent=text;notify();show();};

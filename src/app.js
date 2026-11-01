@@ -3,12 +3,18 @@ import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
 import { CombatFeedback, bossStatus } from './combat.js';
+import {applyEntitlement} from './paid.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 
 const $ = id => document.getElementById(id);
 const holder=window.canopyAccess?.account;
 if(!holder)throw Error('Verified NFTree access is required');
-const STORAGE_KEY = 'canopy-defense-wallet-v1:'+holder.address;
+const payments=window.canopyPayments;
+const initialPayments=await payments.status();
+const paidMode=initialPayments.enabled===true;
+const STORAGE_KEY = (paidMode?'canopy-defense-paid-v1:':'canopy-defense-wallet-v1:')+holder.address;
+let paidRunId=null,appliedPayments=new Set(),checkoutBusy=false,paidInvoice=null;
+let paidReview=null;
 let game = new Game();
 const feedback = new CombatFeedback();
 const aiming = new GuardianAiming();
@@ -16,19 +22,24 @@ let storageAvailable = true;
 let saved = null;
 try {
   saved = localStorage.getItem(STORAGE_KEY);
-  if(!saved && !localStorage.getItem('canopy-defense-preview-migrated-to')){
+  if(!paidMode && !saved && !localStorage.getItem('canopy-defense-preview-migrated-to')){
     const legacy=localStorage.getItem('canopy-defense-preview-v1');
     if(legacy && Game.restore(JSON.parse(legacy))){saved=legacy;localStorage.setItem(STORAGE_KEY,legacy);localStorage.setItem('canopy-defense-preview-migrated-to',holder.address);}
   }
 } catch { storageAvailable = false; }
 try {
   if (saved) {
-    const restored = Game.restore(JSON.parse(saved));
+    const parsed=JSON.parse(saved);
+    if(paidMode){paidRunId=parsed.runId;appliedPayments=new Set(Array.isArray(parsed.applied)?parsed.applied:[]);}
+    const restored = Game.restore(paidMode?parsed.game:parsed);
     if (restored) game = restored;
     else game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.';
   }
 } catch { game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.'; }
+if(paidMode&&!saved){try{const legacy=localStorage.getItem('canopy-defense-wallet-v1:'+holder.address);if(legacy){const restored=Game.restore(JSON.parse(legacy));if(restored)game=restored;}}catch{}}
 game.access=false;game.allowPreview(holder.rarity);
+if(paidMode){if(!paidRunId)paidRunId=(await payments.newRun()).id;game.applyPurchasedGrowth(initialPayments.growth);game.tree=Number((await payments.balance())/1000000n);}
+
 window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;}else{game.allowPreview(account.rarity);}renderUI();});
 let selectedType = 'pine';
 let selectedTower = null;
@@ -74,7 +85,7 @@ $('guide-action').addEventListener('click', () => {
 
 function save() {
   if (!storageAvailable) return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(game.snapshot())); $('save-status').textContent = 'Preview saved on this device'; }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(paidMode?{game:game.snapshot(),runId:paidRunId,applied:[...appliedPayments]}:game.snapshot())); $('save-status').textContent = 'Preview saved on this device'; }
   catch { storageAvailable = false; $('save-status').textContent = 'Save unavailable · keep this tab open'; }
 }
 for (const [i, type] of Object.keys(TOWERS).entries()) {
@@ -134,12 +145,14 @@ $('preview-button').addEventListener('click', () => { if(game.phase==='running')
 $('help-button').addEventListener('click', () => { if (game.phase === 'running') game.pause(); helpDialog.showModal(); renderUI(); });
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
+  if(paidMode)return reviewPaidPurchase(kind,towerId);
   if (purchaseDialog.open) return;
   pendingPurchase = new PurchaseReview(game, kind, towerId);
   if (!pendingPurchase.details().available) { game.message = pendingPurchase.details().reason; pendingPurchase = null; renderUI(); return; }
   renderPurchase(); purchaseDialog.showModal();
 }
 function renderPurchase() {
+  if(paidMode){renderPaidPurchase();return;}
   if (!pendingPurchase) return;
   const quote = pendingPurchase.details();
   if (quote.title) $('purchase-title').textContent = quote.title;
@@ -152,25 +165,108 @@ function renderPurchase() {
   $('confirm-purchase').disabled = !quote.available;
 }
 $('cancel-purchase').addEventListener('click', () => purchaseDialog.close());
-purchaseDialog.addEventListener('close', () => { pendingPurchase = null; renderUI(); });
+purchaseDialog.addEventListener('cancel',event=>{if(checkoutBusy)event.preventDefault();});
+purchaseDialog.addEventListener('close', () => { if(checkoutBusy){purchaseDialog.showModal();return;}pendingPurchase = null;if(!checkoutBusy){paidReview=null;paidInvoice=null;}renderUI(); });
 $('confirm-purchase').addEventListener('click', () => {
+  if(paidMode){confirmPaidPurchase();return;}
   if (!pendingPurchase || !purchaseDialog.open) return;
   if (pendingPurchase.confirm()) { purchaseDialog.close(); save(); renderUI(); }
   else renderPurchase();
 });
-function newRun() {
+function checkoutError(error){$('purchase-error').hidden=false;$('purchase-error').textContent=error.message||'Check purchase history before retrying payment.';game.message=$('purchase-error').textContent;renderUI();}
+function renderPaidPurchase(){
+ if(!paidReview)return;
+ $('purchase-title').textContent=paidReview.title;$('purchase-description').textContent=paidReview.description;
+ $('purchase-cost').textContent=paidInvoice?Number(BigInt(paidInvoice.amount)/1000000n).toLocaleString():'Loading…';
+ $('purchase-balance').textContent=game.tree.toLocaleString();$('purchase-after').textContent=paidInvoice?Math.max(0,game.tree-Number(BigInt(paidInvoice.amount)/1000000n)).toLocaleString():'—';
+ $('confirm-purchase').disabled=checkoutBusy||!paidInvoice||paidInvoice.status!=='quoted';$('cancel-purchase').disabled=checkoutBusy;
+}
+async function reviewPaidPurchase(kind,towerId){
+ if(purchaseDialog.open||checkoutBusy)return;
+ if(!storageAvailable){game.message='Enable browser storage before using paid run purchases.';renderUI();return;}
+ const review=new PurchaseReview(game,kind,towerId);const details=review.details();if(!details.available){game.message=details.reason;renderUI();return;}
+ paidReview={kind,towerId,...details};paidInvoice=null;$('purchase-error').hidden=true;purchaseDialog.showModal();renderPaidPurchase();checkoutBusy=true;
+ try{save();const tower=game.towers.find(t=>t.id===towerId);paidInvoice=await payments.quote(kind==='upgrade'?{product:'growth',species:tower.type}:{product:kind,runId:paidRunId});if(paidInvoice.status!=='quoted')throw Error('A recorded payment already exists. Use Purchase history to recover it.');}
+ catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();}
+}
+async function applyPaidItem(item){
+ if(item.wallet!==holder.address)throw Error('Wrong wallet entitlement');
+ if(item.product.startsWith('growth:')){const status=await payments.status();game.applyPurchasedGrowth(status.growth);appliedPayments.add(item.id);}
+ else{
+  if(item.run_id!==paidRunId)throw Error('This item belongs to an earlier run. Its payment is recorded in history.');
+  if(!appliedPayments.has(item.id)){
+   const eligible=item.product==='continue'?game.phase==='defeat':game.canUseSupply(item.product);
+   if(!eligible)throw Error('Purchase recorded. Recover it when this run can use the item.');
+   await payments.consume(item.id,paidRunId);
+   if(!applyEntitlement(game,item,{wallet:holder.address,runId:paidRunId,applied:appliedPayments}))throw Error('Purchase recorded. Recover it from history when eligible.');
+  }
+ }
+ save();inspectorSignature=null;game.tree=Number((await payments.balance())/1000000n);renderUI();
+}
+async function confirmPaidPurchase(){
+ if(checkoutBusy||!paidInvoice||paidInvoice.status!=='quoted')return;checkoutBusy=true;renderPaidPurchase();
+ try{const item=await payments.pay(paidInvoice);await applyPaidItem(item);checkoutBusy=false;purchaseDialog.close();paidReview=null;paidInvoice=null;}
+ catch(error){checkoutError(error);}finally{checkoutBusy=false;renderPaidPurchase();await renderPaymentHistory();}
+}
+async function recoverPaidPurchase(id,resume=false){
+ if(checkoutBusy)return;checkoutBusy=true;
+ try{const item=await (resume?payments.resume(id):payments.recover(id));await applyPaidItem(item);game.message='Recorded purchase recovered.';}
+ catch(error){game.message=error.message;}
+ finally{checkoutBusy=false;renderUI();await renderPaymentHistory();}
+}
+async function renderPaymentHistory(){
+ if(!paidMode)return;
+ const list=$('payment-history-list');
+ try{
+  const status=await payments.status();list.replaceChildren();
+  for(const row of status.invoices.slice(0,20)){
+   const item=document.createElement('div');item.className='payment-history-row';
+   const text=document.createElement('p');text.textContent=`${row.product}${row.species?' · '+row.species:''} · ${row.status}${row.runId&&row.runId!==paidRunId?' · earlier run':''}`;item.append(text);
+   const button=(label,action)=>{const b=document.createElement('button');b.className='secondary';b.textContent=label;b.disabled=checkoutBusy;b.onclick=action;item.append(b);};
+   if(row.status==='bound'){
+    button('Check payment',()=>recoverPaidPurchase(row.id));
+    button('Submit recorded payment',()=>{if(confirm('Submit the exact transaction you already signed? This reuses the same transaction and cannot create a second payment.'))recoverPaidPurchase(row.id,true);});
+    button('Resolve failed transaction',async()=>{try{await payments.reconcile(row.id);game.message='Finalized failed transaction resolved. You can create a fresh checkout.';}catch(error){game.message=error.message;}renderUI();await renderPaymentHistory();});
+   }
+   if(row.status==='paid'&&!appliedPayments.has(status.entitlements.find(e=>e.invoice_id===row.id)?.id))button('Recover purchase',()=>recoverPaidPurchase(row.id));
+   if(row.status==='quoted')button('Cancel unpaid quote',async()=>{try{await payments.cancel(row.id);}catch(error){game.message=error.message;}await renderPaymentHistory();});
+   list.append(item);
+  }
+  if(!status.invoices.length)list.textContent='No TREE purchases yet.';
+ }catch(error){list.textContent=error.message;}
+}
+if(paidMode){
+ document.querySelector('.banner-detail').textContent='Wallet TREE checkout · Separate SUI gas · New runs included';
+ document.querySelector('#purchase-dialog .eyebrow').textContent='TREE WALLET PURCHASE';
+ document.querySelector('#purchase-dialog dt').textContent='Cost · TREE';
+ $('confirm-purchase').textContent='Pay with wallet';
+ $('purchase-notice').textContent='This transfers real TREE to the recipient shown above. SUI network gas is separate. Battle waits during checkout. If interrupted, check purchase history before paying again.';
+ $('purchase-recipient').hidden=false;$('purchase-recipient').textContent='TREE recipient: 0x6f1020c2fd6c91129f7cb5e0d651295e87f7245f96b7d090715c89b38197e77f';
+ $('tree-value').parentElement.querySelector('.mini-tag').textContent='WALLET';
+ $('payment-history').hidden=false;$('refresh-payment-history').onclick=renderPaymentHistory;
+ $('reset-button').textContent='Fresh battle';
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ while(walker.nextNode()){const node=walker.currentNode;node.textContent=node.textContent.replace(/preview TREE/g,'TREE').replace(/PREVIEW TREE/g,'WALLET TREE').replace(/TREE balances and prices are simulated\./g,'TREE purchases use your wallet.').replace(/TREE supplies, growth and continues use simulated funds\./g,'TREE supplies, growth and continues use your wallet.');}
+ renderPaymentHistory();
+}
+
+async function newRun() {
+  if(checkoutBusy)return false;
   if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent species growth and chapter progress are kept.')) return false;
+  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   game.newRun(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
 }
-$('guided-run-button').addEventListener('click', () => {
-  if (!newRun()) return;
+$('guided-run-button').addEventListener('click', async() => {
+  if (!await newRun()) return;
   game.chooseChapter(0);save();
   guideStatus = 'active'; showGuideCompletion = false; saveGuide(); helpDialog.close(); renderUI();
 });
-$('new-run-button').addEventListener('click', newRun);
-$('outcome-new-run').addEventListener('click', newRun);
-$('reset-button').addEventListener('click', () => {
+$('new-run-button').addEventListener('click', ()=>newRun().catch(error=>{game.message=error.message;renderUI();}));
+$('outcome-new-run').addEventListener('click', ()=>newRun().catch(error=>{game.message=error.message;renderUI();}));
+$('reset-button').addEventListener('click', async() => {
+  if(checkoutBusy)return;
+  if(paidMode){if(!confirm('Start a fresh battle? Paid species growth stays in your wallet account; this run and its run-specific purchases are abandoned.'))return;paidRunId=(await payments.newRun()).id;appliedPayments=new Set();game=new Game();game.allowPreview(holder.rarity);game.applyPurchasedGrowth((await payments.status()).growth);game.tree=Number((await payments.balance())/1000000n);save();renderUI();return;}
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
   if(!window.canopyAccess.account)return;
   game = new Game();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
@@ -192,13 +288,17 @@ for (const [i, chapter] of CHAPTERS.entries()) {
   button.innerHTML = `<span class="chapter-number">${i + 1}</span><span><strong>${chapter.name}</strong><small>${chapter.subtitle}</small></span><span class="chapter-stars">☆☆☆</span>`;
   button.addEventListener('click', () => selectChapter(i)); $('chapter-trail').append(button);
 }
-function selectChapter(i) {
+async function selectChapter(i) {
+  if(checkoutBusy)return;
   if (game.wave > 0 && !['defeat', 'victory'].includes(game.phase) && !confirm('Travel to another chapter? Your current battle resets. Permanent growth and forest progress are kept.')) return;
+  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   if (game.chooseChapter(i)) { feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
 }
 $('next-chapter').addEventListener('click', () => selectChapter(game.chapter + 1));
-$('enter-event').addEventListener('click',()=>{
+$('enter-event').addEventListener('click',async()=>{
+  if(checkoutBusy)return;
   if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Haunted Grove? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return;
+  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   if(game.startEvent()){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();focusControl(canvas);}
 });
 for(const[id,type]of [['lantern-look','oak'],['web-look','watchtower']])$(id).addEventListener('change',event=>act(()=>game.setSeasonLook(type,event.target.checked)));
@@ -429,7 +529,7 @@ let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
   const visualClock = reducedMotion ? 0 : clock;
-  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || document.hidden;
+  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || document.hidden || checkoutBusy;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
   aiming.advance(effectDt);
@@ -493,7 +593,7 @@ function draw(clock, dt) {
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
-  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !document.hidden) game.step(dt);
+  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
   if (now - lastUI > 150) { renderUI(); lastUI = now; }
   if (now - lastSave > 2000 && game.access) { save(); lastSave = now; }

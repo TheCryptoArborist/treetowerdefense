@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {NetlifyDB} from '@netlify/database-dev';
 import pg from 'pg';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {transactionDatabase} from '../server/payments/database.mjs';
 import {createPurchaseLedger} from '../server/payments/ledger.mjs';
 import {TREE_TYPE} from '../server/payments/tree.mjs';
@@ -11,7 +11,7 @@ let pool;
 const testURL=process.env.CANOPY_TEST_DATABASE_URL;
 if(testURL){const url=new URL(testURL);if(!['localhost','127.0.0.1'].includes(url.hostname)||url.pathname!=='/canopy_ledger_test')throw Error('Use only the dedicated local test database');pool=new pg.Pool({connectionString:testURL});}
 const db=pool?transactionDatabase(pool):new NetlifyDB({logger:()=>{}});
-before(async()=>{if(pool){await pool.query(await readFile('netlify/database/migrations/20261101023000_canopy_payments.sql','utf8'));}else{await db.start();await db.applyMigrations('netlify/database/migrations');}});
+before(async()=>{if(pool){for(const file of (await readdir('netlify/database/migrations')).sort())await pool.query(await readFile('netlify/database/migrations/'+file,'utf8'));}else{await db.start();await db.applyMigrations('netlify/database/migrations');}});
 after(async()=>{if(pool)await pool.end();else await db.stop();});
 const DIGEST='77DCKTD1egsqSEYB1WaSurYNtnrdi85ArkjqP2hgQ4op';
 function setup(){
@@ -59,6 +59,11 @@ test('an entitlement insert failure rolls back receipt, invoice payment and spec
 test('supplies have one durable consumption tied to the authenticated run',async()=>{
  const s=setup(),q=await supply(s,'continue');await bind(s,q,'11111111111111111111111111111116');const e=await s.ledger.redeem('valid',q.id);
  await assert.rejects(s.ledger.consume('valid',e.id,'00000000-0000-0000-0000-000000000001'));
- assert.deepEqual(await s.ledger.consume('valid',e.id,q.runId),{applied:true,product:'continue'});assert.deepEqual(await s.ledger.consume('valid',e.id,q.runId),{applied:false,alreadyConsumed:true});
+ assert.deepEqual(await s.ledger.consume('valid',e.id,q.runId),{applied:true,product:'continue'});assert.deepEqual(await s.ledger.consume('valid',e.id,q.runId),{applied:false,alreadyConsumed:true,product:'continue',runId:q.runId});
  const restored=createPurchaseLedger(s.deps);assert.equal((await restored.history('valid'))[0].status,'paid');
+});
+test('recovery re-submits identical stored bytes and only finalized failure releases a reservation',async()=>{
+ const s=setup(),q=await supply(s);const digest='11111111111111111111111111111117';await s.ledger.bind('valid',q.id,{verified:true,digest,bytes:'same-bytes',signature:'same-signature'});
+ const calls=[];const ledger=createPurchaseLedger({...s.deps,executeSigned:async(signed,id)=>calls.push({signed,id}),readFailure:async()=>true});
+ await ledger.submit('valid',q.id);await ledger.submit('valid',q.id);assert.deepEqual(calls[0],calls[1]);assert.equal(calls[0].signed.bytes,'same-bytes');await ledger.reconcile('valid',q.id);assert.equal((await ledger.history('valid'))[0].status,'cancelled');await assert.rejects(ledger.redeem('valid',q.id));
 });

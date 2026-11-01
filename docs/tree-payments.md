@@ -1,12 +1,12 @@
 # TREE payments — staged verification foundation
 
-Status: server-side receipt validation, transactional purchase ledger and an additive database migration are implemented. The migration is tested locally; it has not been applied to the hosted database. No payment endpoint, wallet transfer handler or production deployment is included. NFTree access and the live simulated shop are unchanged. Passing receipt validation is **not** permission to apply an upgrade or continue.
+Status: server-side receipt validation, transactional purchase ledger and an additive database migration are implemented. The migration is tested locally; it has not been applied to the hosted database. Authenticated payment endpoints, signed wallet checkout and recovery are implemented for an isolated preview. Production checkout remains disabled. NFTree access and the live simulated shop are unchanged. Passing receipt validation is **not** permission to apply an upgrade or continue.
 
 ## Implemented
 
 `server/payments/tree.mjs` provides a server-owned catalog in integer TREE units and BigInt conversion using verified metadata decimals. Prices match the existing game: Shield 3,000; Fertilizer 5,000; Storm 8,000; Continue 20,000; Guardian growth 5,000; Ancient growth 10,000. Earned Sap remains for planting; NFTree access includes new runs and seasons.
 
-The Mainnet gRPC reader fetches metadata and checkpointed transaction data itself. Its receipt validator requires successful transaction and effects, the authenticated sender, a server-bound digest, the canonical TREE type, an exact matching payer debit and recipient credit, and a checkpoint timestamp inside the invoice window. It rejects expired invoices even when the invoice expires during the chain lookup. Browser receipt objects, editable TREE balances and pasted digests alone are not payment proof.
+The Mainnet gRPC reader fetches metadata and checkpointed transaction data itself. Its receipt validator requires successful transaction and effects, the authenticated sender, a server-bound digest, the canonical TREE type, an exact matching payer debit and recipient credit, and a checkpoint timestamp after invoice creation; delayed settlement requires an invoice bound before its expiry. It rejects expired invoices even when the invoice expires during the chain lookup. Browser receipt objects, editable TREE balances and pasted digests alone are not payment proof.
 
 A live read-only metadata check returned **6 decimals**. A 20,000 TREE continue therefore costs 20,000,000,000 base units. No wallet was asked to sign or execute a transfer.
 
@@ -22,7 +22,7 @@ A live read-only metadata check returned **6 decimals**. A 20,000 TREE continue 
 
 ## Validation
 
-Ten payment tests cover catalog precision, positive receipt fixtures, wrong network/digest/sender/token/recipient/amount, missing finality, expired invoices, third-party inflows, chain read failures and expiry during lookup. These prove the validation component; they do not establish durable replay prevention, a production entitlement backend or a successful live purchase.
+Payment tests cover catalog precision, positive receipt fixtures, wrong network/digest/sender/token/recipient/amount, missing finality, expired invoices, third-party inflows, chain read failures and expiry during lookup. These prove the validation component; they do not establish durable replay prevention, a production entitlement backend or a successful live purchase.
 
 Reference: current Mysten `sui-sdks/typescript.md`, `frontend-apps/transactions.md`, `accessing-data/grpc.md`, and installed @mysten/sui 2.38.0 docs and Core types. No existing arcade wallet integration was migrated.
 
@@ -41,3 +41,15 @@ Ten local ledger integration tests execute the migration against Netlify's embed
 Still needed: hosted migration verification, concrete signed-byte inspection and HTTP session adapter, wallet signing/execution and recovery UI, migration of the game from preview spending to authoritative entitlements, failed/stale transaction reconciliation, and actual holder/mobile acceptance. Real TREE payments remain disabled.
 
 CI confirmation for source commit `3a8da61f61d8c7de66a08746c3ba34c268f494fb`: workflow runs `41266645081` and `41266641142` completed successfully. Each passed Ubuntu and Windows validation plus the dedicated PostgreSQL 16 ledger job. The PostgreSQL jobs used disposable local test databases, not the hosted TREE database. This validates concurrent row-lock/unique-constraint behavior on independent PostgreSQL connections; it is still not a hosted purchase or wallet execution test.
+
+## Checkout integration
+
+The new checkout route is hosted inside `canopy-access` at `/play/canopy-defense/api/payments`. It defaults disabled; an authenticated holder can see enabled status. Enabled requests use the same hashed HttpOnly NFTree cookie, origin checks, limited JSON size and strict input fields. The runtime resolves wallet and ownership server-side and rechecks session validity during ledger operations. No payment endpoint trusts a browser wallet, price, receipt or digest.
+
+Wallet checkout selects transferable TREE coin objects, constructs only merge/split/transfer commands, and asks the existing dApp Kit wallet to sign without executing. The server verifies the signature and exact transfer, current coin types/ownership/references, recipient, amount and SUI gas budget. It derives the digest and stores the signed bytes plus binding time before execution. Signed data stays server-side, is never returned in history, and is not a private key. Submission and recovery use those exact bytes, so replaying a request cannot construct another charge. Address-balance-only TREE funds are not supported by this deliberately constrained transfer shape; the UI reports insufficient transferable coin objects without submitting.
+
+The account history offers verification, re-submission of the already signed transaction, recovery of paid items, cancellation of unsigned quotes and reconciliation of a finalized failed transaction. An unknown or unsubmitted transaction is not marked failed merely because indexing is delayed. A bound growth reservation is released only after a definitive checkpointed failure. A payment bound while its quote was valid can settle later; it retains its original server-owned price and its unique digest. Late unsigned quotes cannot bind. This extends the earlier time-window rule to prevent an accepted but delayed submission from losing the purchased item.
+
+Paid gameplay uses a separate local save envelope and server-issued run ID. Preview campaign progress can carry over, but preview TREE and preview growth never become paid credit: wallet balance and durable account growth overwrite them. The server consumes supplies/continues once per original run. Applying a verified item and its local applied-ID marker are saved in one browser write. Lost response recovery returns the same entitlement; fresh battles have new run IDs. Permanent species levels remain in the database. Battle progress is browser-local and editable, with no reward authority; clearing it or abandoning a run does not create refunds or transferable credit. Run-item cross-device battle restoration is not implemented.
+
+`CANOPY_CHECKOUT_ENABLED=true` is an explicit deployment-only opt-in. Production stays disabled until hosted migration, real holder wallet and mobile acceptance are verified. The new `netlify.toml` builds only isolated Canopy previews and blocks ordinary production builds, which would omit the existing arcade's unrelated files/functions. Preview files omit private sources and serve them only through the holder gate. A full production release must preserve all 40 unrelated functions and five schedules plus the existing Canopy gate.

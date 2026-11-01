@@ -20,9 +20,10 @@ export function verifyTreeReceipt(result,invoice,now=Date.now(),{allowLateRecove
  if(buyer===recipient)throw Error('Self-payment is not a purchase');
  if(!Number.isSafeInteger(invoice.createdAt)||!Number.isSafeInteger(invoice.expiresAt)||invoice.expiresAt<=invoice.createdAt||!Number.isSafeInteger(now)||(!allowLateRecovery&&now>=invoice.expiresAt))throw Error('Invoice expired or invalid');
  const expected=BigInt(treeAmount(invoice.product,invoice.decimals));
+ const boundRecovery=allowLateRecovery&&Number.isSafeInteger(invoice.boundAt)&&invoice.boundAt>=invoice.createdAt&&invoice.boundAt<invoice.expiresAt;
  const tx=result?.$kind==='Transaction'?result.Transaction:null;
  if(!tx||tx.digest!==invoice.expectedDigest||tx.status?.success!==true||tx.effects?.status?.success!==true)throw Error('Payment did not succeed');
- if(!/^\d+$/.test(tx.checkpoint??'')||!Number.isSafeInteger(tx.timestampMs)||tx.timestampMs<invoice.createdAt||tx.timestampMs>=invoice.expiresAt||tx.timestampMs>now)throw Error('Payment is not checkpointed in the invoice window');
+ if(!/^\d+$/.test(tx.checkpoint??'')||!Number.isSafeInteger(tx.timestampMs)||tx.timestampMs<invoice.createdAt||(tx.timestampMs>=invoice.expiresAt&&!boundRecovery)||tx.timestampMs>now)throw Error('Payment is not checkpointed in the invoice window');
  if(address(tx.transaction?.sender)!==buyer)throw Error('Payment wallet mismatch');
  if(!Array.isArray(tx.balanceChanges))throw Error('Payment changes unavailable');
  let credit=0n,debit=0n;
@@ -41,6 +42,11 @@ export function createTreeReader(client=new SuiGrpcClient({network:'mainnet',bas
  if(client.network!=='mainnet')throw Error('Mainnet required');
  return Object.freeze({
   async decimals(){const {coinMetadata}=await client.getCoinMetadata({coinType:TREE_TYPE,signal:AbortSignal.timeout(20000)});if(!coinMetadata||!Number.isInteger(coinMetadata.decimals)||coinMetadata.decimals<0||coinMetadata.decimals>18)throw Error('TREE metadata unavailable');return coinMetadata.decimals;},
+  async failed(invoice){
+   const result=await client.getTransaction({digest:invoice.expectedDigest,include:{effects:true,transaction:true},signal:AbortSignal.timeout(20000)});
+   const tx=result.$kind==='FailedTransaction'?result.FailedTransaction:null;
+   return !!(tx&&tx.digest===invoice.expectedDigest&&tx.status.success===false&&tx.effects.status.success===false&&/^\d+$/.test(tx.checkpoint??'')&&addressOf(tx.transaction?.sender)===invoice.wallet);
+  },
   async receipt(invoice,now=Date.now,options={}){
    // The caller supplies an invoice from its database, never a browser receipt payload.
    if(!isValidTransactionDigest(invoice?.expectedDigest))throw Error('Bound digest required');
