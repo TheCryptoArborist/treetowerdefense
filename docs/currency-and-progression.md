@@ -2,7 +2,7 @@
 
 ## Current rules
 
-The prepared individual collection build (not yet routed live) changes TREE growth to one numbered defender at a time. Legacy species purchases remain grandfathered on all twelve copies. See [Individual defenders](individual-defenders.md) for activation and migration; the regular game remains on its earlier release.
+The individual collection build, now live on the canonical checkout-test path, changes TREE growth to one numbered defender at a time. Legacy species purchases remain grandfathered on all twelve copies. See [Individual defenders](individual-defenders.md) for activation and migration; the regular game remains on its earlier release.
 
 | Resource | Obtained from | Spent on | Persistence |
 |---|---|---|---|

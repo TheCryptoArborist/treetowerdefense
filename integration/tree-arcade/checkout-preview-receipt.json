@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7a30025ff441e4157b208",
-    "upstreamDeployId": "6ae7a2a2570d2e1e129346be",
-    "backendSourceCommit": "730991a0796c5d31518ccb326c7fcbb57036381c",
-    "releaseSourceCommit": "730991a0796c5d31518ccb326c7fcbb57036381c",
+    "productionDeployId": "6ae7a7c8bc69ad8dd702d627",
+    "upstreamDeployId": "6ae7a6a082b2ed56640b44aa",
+    "backendSourceCommit": "f33ec9d9eba581ff6165b2969515e0f210468c7a",
+    "releaseSourceCommit": "f33ec9d9eba581ff6165b2969515e0f210468c7a",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -151,10 +151,10 @@
     "regularGamePromoted": false
   },
   "individualDefendersRelease": {
-    "state": "backend-deployed-migration-unverified",
+    "state": "live",
     "sourceCommit": "f33ec9d9eba581ff6165b2969515e0f210468c7a",
     "backendDeployId": "6ae7a6a082b2ed56640b44aa",
-    "canonicalRoutingChanged": false,
+    "canonicalRoutingChanged": true,
     "localTests": {
       "passed": 188,
       "skipped": 1,
@@ -166,9 +166,27 @@
       41349065029
     ],
     "migration": "20261101210000_individual_defenders",
-    "migrationVerifiedHosted": false,
-    "databaseStatusError": "The project must be linked with npx netlify link to target a remote branch.",
+    "migrationVerifiedHosted": true,
+    "databaseStatusError": null,
     "holderGameplayAcceptance": "pending",
-    "realPurchaseAcceptance": "pending"
+    "realPurchaseAcceptance": "pending",
+    "publishedDeployId": "6ae7a7c8bc69ad8dd702d627",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "collectionPickerInHtml": true,
+    "functionsPreservedExactly": 41,
+    "schedulesPreservedExactly": 5,
+    "existingStaticFilesPreserved": 284,
+    "onlyChangedStaticFile": "/_redirects",
+    "appliedMigrationVersions": [
+      20261101023000,
+      20261101040000,
+      20261101210000
+    ],
+    "pendingMigrations": [],
+    "regularGamePromoted": false
   }
 }
