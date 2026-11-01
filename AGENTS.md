@@ -16,7 +16,7 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Defenders follow the supplied NFTree references: jagged stump heads, dark eyes, expressive mouths, branch limbs, leaf sprouts, and wooden armor/shields. Keep the protected Tree of Life as a living canopy tree.
 - Art direction is a mature painterly fantasy forest: textured terrain, weathered stone, an ancient face-free Tree of Life, and threatening insect pests. Avoid the earlier pastel lawn, cartoon hedge borders, smiling tree, or human-faced pests. Keep the NFTree warrior reference identity.
 - Original expressive forest characters, visible tower growth, and a prominent battlefield follow the user's preferences for Plants vs. Zombies and Clash of Clans.
-- This is a development preview. Keep simulated NFTree ownership, TREE funds, and purchase prices prominently labeled. Do not silently present fake ownership or payments as mainnet behavior.
+- NFTree access must be verified on Sui Mainnet. TREE funds and purchase prices remain a development simulation and must be prominently labeled. Never present simulated payments as mainnet behavior.
 - Client-side saved state is editable. Never use it as production payment proof, ownership proof, or prize eligibility.
 - Preserve mobile touch access and keyboard alternatives. Use labeled build-site buttons as an alternative to canvas input.
 - Run `npm test` and `npm run check` for game changes; inspect relevant browser flows when possible.
@@ -32,3 +32,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Sunpetal new runs use meadow-v1; Moonlit new runs use marsh-v1; Emerald and Haunted Grove use crossing-v1. All geometry consumers must use the active map, including pointer input, pest/defeat orientation and restore. Saves without mapId keep crossing-v1 until a fresh run. Preserve queued enemies, growth, funds and seasonal progress. See docs/sunpetal-map.md.
 
 - Moonlit Marsh uses staggered causeways and all geometry consumers share marsh-v1. Both missing mapId and explicit crossing-v1 Moonlit saves keep the old route through reload/continue. Wet pockets and the relocated permanent pond must remain clear of route and build sites. See docs/moonlit-map.md.
+
+- v0.17 canonical gameplay is NFTree-gated by the isolated canopy-access function. Never restore the simulated rarity/access picker. Public preview/video stay public. Preserve the 40 pre-existing functions and five schedules; only the new Canopy gate may be added/updated. Protected src modules must not be present in the public static inventory. Session/nonce proofs must never be read from localStorage or trusted as payment entitlements. See docs/nftree-access.md.

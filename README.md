@@ -6,13 +6,17 @@ A playable, mobile-friendly tower-defense prototype for the TREE Arcade.
 
 ## Status
 
-This repository contains the **development preview**, not a mainnet launch. NFTree ownership and TREE purchases are explicitly simulated. It connects no wallet, sends no transactions, transfers no tokens, and awards no money or token rewards. Preview ownership, balances, and scores are editable browser data.
+This repository contains the **development preview**, not a mainnet launch. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. TREE balances and purchases remain simulated; the game sends no transactions, transfers no tokens, and awards no money or token rewards. Saved gameplay remains editable browser data. See [NFTree access](docs/nftree-access.md).
 
 ## TREE Arcade home
 
 Canonical game path: https://tree-token.xyz/play/canopy-defense/ (publish only after release verification). Lobby and return links use https://tree-token.xyz/play/. The cabinet is labeled development preview; ownership and purchases remain simulated. See [Arcade integration](docs/arcade-integration.md).
 
-## Play locally
+## Current gated development workflow
+
+Use the canonical hosted game for wallet verification. Run `npm ci`, `npm run build:gate`, `npm test` and `npm run check` for local validation. The simple static localhost server below does not provide NFTree authentication; it cannot unlock the gated game. The public introduction/video remains at https://tree-token.xyz/play/canopy-defense/preview/.
+
+## Legacy static preview server
 
 Install Node.js 20 or later, open a terminal in this repository, and run:
 

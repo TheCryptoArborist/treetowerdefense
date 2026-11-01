@@ -1,6 +1,6 @@
 {
   "name": "canopy-defense",
-  "version": "0.16.1",
+  "version": "0.17.0",
   "private": true,
   "type": "module",
   "description": "NFTree tower defense gameplay prototype for the TREE Arcade",
@@ -9,7 +9,19 @@
     "preview": "node tools/preview.mjs",
     "test": "node --test tests/*.test.mjs",
     "balance": "node tools/balance-audit.mjs",
-    "check": "node --check src/engine.js && node --check src/app.js && node --check src/art.js && node --check src/playtest.js && node --check src/combat.js && node --check src/aiming.js && node --check tools/serve.mjs && node --check tools/preview.mjs && node --check tools/balance-audit.mjs && node --check tools/release-arcade.mjs"
+    "check": "node --check src/engine.js && node --check src/app.js && node --check src/art.js && node --check src/playtest.js && node --check src/combat.js && node --check src/aiming.js && node --check tools/serve.mjs && node --check tools/preview.mjs && node --check tools/balance-audit.mjs && node --check tools/release-arcade.mjs && node --check client/gateway.mjs && node --check server/access.mjs && node --check server/ownership.mjs",
+    "build:gate": "node tools/build-nftree-gate.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@mysten/dapp-kit-core": "1.6.41",
+    "@mysten/sui": "2.38.0",
+    "@netlify/blobs": "11.1.7"
+  },
+  "devDependencies": {
+    "@netlify/zip-it-and-ship-it": "16.6.0",
+    "esbuild": "0.28.2"
+  }
 }

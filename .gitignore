@@ -8,3 +8,7 @@ test-results/
 .netlify/
 dist/
 .openai/hosting.json
+
+# Rebuilt from pinned sources for the gated deployment
+gateway.js
+server/runtime-source.json

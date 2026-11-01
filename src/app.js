@@ -6,7 +6,9 @@ import { CombatFeedback, bossStatus } from './combat.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 
 const $ = id => document.getElementById(id);
-const STORAGE_KEY = 'canopy-defense-preview-v1';
+const holder=window.canopyAccess?.account;
+if(!holder)throw Error('Verified NFTree access is required');
+const STORAGE_KEY = 'canopy-defense-wallet-v1:'+holder.address;
 let game = new Game();
 const feedback = new CombatFeedback();
 const aiming = new GuardianAiming();
@@ -14,6 +16,10 @@ let storageAvailable = true;
 let saved = null;
 try {
   saved = localStorage.getItem(STORAGE_KEY);
+  if(!saved && !localStorage.getItem('canopy-defense-preview-migrated-to')){
+    const legacy=localStorage.getItem('canopy-defense-preview-v1');
+    if(legacy && Game.restore(JSON.parse(legacy))){saved=legacy;localStorage.setItem(STORAGE_KEY,legacy);localStorage.setItem('canopy-defense-preview-migrated-to',holder.address);}
+  }
 } catch { storageAvailable = false; }
 try {
   if (saved) {
@@ -22,6 +28,8 @@ try {
     else game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.';
   }
 } catch { game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.'; }
+game.access=false;game.allowPreview(holder.rarity);
+window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;}else{game.allowPreview(account.rarity);}renderUI();});
 let selectedType = 'pine';
 let selectedTower = null;
 let hoveredPad = null;
@@ -40,11 +48,11 @@ const GUIDE_KEY = 'canopy-defense-guide-v1';
 let guideStatus = saved && (game.wave > 0 || game.towers.length || game.forestRank) ? 'dismissed' : 'active';
 let guideSignature = '', scoutSignature = '', showGuideCompletion = false, pendingPurchase = null;
 try {
-  const preference = localStorage.getItem(GUIDE_KEY);
+  const preference = localStorage.getItem(GUIDE_KEY+':'+holder.address);
   if (['active','dismissed','complete'].includes(preference)) guideStatus = preference;
 } catch { /* The guide works for this session even when storage is unavailable. */ }
 function saveGuide() {
-  try { localStorage.setItem(GUIDE_KEY, guideStatus); } catch { /* Session-only preference. */ }
+  try { localStorage.setItem(GUIDE_KEY+':'+holder.address, guideStatus); } catch { /* Session-only preference. */ }
 }
 function closeGuide() { guideStatus = 'dismissed'; showGuideCompletion = false; saveGuide(); renderUI(); }
 $('skip-guide').addEventListener('click', closeGuide);
@@ -121,8 +129,8 @@ function act(action) { action(); save(); renderUI(); }
 $('wave-button').addEventListener('click', () => act(() => game.startWave()));
 $('pause-button').addEventListener('click', () => act(() => game.pause()));
 document.querySelectorAll('[data-supply]').forEach(button => button.addEventListener('click', () => reviewPurchase(button.dataset.supply)));
-$('preview-button').addEventListener('click', () => { $('rarity-select').selectedIndex = game.rarity; if (game.phase === 'running') game.pause(); accessDialog.showModal(); renderUI(); });
-$('enter-preview').addEventListener('click', () => { game.allowPreview($('rarity-select').selectedIndex); accessDialog.close(); save(); renderUI(); });
+$('preview-button').addEventListener('click', () => { if(game.phase==='running')game.pause();window.canopyAccess.open();renderUI(); });
+
 $('help-button').addEventListener('click', () => { if (game.phase === 'running') game.pause(); helpDialog.showModal(); renderUI(); });
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
@@ -164,7 +172,8 @@ $('new-run-button').addEventListener('click', newRun);
 $('outcome-new-run').addEventListener('click', newRun);
 $('reset-button').addEventListener('click', () => {
   if (!confirm('Reset all preview progress, rarity choices, and simulated TREE?')) return;
-  game = new Game(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
+  if(!window.canopyAccess.account)return;
+  game = new Game();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
   if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
