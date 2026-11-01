@@ -8,3 +8,5 @@
   node_bundler = "esbuild"
 [context.production]
   command = "node tools/refuse-production.mjs"
+[[plugins]]
+  package = "./tools/netlify-canopy-package"
