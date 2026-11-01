@@ -149,5 +149,26 @@
     "holderGameplayAcceptance": "pending",
     "phoneAcceptance": "pending",
     "regularGamePromoted": false
+  },
+  "individualDefendersRelease": {
+    "state": "backend-deployed-migration-unverified",
+    "sourceCommit": "f33ec9d9eba581ff6165b2969515e0f210468c7a",
+    "backendDeployId": "6ae7a6a082b2ed56640b44aa",
+    "canonicalRoutingChanged": false,
+    "localTests": {
+      "passed": 188,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41349069836,
+      41349065029
+    ],
+    "migration": "20261101210000_individual_defenders",
+    "migrationVerifiedHosted": false,
+    "databaseStatusError": "The project must be linked with npx netlify link to target a remote branch.",
+    "holderGameplayAcceptance": "pending",
+    "realPurchaseAcceptance": "pending"
   }
 }

@@ -20,4 +20,12 @@ The new paid mode is opt-in with `CANOPY_INDIVIDUAL_DEFENDERS=true` on the isola
 
 Local integration tests cover individual invoices, independent prices, duplicate redemption, late legacy recovery, atomic rollback, invalid slots, client replacement from server state, migrated copies, cross-run persistence, save validation and chapter/season travel. Actual wallet signing and holder UI acceptance remain unverified.
 
-Local validation: 188 passing tests, one Windows-only skip, zero failures; JavaScript syntax checks and `git diff --check` passed. The migration rehearsal starts from the old schema with paid species levels and confirms all twelve inherited copies without changing those old rows. Hosted activation is pending deployment.
+Local validation: 188 passing tests, one Windows-only skip, zero failures; JavaScript syntax checks and `git diff --check` passed. The migration rehearsal starts from the old schema with paid species levels and confirms all twelve inherited copies without changing those old rows. Backend deployment succeeded; hosted migration verification and canonical activation remain pending.
+
+## Release status
+
+Source `f33ec9d9eba581ff6165b2969515e0f210468c7a` deployed as isolated backend `6ae7a6a082b2ed56640b44aa` on site `tree-token`, branch `canopy-checkout-test`, with individual defenders enabled. Both GitHub validation runs passed (41349069836 and 41349065029).
+
+The documented read-only check `netlify database status --branch canopy-checkout-test --json` failed with: `The project must be linked with npx netlify link to target a remote branch.` No subsequent Netlify operations were attempted under the database skill failure rule. The hosted migration is unverified, and the canonical arcade route still points to the previous Veteran build. Do not describe individual purchases as available through the canonical arcade yet.
+
+Next deployment work: link this checkout to the existing site, verify the preview migration through the documented database status surface, then prepare/publish the preservation-checked routing update. Do not create another project, apply hosted SQL directly, change production data or replace unrelated functions. Actual holder UI and wallet-purchase acceptance remain pending.
