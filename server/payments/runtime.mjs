@@ -8,10 +8,10 @@ import {transactionDatabase} from './database.mjs';
 import {createPurchaseLedger} from './ledger.mjs';
 import {createPaymentHandler} from './http.mjs';
 const client=new SuiGrpcClient({network:'mainnet',baseUrl:'https://fullnode.mainnet.sui.io:443'});
-export function paymentRuntime(request,store,{enabled=process.env.CANOPY_CHECKOUT_ENABLED==='true',database}={}){
+export function paymentRuntime(request,store,{enabled=process.env.CANOPY_CHECKOUT_ENABLED==='true',database,cookieName='__Secure-canopy-session',path}={}){
  let checkedWallet=null;
  const authorize=async()=>{
-  const token=(request.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('__Secure-canopy-session='))?.split('=')[1];
+  const token=(request.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith(cookieName+'='))?.split('=')[1];
   const denied=status=>Object.assign(Error('NFTree session required'),{status});
   if(!/^[a-f0-9]{64}$/.test(token||''))throw denied(401);
   const key='session/'+createHash('sha256').update(token).digest('hex'),s=await store.get(key,{type:'json'});
@@ -22,5 +22,5 @@ export function paymentRuntime(request,store,{enabled=process.env.CANOPY_CHECKOU
  // Delay resolving DB credentials until an enabled, authenticated route actually needs them.
  let realLedger;
  const lazy=new Proxy({}, {get:(_,method)=>async(...args)=>{if(!realLedger){const reader=createTreeReader(client);realLedger=createPurchaseLedger({database:database??transactionDatabase(),authorize,readReceipt:reader.receipt,inspectSigned:createSignedInspector(client),decimals:reader.decimals,readFailure:reader.failed,executeSigned:async(signed,digest)=>{const r=await client.executeTransaction({transaction:fromBase64(signed.bytes),signatures:[signed.signature]});if(r.$kind==='FailedTransaction')throw Error('Payment failed on-chain');if(r.Transaction.digest!==digest)throw Error('Unexpected digest');await client.waitForTransaction({digest});}});}return realLedger[method](...args);}});
- return createPaymentHandler({authorize,ledger:lazy,enabled})(request);
+ return createPaymentHandler({authorize,ledger:lazy,enabled,path})(request);
 }

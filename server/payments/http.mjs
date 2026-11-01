@@ -1,10 +1,10 @@
 const PATH='/play/canopy-defense/api/payments';
 const H={'Cache-Control':'private, no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'};
 const fields={run:[],quote:['product','species','runId'],bind:['id','signed'],redeem:['id'],consume:['id','runId'],cancel:['id'],submit:['id'],reconcile:['id']};
-export function createPaymentHandler({authorize,ledger,enabled=false}){
+export function createPaymentHandler({authorize,ledger,enabled=false,path=PATH}){
  return async request=>{
   const reply=(data,status=200)=>Response.json(data,{status,headers:H});
-  if(new URL(request.url).pathname!==PATH)return reply({error:'Not found'},404);
+  if(new URL(request.url).pathname!==path)return reply({error:'Not found'},404);
   try{
    await authorize(request);
    if(request.method==='GET'){

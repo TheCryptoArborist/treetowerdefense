@@ -6,18 +6,18 @@ import {addressOf,nftreeOwnership} from './ownership.mjs';
 const PREFIX='/play/canopy-defense/',COOKIE='__Secure-canopy-session';
 export const messageFor=c=>['Canopy Defense NFTree access','Origin: '+c.origin,'Network: sui:mainnet','Wallet: '+c.address,'Nonce: '+c.nonce,'Expires: '+new Date(c.expiresAt).toISOString(),'Sign in only. No transaction, token transfer, or token approval.'].join('\n');
 const hash=t=>createHash('sha256').update(t).digest('hex');
-const cookie=(t,age)=>`${COOKIE}=${t}; Path=${PREFIX}; Max-Age=${age}; HttpOnly; Secure; SameSite=Strict`;
 const headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Vary':'Cookie'};
-export function createAccessHandler({store,ownership=nftreeOwnership,verify=verifyPersonalMessageSignature,sources={},now=Date.now,nonce=()=>randomBytes(32).toString('hex')}){
+export function createAccessHandler({store,prefix=PREFIX,cookieName=COOKIE,ownership=nftreeOwnership,verify=verifyPersonalMessageSignature,sources={},now=Date.now,nonce=()=>randomBytes(32).toString('hex')}){
+ const cookie=(t,age)=>`${cookieName}=${t}; Path=${prefix}; Max-Age=${age}; HttpOnly; Secure; SameSite=Strict`;
  const reply=(data,status=200,extra={})=>Response.json(data,{status,headers:{...headers,...extra}});
- const current=async req=>{const token=(req.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE+'='))?.slice(COOKIE.length+1);if(!/^[a-f0-9]{64}$/.test(token||''))return null;const key='session/'+hash(token),s=await store.get(key,{type:'json'});if(!s||s.expiresAt<=now()||s.origin!==new URL(req.url).origin)return null;return {...s,key};};
+ const current=async req=>{const token=(req.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith(cookieName+'='))?.slice(cookieName.length+1);if(!/^[a-f0-9]{64}$/.test(token||''))return null;const key='session/'+hash(token),s=await store.get(key,{type:'json'});if(!s||s.expiresAt<=now()||s.origin!==new URL(req.url).origin)return null;return {...s,key};};
  return async(req)=>{
   const url=new URL(req.url),origin=url.origin;
   try{
-   if(url.pathname.startsWith(PREFIX+'src/')){
-    if(req.method!=='GET')return reply({error:'Method not allowed'},405);const s=await current(req);if(!s)return reply({error:'NFTree sign-in required'},401);if(now()-s.verifiedAt>30000){const owned=await ownership(s.address);if(owned.count<1){await store.delete(s.key);return reply({error:'NFTree ownership is required'},403);}}const file=url.pathname.slice((PREFIX+'src/').length);if(!Object.hasOwn(sources,file))return reply({error:'Not found'},404);return new Response(sources[file],{headers:{...headers,'Content-Type':'text/javascript; charset=utf-8'}});
+   if(url.pathname.startsWith(prefix+'src/')){
+    if(req.method!=='GET')return reply({error:'Method not allowed'},405);const s=await current(req);if(!s)return reply({error:'NFTree sign-in required'},401);if(now()-s.verifiedAt>30000){const owned=await ownership(s.address);if(owned.count<1){await store.delete(s.key);return reply({error:'NFTree ownership is required'},403);}}const file=url.pathname.slice((prefix+'src/').length);if(!Object.hasOwn(sources,file))return reply({error:'Not found'},404);return new Response(sources[file],{headers:{...headers,'Content-Type':'text/javascript; charset=utf-8'}});
    }
-   if(url.pathname!==PREFIX+'api/access')return reply({error:'Not found'},404);
+   if(url.pathname!==prefix+'api/access')return reply({error:'Not found'},404);
    if(req.method==='GET'){
     const s=await current(req);if(!s)return reply({error:'NFTree sign-in required'},401);const owned=await ownership(s.address);
     if(owned.count<1){await store.delete(s.key);return reply({error:'NFTree ownership is required'},403,{'Set-Cookie':cookie('',0)});}
