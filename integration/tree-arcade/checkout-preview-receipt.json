@@ -41,5 +41,22 @@
     "Real NFTree-holder checkout and mobile wallet acceptance pending",
     "No real payment was executed by the agent"
   ],
-  "recoveryCleanupDeployed": true
+  "recoveryCleanupDeployed": true,
+  "canonicalRouting": {
+    "state": "source committed; not deployed",
+    "sourceCommit": "a58f825f454b551e93b6d91a7300c6c754751064",
+    "requiredPublicUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "failedDeployId": "6ae753f690349b4d48e7aa2f",
+    "site": "tree-token",
+    "branch": "canopy-checkout-test",
+    "error": "400: could not write function bundle to disk: read upload zip: zip: not a valid zip file",
+    "localDiagnostic": "CLI .netlify/functions/canopy-access.zip is invalid; separately built .netlify/canopy-functions/canopy-access.zip is valid",
+    "tests": {
+      "total": 163,
+      "passed": 162,
+      "skipped": 1,
+      "failed": 0
+    },
+    "productionRoutePublished": false
+  }
 }
