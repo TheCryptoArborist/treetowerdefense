@@ -422,6 +422,81 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
   }
   c.restore();
 }
+// Later broods have distinct anatomy at the same drawing scale: new heads,
+// hooked limbs, broken wing contours and layered chitin, not only larger bodies.
+function paintEvolvedPest(c,e,clock,appearance,colors) {
+  const elite=appearance.tier===2,boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight',beetle=e.kind==='beetle';
+  const ink='#10161a',bone=elite?'#bca98b':'#9e947b',edge=blight?'#ba859e':beetle?'#a6ae8b':'#bd9c73';
+  const dark=colors[1],primary=colors[0],eye=appearance.enraged?'#ff754c':blight?'#e0b1d3':elite?'#ed9766':'#dbb97d';
+  if(moth){
+    c.save();c.scale(1,.82+Math.abs(Math.sin(clock*13))*.18);
+    for(const side of [-1,1]){
+      const contour=elite?[[3,-16],[18,-27],[44,-41],[39,-23],[48,-17],[33,-4],[41,4],[25,8],[29,27],[15,18],[10,35],[4,16]]:[[3,-13],[18,-24],[39,-32],[34,-14],[39,-7],[25,3],[30,18],[15,12],[7,23],[3,10]];
+      polygon(c,contour.map(([x,y])=>[x*side,y]),dark,ink,2);
+      polygon(c,[[side*7,-10],[side*33,-26],[side*24,-8],[side*18,0],[side*23,11],[side*9,7]],primary,edge,1);
+      line(c,[[side*9,-6],[side*29,-20],[side*20,-4],[side*29,0]],bone,1.2);
+      ellipse(c,side*23,-13,elite?6:4,5,ink,edge,1.3);ellipse(c,side*23,-13,2.1,3,eye);
+      if(elite){line(c,[[side*11,5],[side*15,13],[side*12,23]],'#b48669',2);}
+    }c.restore();
+  }
+  for(const side of [-1,1])for(let i=0;i<3;i++){
+    const y=-10+i*13,march=Math.sin(clock*14+e.id+i)*2*side,reach=(beetle||boss?31:27)+(elite?4:0);
+    polygon(c,[[side*8,y-3],[side*20,y-9],[side*reach,y-4+march],[side*(reach-3),y+9+march],[side*(reach-8),y+15+march],[side*(reach-6),y+3+march],[side*17,y-1],[side*9,y+3]],dark,ink,1.8);
+    line(c,[[side*11,y-2],[side*20,y-6],[side*(reach-2),y-3+march]],primary,2);
+    polygon(c,[[side*(reach-3),y+8+march],[side*(reach+1),y+15+march],[side*(reach-8),y+17+march]],bone,ink,1);
+  }
+  if(beetle||boss){
+    // Broad shield abdomen and a pointed carapace replace the narrow ribbed oval.
+    ellipse(c,0,7,21,28,dark,ink,2.2);
+    for(const side of [-1,1]){
+      ellipse(c,side*9,6,10,24,primary,dark,1.8);
+      line(c,[[side*5,-10],[side*15,-5],[side*17,8],[side*11,24]],edge,1.1);
+      for(let i=0;i<(elite?3:2);i++)polygon(c,[[side*15,-3+i*10],[side*(elite?29:24),-12+i*10],[side*22,5+i*10],[side*15,10+i*10]],dark,bone,1.1);
+      line(c,[[side*5,-2],[side*13,4],[side*10,18]],'#d2cca460',1.4);
+    }
+    line(c,[[0,-7],[0,30]],ink,3);
+    if(elite)for(const side of [-1,1])for(let i=0;i<3;i++)ellipse(c,side*(9+i%2*3),-4+i*9,1.5,2,dark);
+  }else if(blight){
+    polygon(c,[[-9,-15],[-17,-2],[-12,17],[-3,31],[5,29],[13,18],[18,1],[10,-15]],dark,ink,2);
+    for(let i=0;i<4;i++)polygon(c,[[-10,-8+i*8],[0,-12+i*8],[12,-7+i*8],[8,1+i*8],[-5,4+i*8]],primary,'#503345',1.5);
+    for(const side of [-1,1])for(let i=0;i<(elite?4:2);i++)polygon(c,[[side*9,-6+i*9],[side*(elite?27:21),-19+i*9],[side*17,1+i*9]],'#a37c90',ink,1.5);
+    line(c,[[-3,-5],[3,2],[-2,10],[4,18]],'#dd9f9b',1.8);
+    for(const[x,y]of [[-13,0],[13,12],[-8,20]])ellipse(c,x,y,elite?4:2.5,4,'#a1ae75',ink,1);
+  }else if(moth){
+    polygon(c,[[-6,-15],[-8,2],[-3,23],[0,31],[4,19],[7,0],[5,-16]],dark,ink,1.8);
+    for(let i=0;i<4;i++)line(c,[[-4,1+i*5],[0,4+i*5],[4,1+i*5]],edge,1.5);
+  }else{
+    // Soldier termites gain a wedge abdomen, overlapping dorsal shields and a heavy head.
+    polygon(c,[[-8,-13],[-14,0],[-10,19],[-3,30],[4,29],[13,15],[14,-2],[8,-14]],dark,ink,2);
+    for(let i=0;i<4;i++)polygon(c,[[-10,-6+i*8],[0,-10+i*8],[11,-5+i*8],[7,3+i*8],[0,6+i*8],[-7,2+i*8]],primary,edge,1.3);
+    if(elite)for(const side of [-1,1])for(let i=0;i<3;i++)polygon(c,[[side*10,-1+i*9],[side*20,-7+i*9],[side*14,5+i*9]],bone,ink,1);
+  }
+  const shoulder=beetle||boss?20:elite?16:12,head=moth?7:beetle||boss?13:elite?13:10;
+  ellipse(c,0,-18,moth?7:shoulder,11,primary,ink,2);
+  if(beetle||boss||elite)for(const side of [-1,1])polygon(c,[[side*(shoulder-4),-23],[side*(shoulder+6),-30],[side*(shoulder+1),-15]],dark,edge,1);
+  ellipse(c,0,-34,head+1,10,dark,ink,1.8);
+  ellipse(c,0,-38,head-1,5,primary,null);
+  // Solid curved mandibles read as insect anatomy rather than a helmet frame.
+  for(const side of [-1,1]){
+    c.save();c.scale(side,1);c.beginPath();c.moveTo(head-3,-34);
+    c.bezierCurveTo(head+10,-38,head+14,-49,head+5,-56);
+    c.lineTo(head+6,-48);c.bezierCurveTo(head+6,-43,head+1,-40,head-3,-39);
+    c.closePath();c.fillStyle=bone;c.fill();c.strokeStyle=ink;c.lineWidth=1.5;c.stroke();c.restore();
+  }
+  ellipse(c,0,-30,3,4,ink,null);
+  for(const side of [-1,1]){
+    ellipse(c,side*(head-4),-37,2.5,1.6,eye,ink,.7);
+    line(c,[[side*7,-42],[side*11,-50],[side*(elite?22:17),-55]],primary,1.8);
+    if(elite)line(c,[[side*12,-50],[side*18,-48]],bone,1.4);
+  }
+  if(beetle||boss){
+    // A rhino horn becomes a forked crown at elite stage; the boss has extra outer tusks.
+    polygon(c,elite?[[-5,-40],[-10,-56],[-8,-65],[-2,-51],[0,-65],[3,-52],[10,-64],[9,-51],[4,-40]]:[[-4,-40],[-5,-53],[0,-61],[3,-49],[5,-40]],boss?bone:primary,ink,1.7);
+    if(boss)for(const side of [-1,1])polygon(c,[[side*14,-29],[side*28,-44],[side*27,-61],[side*20,-50],[side*22,-44],[side*10,-31]],primary,bone,1.5);
+  }
+  if(e.veteran&&beetle)line(c,[[-9,-21],[0,-25],[9,-21]],'#f2d390',2);
+}
+
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const appearance=pestAppearance(e),size=appearance.scale;
@@ -440,6 +515,8 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     c.strokeStyle='#b78dac';c.lineWidth=2;c.beginPath();c.ellipse(0,4,27,32,0,0,TAU);c.stroke();
     line(c,[[16,-35],[16,-27]],'#d6b2cb',2);line(c,[[12,-31],[20,-31]],'#d6b2cb',2);
   }
+  if(appearance.tier>0)paintEvolvedPest(c,e,clock,appearance,colors);
+  else {
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
     line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);
     line(c,[[side*9,i*8],[side*18,i*12+march*side]],colors[0],1.4);
@@ -482,6 +559,7 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     for(const side of [-1,1])polygon(c,[[side*6,-20],[side*22,-38],[side*19,-53],[side*12,-43],[side*13,-35],[side*3,-24]],'#b5a073','#272d24',2);
     line(c,[[-6,-9],[-3,16]],'#ba965370',3);
   }
+  }
   if(appearance.enraged){
     for(const side of [-1,1])line(c,[[side*13,-35],[side*18,-42],[side*19,-49]],'#f1764f',3);
     line(c,[[-8,-8],[-5,3],[-6,16]],'#f1764f',2.5);
@@ -489,7 +567,7 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   if(e.poisonUntil>time){ellipse(c,-18,0,4,4,'#ae79bf80');ellipse(c,18,-8,3,3,'#ae79bf80');}
   if(e.slowUntil>time){c.strokeStyle='#a3d2c0';c.lineWidth=2;c.beginPath();c.ellipse(0,4,25,30,0,0,TAU);c.stroke();}
   c.restore();
-  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-(boss?58:45)*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-(boss?58:45)*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
+  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,Math.max(7,e.y-(appearance.tier>0?70:boss?58:45)*size),40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,Math.max(7,e.y-(appearance.tier>0?70:boss?58:45)*size),40*size*Math.max(0,e.hp/e.maxHp),5);}
 }
 export function paintCombatEffects(c,feedback,reducedMotion=false) {
   for(const defeat of feedback.defeats){

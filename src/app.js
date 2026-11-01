@@ -1,4 +1,4 @@
-import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY } from './engine.js';
+import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance } from './engine.js';
 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
@@ -554,7 +554,7 @@ function renderScout() {
   for (const group of scout.groups) {
     const card = document.createElement('div'); card.className = 'scout-pest';
     card.innerHTML = `<canvas width="96" height="92" aria-hidden="true"></canvas><strong>${group.name} <b>×${group.count}</b></strong><small>${group.trait}</small><small>${group.counter}</small>`;
-    const c = card.querySelector('canvas').getContext('2d'), scale = group.kind === 'boss' ? .5 : .65; c.translate(48,59); c.scale(scale,scale);
+    const c = card.querySelector('canvas').getContext('2d'), scale = group.appearanceTier>0 ? .78/pestAppearance({kind:group.kind,appearanceTier:group.appearanceTier}).scale : group.kind === 'boss' ? .5 : .65; c.translate(48,62); c.scale(scale,scale);
     paintPest(c,{kind:group.kind,appearanceTier:group.appearanceTier,veteran:game.isVeteran,x:0,y:0,id:0,...(game.isEvent?{theme:game.mode}:{}),hp:100,maxHp:100,slowUntil:0,poisonUntil:0},0,0,{healthBar:false,reducedMotion:true});
     $('scout-pests').append(card);
   }
