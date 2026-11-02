@@ -1,4 +1,4 @@
-import { TOWERS, PRICES, GROWTH_NAMES, waveLineup, eventLineup, pestTier } from './engine.js';
+import { TOWERS, PRICES, GROWTH_NAMES, waveLineup, eventLineup, pestTier, MINI_BOSSES, miniBossFor } from './engine.js';
 
 const PEST_GUIDE = {
   termite: { name: 'Termites', trait: 'Steady march', counter: 'Pine gives reliable coverage; Oak hits clusters.' },
@@ -39,23 +39,26 @@ function pestDetails(kind, veteran) {
   if (kind === 'boss') return { ...info, trait: 'Enrages below half health · +30% speed', counter: 'The King accelerates below half health. Reserve Palm slows and overlapping damage for the final bends.' };
   return info;
 }
-export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', difficulty = 'standard') {
+export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', difficulty = 'standard', encounters=enemyRules===1?1:0) {
   const harvest=mode==='harvest-canopy',event = harvest||mode==='haunted-grove';
   const veteran = difficulty === 'veteran' && !event;
-  const lineup = event ? eventLineup(wave,mode) : waveLineup(chapter, wave);
+  const lineup = event ? eventLineup(wave,mode) : waveLineup(chapter, wave, encounters);
   const groups = Object.entries(PEST_GUIDE).flatMap(([kind, info]) => {
     const count = lineup.filter(pest => pest === kind).length;
     const legacy = enemyRules === 0 && ['moth','blight'].includes(kind);
     let details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : pestDetails(kind, veteran);
     if(harvest)details={...details,name:{termite:'Leaf borers',beetle:'Bark beetles',moth:'Autumn moths',blight:'Harvest blight',boss:'Hollow Harvester'}[kind]};
     else if(event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
+    const miniBoss=kind==='boss'?miniBossFor(chapter,wave,mode,encounters):null;
+    if(miniBoss)details={...MINI_BOSSES[miniBoss],trait:MINI_BOSSES[miniBoss].trait+(veteran?' · Enrages below half health':''),miniBoss};
     const appearanceTier=pestTier(chapter,wave,mode);
     return count ? [{ kind, count, ...details, appearanceTier, trait:enemyRules===0?details.trait:`${['Broodling','Hardened','Elite'][appearanceTier]} · ${details.trait}` }] : [];
   });
   const eventBriefings=[['Lantern watch','Dusk termites and two moths test the entrance. Start with Pine and Oak, then reinforce a later bend.'],['Hollow armor','Four armored beetles approach. The earned Watchtower ignores their armor; sustained fire also works.'],['Dusk swarm','Dense termites and six dashing moths approach. Oak splash and Palm slows help cover the rush.'],['Webbed escort','Blight regenerates between hits. Mushroom poison suppresses recovery; keep several bends covered.'],['Hollow King','The Hollow King follows twenty escorts. Spread damage and slows along the route. Finish with 80 health for Lantern Oak; use three defender types for the web-carved Watchtower.']];
   const harvestBriefings=[['Seed watch','Leaf borers and two armored bark beetles approach. Start with Pine and Oak.'],['Bark armor','Five beetles test your sustained damage. Watchtower armor-piercing bolts help break the escort.'],['Autumn flight','Seven dashing moths surge between beetles. Use Palm slows and overlapping coverage.'],['Blighted harvest','Five blight pests regenerate between hits. Mushroom poison suppresses recovery.'],['Hollow Harvester','The Harvester follows twenty escorts. Spread damage along the route. Finish at 80 health for Copperleaf Oak, use three defender types for Harvest banners, or finish at 100 for the amber Tree of Life.']];
   const [title, tip] = lineup.length ? (harvest?harvestBriefings:event?eventBriefings:veteran?VETERAN_BRIEFINGS:WAVE_BRIEFINGS)[wave-1] : ['', ''];
-  return { wave, title, total: lineup.length, groups, tip: enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : veteran && lineup.length ? `VETERAN · 2.4× health · 18% faster movement · 30% shorter spawn gaps. ${tip}` : tip };
+  const mini=miniBossFor(chapter,wave,mode,encounters);
+  return { wave, title:mini?MINI_BOSSES[mini].name+' incoming':title, total: lineup.length, groups, tip: mini?MINI_BOSSES[mini].counter+' Defeat it for 150 Sap; a breach costs 25 health. '+(veteran?'':tip+' ')+(veteran?'VETERAN · 2.4× health · 18% faster; enrages below half health.':''):enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : veteran && lineup.length ? `VETERAN · 2.4× health · 18% faster movement · 30% shorter spawn gaps. ${tip}` : tip };
 }
 
 export function starterTip(game) {

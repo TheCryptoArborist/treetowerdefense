@@ -177,3 +177,6 @@ dialog.command-dialog{width:min(920px,calc(100% - 36px));max-width:920px;max-hei
 .command-header{position:sticky;top:0;z-index:5}.command-rail,.defender-dock{max-width:100%}
 .defender-dock{max-height:calc(100dvh - 24px);overflow-y:auto}.map-command>canvas{width:47px;height:47px;filter:drop-shadow(0 4px 5px #0008)}
 @media(max-width:760px){.defender-dock{max-height:none;overflow-y:visible}.map-command>canvas{width:32px;height:32px}}
+
+/* Clear upgrade action and its exact next-level gains. */
+.command-dialog #upgrade-button{display:block;width:100%;margin:14px 0;font-size:14px;min-height:50px}.upgrade-gains{padding:10px 12px;border:1px solid #3c7561;border-radius:8px;background:#102e29;color:#a3f3bc;font-weight:700}.shop-intro strong{display:block;color:#e7f7ed;line-height:1.8}

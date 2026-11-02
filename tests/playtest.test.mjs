@@ -10,11 +10,11 @@ test('every forecast matches the actual queue across all chapters and waves', ()
     const game = preview(); game.chapter = chapter; game.wave = wave - 1;
     const scout = scoutWave(chapter, wave);
     assert.equal(game.startWave(), true);
-    assert.equal(scout.total, 6 + wave * 2 + (wave === 10 ? 1 : 0));
+    assert.equal(scout.total, 6 + wave * 2 + ([4,7,10].includes(wave) ? 1 : 0));
     assert.equal(scout.total, game.queue.length);
     assert.deepEqual(Object.fromEntries(scout.groups.map(group => [group.kind, group.count])),
       Object.fromEntries([...new Set(game.queue)].sort().map(kind => [kind, game.queue.filter(pest => pest === kind).length])));
-    assert.equal(game.queue.filter(kind => kind === 'boss').length, wave === 10 ? 1 : 0);
+    assert.equal(game.queue.filter(kind => kind === 'boss').length, [4,7,10].includes(wave) ? 1 : 0);
   }
   assert.deepEqual(waveLineup(0, 1), Array(8).fill('termite'));
   assert.ok(!waveLineup(0, 3).includes('blight'));

@@ -509,6 +509,51 @@ export function pestHealthBounds(e) {
   const halfWidth=boss?20:16;
   return {x:e.x-halfWidth*size,y:Math.max(7,e.y+top-9),width:halfWidth*2*size,height:5};
 }
+// Distinct enemy silhouettes, painted in the same map space as ordinary pests.
+function paintMiniBoss(c,e,clock){
+  const shade=(a,b,d)=>{const g=c.createLinearGradient(-22,-20,24,20);g.addColorStop(0,a);g.addColorStop(.4,b);g.addColorStop(1,d);return g;};
+  const metal=shade('#1d3032','#6d7f76','#243637'),edge='#899890',ink='#101b1d',wood=shade('#2d271d','#80633d','#382d20');
+  const stride=Math.sin(clock*9+e.id)*3;
+  for(const side of [-1,1]){
+    polygon(c,[[side*5,10],[side*14,9],[side*15,29+side*stride],[side*5,32+side*stride]],e.miniBoss==='ironroot'?wood:metal,ink,2);
+    ellipse(c,side*11,31+side*stride,7,4,ink,edge,1);
+  }
+  if(e.miniBoss==='ironroot'){
+    polygon(c,[[-20,-16],[-10,-25],[14,-23],[23,-12],[18,16],[-18,18]],wood,ink,3);
+    for(const side of [-1,1]){
+      polygon(c,[[side*12,-15],[side*26,-24],[side*29,-4],[side*17,5]],metal,edge,1.5);
+      line(c,[[side*21,-4],[side*30,14],[side*23,23]],wood,7);
+      line(c,[[side*9,-30],[side*17,-44],[side*22,-39],[side*27,-49]],wood,4);
+    }
+    polygon(c,[[-12,-24],[-14,-40],[-6,-46],[0,-39],[10,-45],[14,-27]],metal,ink,2);
+    line(c,[[-9,-33],[-3,-31],[7,-34]],'#ff643d',3);
+    for(let i=0;i<3;i++)line(c,[[-12,-9+i*8],[13,-12+i*8]],edge,2);
+    ellipse(c,0,-1,6,7,'#df5c2d','#f2bd71',2);
+    for(let i=0;i<5;i++)line(c,[[-10+i*5,7],[-12+i*5,17]],'#241e1790',.8);
+    for(const side of [-1,1])for(const y of [-17,-7])ellipse(c,side*21,y,1.4,1.4,'#d4c7a7',ink,.5);
+  }else{
+    const suit=e.miniBoss==='sprayer'?shade('#4e4e28','#ac9950','#555433'):shade('#332d28','#806046','#352d26');
+    polygon(c,[[-15,-16],[13,-16],[18,16],[-16,16]],suit,ink,2);
+    ellipse(c,0,-28,12,15,suit,ink,2);
+    polygon(c,[[-9,-32],[9,-32],[8,-23],[-8,-23]],'#132e33',edge,1.5);
+    for(const side of [-1,1]){line(c,[[side*14,-11],[side*24,2],[side*18,13]],suit,7);line(c,[[side*16,-9],[side*23,2]],'#b4a48060',1);ellipse(c,side*18,13,4,4,ink,edge,1);}
+    line(c,[[0,-14],[0,13]],ink,1.5);line(c,[[-10,9],[11,9]],'#292e2a',3);
+    polygon(c,[[-7,-29],[3,-30],[-2,-25],[-8,-25]],'#91b9b23b');
+    for(let i=0;i<4;i++)line(c,[[-10,-9+i*5],[-6,-7+i*5]],'#c8b88b50',.7);
+    if(e.miniBoss==='saw'){
+      polygon(c,[[14,-3],[25,-5],[29,9],[16,14]],'#ae5b2d',ink,2);
+      polygon(c,[[23,-2],[25,-38],[30,-46],[34,-38],[32,1]],metal,'#c7c5ab',2);
+      for(let i=0;i<6;i++)line(c,[[26,-7-i*5],[22,-10-i*5]],'#d4c7a7',2);
+      line(c,[[-7,3],[7,3]],'#9b8d71',3);
+    }else{
+      for(const side of [-1,1])ellipse(c,side*9,-2,6,16,'#5c764a',edge,1.5);
+      ellipse(c,0,-20,5,5,ink,edge,2);
+      line(c,[[16,12],[28,3],[30,-20],[24,-25]],'#1d2b25',3);
+      line(c,[[23,-25],[34,-29]],edge,4);
+      for(let i=0;i<3;i++)ellipse(c,31+i*4,-35-i*6,3+i,4,'#a4bc5360');
+    }
+  }
+}
 export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const appearance=pestAppearance(e),size=appearance.scale;
@@ -525,7 +570,8 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     c.strokeStyle='#b78dac';c.lineWidth=2;c.beginPath();c.ellipse(0,4,27,32,0,0,TAU);c.stroke();
     line(c,[[16,-35],[16,-27]],'#d6b2cb',2);line(c,[[12,-31],[20,-31]],'#d6b2cb',2);
   }
-  if(appearance.tier>0)paintEvolvedPest(c,e,clock,appearance,colors);
+  if(e.miniBoss)paintMiniBoss(c,e,clock);
+  else if(appearance.tier>0)paintEvolvedPest(c,e,clock,appearance,colors);
   else {
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
     line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);

@@ -18,13 +18,13 @@ test('opening waves introduce armor, speed, and blight before the combined fifth
   }
 });
 
-test('threat health grows each wave while spawn gaps narrow after the armor introduction', () => {
+test('ordinary threat health grows while encounter spikes and shorter gaps add pressure', () => {
   for(let chapter=0;chapter<CHAPTERS.length;chapter++) {
     const game=preview();game.chapter=chapter;let lastHealth=0;
     for(let wave=1;wave<=10;wave++) {
       game.wave=wave;game.enemies=[];
       const health=waveLineup(chapter,wave).reduce((total,kind)=>total+game.spawn(kind).maxHp,0);
-      assert.ok(health>lastHealth);lastHealth=health;
+      if(![5,8].includes(wave))assert.ok(health>lastHealth);lastHealth=health;
       if(wave>=3)assert.ok(waveSpawnInterval(wave)<waveSpawnInterval(wave-1));
     }
   }
@@ -69,7 +69,7 @@ test('scouting and wave-start notices identify each threat and give stage-specif
   const titles=new Set();
   for(let wave=1;wave<=10;wave++) {
     const scout=scoutWave(0,wave);assert.ok(scout.title);assert.ok(scout.tip);titles.add(scout.title);
-    const feedback=new CombatFeedback();feedback.consume([{type:'wave-start',wave,chapter:0}]);
+    const feedback=new CombatFeedback();feedback.consume([{type:'wave-start',wave,chapter:0,encounters:1}]);
     assert.equal(feedback.notice.text,scout.tip);
     if(wave<10)assert.ok(feedback.notice.title.includes(scout.title.toUpperCase()));
   }
