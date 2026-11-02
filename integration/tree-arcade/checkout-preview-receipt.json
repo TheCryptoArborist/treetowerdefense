@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7e30d88b73d2c90234dc2",
-    "upstreamDeployId": "6ae7e28a1badcba7520e2ad5",
-    "backendSourceCommit": "3beef778beab620c5a217cd844b5709fbc772281",
-    "releaseSourceCommit": "3beef778beab620c5a217cd844b5709fbc772281",
+    "productionDeployId": "6ae7e9d9863d635b3263628c",
+    "upstreamDeployId": "6ae7e965a3c3524e8e014ef8",
+    "backendSourceCommit": "1ae385036af774829ce4ec2d1ea4c65f799dfabd",
+    "releaseSourceCommit": "1ae385036af774829ce4ec2d1ea4c65f799dfabd",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -465,6 +465,38 @@
     "mainnetFeatureBalanceChainEpochChecks": true,
     "holderPaymentAcceptance": "pending",
     "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "upgradeMiniBossRelease": {
+    "state": "live",
+    "sourceCommit": "1ae385036af774829ce4ec2d1ea4c65f799dfabd",
+    "backendDeployId": "6ae7e965a3c3524e8e014ef8",
+    "publishedDeployId": "6ae7e9d9863d635b3263628c",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 224,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41373414716,
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "miniBossWaves": [
+      4,
+      7
+    ],
+    "finalBossWave": 10,
+    "legacyRunsPreserved": true,
+    "freshRunRequired": true,
+    "upgradePricesTree": [
+      5000,
+      10000
+    ],
+    "paymentLogicChanged": false,
+    "authenticatedUIAcceptance": "pending holder desktop/mobile review",
     "regularGamePromoted": false
   }
 }

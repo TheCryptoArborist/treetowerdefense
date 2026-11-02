@@ -21,6 +21,10 @@ Each enemy has a distinct code-native silhouette in the actual game painter: tim
 ## Validation
 
 - 225 tests: 224 passed, 1 platform skip, no failures; npm run check and diff whitespace check pass.
-- New encounter tests exercise actual spawn/scout identity, standard/Veteran HP, named arrival, health display, save/reload, armor bypass, regeneration/poison, slows, once-only rewards, shield-aware breach damage, final boss invariants, legacy and seasonal compatibility.
+- New encounter tests exercise actual spawn/scout identity, standard/Veteran HP, named arrival, health display, save/reload, armor bypass, regeneration/poison, slows, once-only rewards, breach damage, final boss invariants, legacy and seasonal compatibility.
 - `docs/mini-boss-balance-results.json` records actual engine runs of the existing adapted mixed formation: standard level 1 clears all chapters at 100 health; Veteran level 3 clears at 100/100/46, with no consumables or paid upgrades during the trial. This proves that formation remains viable, not every possible formation.
 - `node tools/render-mini-bosses.mjs` renders actual painter artwork for inspection; no authenticated browser screenshot claimed. Authenticated desktop/mobile UI acceptance remains for the holder session.
+
+## Published preview
+
+Functional commit `1ae385036af774829ce4ec2d1ea4c65f799dfabd`; CI 41373414716 succeeded. Isolated backend `6ae7e965a3c3524e8e014ef8`; canonical routing release `6ae7e9d9863d635b3263628c`. Verified all 284 existing static entries, 41 function identities/configurations and five schedules preserved, with only the checkout rewrite changed. Canonical gate returns 200; anonymous access, payments and source each return 401. The regular older game is not promoted. Test at https://tree-token.xyz/play/canopy-defense/checkout-test/ .
