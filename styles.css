@@ -180,3 +180,11 @@ dialog.command-dialog{width:min(920px,calc(100% - 36px));max-width:920px;max-hei
 
 /* Clear upgrade action and its exact next-level gains. */
 .command-dialog #upgrade-button{display:block;width:100%;margin:14px 0;font-size:14px;min-height:50px}.upgrade-gains{padding:10px 12px;border:1px solid #3c7561;border-radius:8px;background:#102e29;color:#a3f3bc;font-weight:700}.shop-intro strong{display:block;color:#e7f7ed;line-height:1.8}
+
+/* Locked defenses explain their earned unlock directly beside the battlefield. */
+.defender-dock .tower-card.roster-locked{padding:9px 5px;gap:4px;opacity:1;background:#11242b;border-color:#506d65;justify-content:flex-start}
+.defender-dock .roster-locked .roster-progress{display:block;white-space:pre-line;font-size:10px;line-height:1.5;color:#d6e5df;margin-top:7px;overflow-wrap:anywhere}
+.defender-dock .roster-locked .roster-progress:before{content:'LOCKED';display:block;font-size:8px;letter-spacing:1px;font-weight:800;color:#ffd84b;margin-bottom:3px}
+.defender-dock .unlock-track:not([hidden]){display:block;width:100%;height:6px;accent-color:#7ef3a0;margin:7px 0 2px;border:0;border-radius:8px;overflow:hidden;background:#07141c}
+.unlock-track::-webkit-progress-bar{background:#07141c}.unlock-track::-webkit-progress-value{background:#7ef3a0}.unlock-track::-moz-progress-bar{background:#7ef3a0}
+@media(max-width:760px){.defender-dock .tower-cards{grid-template-columns:repeat(8,112px);align-items:stretch}.defender-dock .tower-card{min-height:112px}.defender-dock .roster-locked .roster-progress{font-size:10px}}

@@ -111,7 +111,7 @@ for (const [i, type] of Object.keys(TOWERS).entries()) {
   const d = TOWERS[type]; const button = document.createElement('button');
   button.className = 'tower-card'; button.dataset.tower = type;
   button.setAttribute('aria-label', `${d.name}: ${d.role}, ${d.cost} Sap. ${d.description}`);
-  button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small class="roster-role">${d.role}</small><b>${d.cost} SAP</b><span class="roster-progress"></span></span><kbd>${i + 1}</kbd>`;
+  button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small class="roster-role">${d.role}</small><b>${d.cost} SAP</b><span class="roster-progress"></span><progress class="unlock-track" max="1" value="0" hidden></progress></span><kbd>${i + 1}</kbd>`;
   button.addEventListener('click', () => selectDefender(type));
   shapeTree(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
   $('tower-cards').append(button);
@@ -486,7 +486,15 @@ function renderUI() {
     button.classList.toggle('active', selectedType === button.dataset.tower); button.setAttribute('aria-pressed', String(selectedType === button.dataset.tower)); const type = button.dataset.tower, status = game.unlockStatus(type);
     button.disabled = !active || !status.unlocked;
     button.classList.toggle('roster-locked', !status.unlocked);
-    button.querySelector('.roster-progress').textContent = status.unlocked ? (game.collection?`${game.availableDefenders(type).length}/12 available · individual levels`:`${GROWTH_NAMES[game.forest.levels[type]-1]} · unlocked`) : `${status.label} · ${status.current}/${status.goal}`;
+    const rule=UNLOCKS[type], chapterGoal=rule.kind==='chapter';
+    const unlockGoal=chapterGoal?10:status.goal;
+    // Chapter unlocks use standard campaign progress, never the active Veteran/event wave.
+    const unlockCurrent=chapterGoal?Math.min(game.forest.bestWaves[rule.chapter],10):status.current;
+    const requirement=chapterGoal?`Clear ${CHAPTERS[rule.chapter].name} (Level ${rule.chapter+1})`:status.label;
+    const unlockText=`${requirement}\n${rule.kind==='stars'?'Stars':'Waves'}: ${unlockCurrent} / ${chapterGoal?10:unlockGoal}`;
+    button.querySelector('.roster-progress').textContent = status.unlocked ? (game.collection?`${game.availableDefenders(type).length}/12 available · individual levels`:`${GROWTH_NAMES[game.forest.levels[type]-1]} · unlocked`) : unlockText;
+    const track=button.querySelector('.unlock-track');track.hidden=status.unlocked;track.max=chapterGoal?10:unlockGoal;track.value=unlockCurrent;track.setAttribute('aria-label',`${TOWERS[type].name} unlock progress: ${requirement}`);
+    button.title=status.unlocked?'':unlockText.replace('\n','. ');
     button.setAttribute('aria-label', `${TOWERS[type].name}: ${TOWERS[type].role}. ${status.unlocked ? `${TOWERS[type].cost} Sap. ${TOWERS[type].description}` : `Locked. ${status.label}. Progress ${status.current} of ${status.goal}.`}`);
   });
   renderRosterProgress();renderCommandCollections();
