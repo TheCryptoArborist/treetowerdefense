@@ -1,5 +1,7 @@
 # Signed TREE payment diagnostics
 
+Follow-up: reference b2927c4b-1ac0-4984-8fa0-07c73210d532 identified the gas-settings branch. See [address-balance-gas.md](address-balance-gas.md) for the supported-format correction and unchanged budget cap.
+
 Holder screenshot shows a failure at Recording signed payment with the current invoice still quoted. Netlify request `01M6CVCVR0PV83DP1W0PBEAAP6` returned HTTP 503 after roughly 3.6 seconds at 2026-11-02T00:43:52Z. The existing catch returned a generic checkout error and emitted no diagnostic logs, so the original exception cannot be reconstructed from that request's record. The underlying cause and successful holder payment remain unconfirmed.
 
 The signed inspector now categorizes format, invoice, gas owner/budget, command/input/result layout, amount/recipient, signature, Sui lookup and changed-coin failures. All existing rejection conditions remain; no transaction shape, gas bound, wallet ownership rule, recipient or amount restriction was relaxed. Cryptographic verification and coin reads still fail closed. Malformed signed bytes return a controlled format error.

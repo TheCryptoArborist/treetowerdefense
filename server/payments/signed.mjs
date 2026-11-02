@@ -7,6 +7,7 @@ import {TREE_TYPE,treeAmount} from './tree.mjs';
 import {TREE_PAYMENT_RECIPIENT} from './config.mjs';
 import {addressOf} from '../ownership.mjs';
 import {paymentError} from './errors.mjs';
+import {inspectGasSettings,verifyAddressBalanceGas} from './gas.mjs';
 const signatureClient=new SuiGraphQLClient({network:'mainnet',url:'https://graphql.mainnet.sui.io/graphql'});
 const index=a=>a?.$kind==='Input'?a.Input:-1;
 export function createSignedInspector(client){
@@ -15,8 +16,7 @@ export function createSignedInspector(client){
   if(typeof signed?.bytes!=='string'||signed.bytes.length>64000||!/^[A-Za-z0-9+/]+={0,2}$/.test(signed.bytes)||typeof signed.signature!=='string'||signed.signature.length>8000)throw paymentError('SIGNED_FORMAT');
   let bytes,tx,d;try{bytes=fromBase64(signed.bytes);tx=Transaction.from(bytes);d=tx.getData();}catch(error){throw paymentError('SIGNED_FORMAT',error);}
   if(addressOf(d.sender)!==invoice.wallet||invoice.recipient!==TREE_PAYMENT_RECIPIENT||invoice.network!=='mainnet'||invoice.amount!==treeAmount(invoice.product,invoice.decimals))throw paymentError('INVOICE_MISMATCH');
-  if(addressOf(d.gasData.owner)!==invoice.wallet)throw paymentError('GAS_OWNER');
-  if(!d.gasData.payment?.length||BigInt(d.gasData.budget??0)<=0n||BigInt(d.gasData.budget)>50000000n)throw paymentError('GAS_BUDGET');
+  const gasSettings=inspectGasSettings({...d,gasData:{...d.gasData,owner:addressOf(d.gasData.owner)}},invoice.wallet);
   const commands=d.commands;let merge=null,splitAt=0;
   if(commands[0]?.$kind==='MergeCoins'){merge=commands[0].MergeCoins;splitAt=1;}
   if(commands.length!==splitAt+2||commands[splitAt]?.$kind!=='SplitCoins'||commands.at(-1)?.$kind!=='TransferObjects')throw paymentError('TRANSFER_COMMANDS');
@@ -31,6 +31,7 @@ export function createSignedInspector(client){
   if(refs.some(r=>!r)||refs.length>100)throw paymentError('COIN_INPUTS');
   const gas=d.gasData.payment,all=[...refs,...gas];if(new Set(all.map(r=>r.objectId)).size!==all.length)throw paymentError('COIN_INPUTS');
   try{await verifyTransactionSignature(bytes,signed.signature,{address:invoice.wallet,client:signatureClient});}catch(error){throw paymentError(/Signature is not valid|Public key bytes do not match the provided address/i.test(error.message)?'SIGNATURE_INVALID':'SIGNATURE_LOOKUP',error);}
+  if(gasSettings.addressBalance)await verifyAddressBalanceGas(client,d,invoice.wallet,gasSettings.budget);
   let response;try{response=await client.getObjects({objectIds:all.map(r=>r.objectId),signal:AbortSignal.timeout(20000)});}catch(error){throw paymentError('COIN_LOOKUP',error);}
   if(response.objects.length!==all.length)throw paymentError('COIN_LOOKUP');
   for(let i=0;i<all.length;i++){
