@@ -15,3 +15,15 @@ const reasons=Object.freeze({
 });
 export function paymentError(code,cause){const spec=reasons[code];if(!spec)throw Error('Unknown payment error code');return Object.assign(new Error(spec[0],cause?{cause}:undefined),{paymentCode:code,paymentStatus:spec[1]});}
 export function publicPaymentError(error){const spec=reasons[error?.paymentCode];return spec?{code:error.paymentCode,error:spec[0],status:spec[1]}:null;}
+// Only file basename and numeric position are retained; never emit a raw stack.
+export function paymentDiagnostic(error){
+ const cause=error?.cause||error;
+ const allowed=new Set(['Error','TypeError','RangeError','SyntaxError','AggregateError']);
+ const out={errorType:allowed.has(cause?.name)?cause.name:'Error'};
+ const files=new Set(['http.mjs','signed.mjs','ledger.mjs','runtime.mjs','errors.mjs','canopy-access.mjs','canopy-access.js','index.mjs','index.js']);
+ for(const line of String(cause?.stack||'').split('\n').slice(1)){
+  const match=line.match(/(?:\/|\b)([A-Za-z0-9_-]+\.(?:mjs|js)):(\d+):(\d+)/);
+  if(match&&files.has(match[1])){out.source={file:match[1],line:Number(match[2]),column:Number(match[3])};break;}
+ }
+ return out;
+}

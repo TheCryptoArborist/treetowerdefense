@@ -1,5 +1,5 @@
 import {randomUUID} from 'node:crypto';
-import {publicPaymentError} from './errors.mjs';
+import {publicPaymentError,paymentDiagnostic} from './errors.mjs';
 const PATH='/play/canopy-defense/api/payments';
 const H={'Cache-Control':'private, no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'};
 const fields={run:[],quote:['product','species','runId','defenderSlot'],bind:['id','signed'],redeem:['id'],consume:['id','runId'],cancel:['id'],submit:['id'],reconcile:['id']};
@@ -33,7 +33,7 @@ export function createPaymentHandler({authorize,ledger,enabled=false,path=PATH,r
    if(b.action==='cancel')result=await ledger.cancel(request,b.id);
    return reply(result);
   }catch(error){if(error?.status===401||error?.status===403)return reply({error:'Verify your NFTree wallet again'},error.status);const known=publicPaymentError(error),reference=randomUUID();const code=known?.code||'CHECKOUT_'+action.toUpperCase()+'_FAILED';
-   const entry={event:'canopy-checkout-failure',action,code,reference,...(/^[0-9A-Z]{5}$/.test(error?.cause?.code||error?.code||'')?{databaseCode:error.cause?.code||error.code}:{})};
+   const entry={event:'canopy-checkout-failure',action,code,reference,...paymentDiagnostic(error),...(/^[0-9A-Z]{5}$/.test(error?.cause?.code||error?.code||'')?{databaseCode:error.cause?.code||error.code}:{})};
    try{report(entry);}catch{/* Diagnostics never change the payment result. */}
    return reply({error:(known?.error||'Checkout could not be completed. Check purchase history before retrying payment.')+' Reference: '+reference,code,reference},known?.status||503);}
  };

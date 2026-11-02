@@ -20,3 +20,9 @@ test('a logging failure cannot change a checkout rejection or release a pending 
  const h=createPaymentHandler({authorize:async()=>{},enabled:true,report:()=>{throw Error('logging offline');},ledger:{bind:async()=>{throw Error('bind unavailable');}}});
  const r=await h(request({action:'bind',id:'invoice',signed:{}}));assert.equal(r.status,503);assert.equal((await r.json()).code,'CHECKOUT_BIND_FAILED');
 });
+test('unexpected exceptions retain a safe application location without raw messages or stacks',async()=>{
+ const {paymentDiagnostic}=await import('../server/payments/errors.mjs');
+ const error=new TypeError('secret credentials');error.stack='TypeError: secret credentials\n at bind (file:///private/path/server/payments/ledger.mjs:52:9)\n at https://secret.example/token';
+ assert.deepEqual(paymentDiagnostic(error),{errorType:'TypeError',source:{file:'ledger.mjs',line:52,column:9}});
+ assert.doesNotMatch(JSON.stringify(paymentDiagnostic(error)),/secret|credentials|private|token/);
+});
