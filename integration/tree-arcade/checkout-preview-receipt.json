@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7d64b98da0c716654ff08",
-    "upstreamDeployId": "6ae7d5db54bc6a780d66b105",
-    "backendSourceCommit": "6edbebc099f852c2bddbb025d72100b1fd9d85b2",
-    "releaseSourceCommit": "6edbebc099f852c2bddbb025d72100b1fd9d85b2",
+    "productionDeployId": "6ae7db875e8e5ebd64d6fac6",
+    "upstreamDeployId": "6ae7db010b9acad0b34eaf5a",
+    "backendSourceCommit": "a1c40ef6b4e8974830d5c89adbc5bfe90d6a2cd8",
+    "releaseSourceCommit": "a1c40ef6b4e8974830d5c89adbc5bfe90d6a2cd8",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -388,6 +388,39 @@
     ],
     "holderVisualAcceptance": "pending",
     "humanBalanceAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "commandMenuRelease": {
+    "state": "live",
+    "sourceCommit": "a1c40ef6b4e8974830d5c89adbc5bfe90d6a2cd8",
+    "backendDeployId": "6ae7db010b9acad0b34eaf5a",
+    "publishedDeployId": "6ae7db875e8e5ebd64d6fac6",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 211,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41367968541,
+    "commandSections": [
+      "defenders",
+      "shop",
+      "harvest",
+      "guide",
+      "unlocks",
+      "scout"
+    ],
+    "canonicalGate": 200,
+    "stylesheet": 200,
+    "commandMarkupVerified": true,
+    "anonymousCommandModule": 401,
+    "anonymousGameSource": 401,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "walletTransactionInitiated": false,
     "regularGamePromoted": false
   }
 }
