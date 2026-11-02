@@ -1,5 +1,7 @@
 # Gameplay-first home and structure tuning
 
+Management update: the secondary disclosures and large defender grid described below have been replaced by map-side command buttons, a compact deployment dock and management windows. See [battlefield-command-menu.md](battlefield-command-menu.md). The six-level path and structure tuning remain.
+
 The verified home now presents a compact character-scene masthead, one six-level strip, unlock guidance, the run HUD and battlefield. Send wave / Pause controls are immediately above the canvas. The first-run guide, Harvest event, currency/tactics guide, structure gallery and ecosystem gallery follow gameplay; secondary collections use closed, keyboard-accessible native disclosures. The level strip scrolls horizontally on narrow screens instead of becoming a tall list.
 
 Levels 1–3 are Emerald Crossing, Sunpetal Meadow and Moonlit Marsh. Levels 4–6 are their existing Veteran variants, available after protecting all three standard forests. These are six existing map/difficulty combinations, not six new maps. Standard and Veteran stars remain separate. Level 3's completion button leads to level 4; the final Veteran level ends the path. Locked buttons explain the prerequisite. The unlock note identifies Palm/Cypress/Mushroom/Watchtower milestones in level 1, Cannon in level 2, Willow at four campaign stars, and Veteran at standard completion. No fake playable levels or unlock promises were added.
