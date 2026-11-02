@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7db875e8e5ebd64d6fac6",
-    "upstreamDeployId": "6ae7db010b9acad0b34eaf5a",
-    "backendSourceCommit": "a1c40ef6b4e8974830d5c89adbc5bfe90d6a2cd8",
-    "releaseSourceCommit": "a1c40ef6b4e8974830d5c89adbc5bfe90d6a2cd8",
+    "productionDeployId": "6ae7dfbd73c8a1d39280b805",
+    "upstreamDeployId": "6ae7df432b317c6321df68b0",
+    "backendSourceCommit": "3d5d7544e448d0d1d890f673a4d6a084dafdfa80",
+    "releaseSourceCommit": "3d5d7544e448d0d1d890f673a4d6a084dafdfa80",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -420,6 +420,27 @@
     "anonymousPayments": 401,
     "holderVisualAcceptance": "pending",
     "phoneAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "paymentDiagnosticsRelease": {
+    "state": "live",
+    "sourceCommit": "3d5d7544e448d0d1d890f673a4d6a084dafdfa80",
+    "backendDeployId": "6ae7df432b317c6321df68b0",
+    "publishedDeployId": "6ae7dfbd73c8a1d39280b805",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 216,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41369598975,
+    "originalFailureRequestId": "01M6CVCVR0PV83DP1W0PBEAAP6",
+    "originalFailureStatus": 503,
+    "originalCause": "unconfirmed; original request had no exception diagnostics",
+    "diagnosticOnly": true,
+    "holderPaymentAcceptance": "pending",
     "walletTransactionInitiated": false,
     "regularGamePromoted": false
   }
