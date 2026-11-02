@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7cf37915acf229383c5ea",
-    "upstreamDeployId": "6ae7cebf8dc9ef377f3fc837",
-    "backendSourceCommit": "bb69cd29d2aa302e430ddcb86ea3cd6641790a46",
-    "releaseSourceCommit": "bb69cd29d2aa302e430ddcb86ea3cd6641790a46",
+    "productionDeployId": "6ae7d64b98da0c716654ff08",
+    "upstreamDeployId": "6ae7d5db54bc6a780d66b105",
+    "backendSourceCommit": "6edbebc099f852c2bddbb025d72100b1fd9d85b2",
+    "releaseSourceCommit": "6edbebc099f852c2bddbb025d72100b1fd9d85b2",
     "existingStaticFilesPreserved": 284,
     "functionsPreservedExactly": 41,
     "schedulesPreservedExactly": 5,
@@ -352,6 +352,42 @@
     "anonymousPayments": 401,
     "holderWalletAcceptance": "pending",
     "originalInterruptionCause": "not established from screenshot",
+    "regularGamePromoted": false
+  },
+  "playFirstRelease": {
+    "state": "live",
+    "sourceCommit": "6edbebc099f852c2bddbb025d72100b1fd9d85b2",
+    "backendDeployId": "6ae7d5db54bc6a780d66b105",
+    "publishedDeployId": "6ae7d64b98da0c716654ff08",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 205,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41366009195,
+    "playableLevels": 6,
+    "newMaps": 0,
+    "halloweenArchiveRemoved": true,
+    "secondaryPanelsAfterGameplay": true,
+    "watchtower": {
+      "damage": 48,
+      "interval": 1.6,
+      "range": 245
+    },
+    "cannon": {
+      "damage": 66,
+      "interval": 2.1,
+      "splashMultiplier": 0.55,
+      "splashRadius": 80
+    },
+    "futureStructures": [
+      "Thorn Bastion",
+      "Root Obelisk"
+    ],
+    "holderVisualAcceptance": "pending",
+    "humanBalanceAcceptance": "pending",
     "regularGamePromoted": false
   }
 }
