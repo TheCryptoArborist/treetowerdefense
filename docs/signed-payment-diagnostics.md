@@ -1,0 +1,11 @@
+# Signed TREE payment diagnostics
+
+Holder screenshot shows a failure at Recording signed payment with the current invoice still quoted. Netlify request `01M6CVCVR0PV83DP1W0PBEAAP6` returned HTTP 503 after roughly 3.6 seconds at 2026-11-02T00:43:52Z. The existing catch returned a generic checkout error and emitted no diagnostic logs, so the original exception cannot be reconstructed from that request's record. The underlying cause and successful holder payment remain unconfirmed.
+
+The signed inspector now categorizes format, invoice, gas owner/budget, command/input/result layout, amount/recipient, signature, Sui lookup and changed-coin failures. All existing rejection conditions remain; no transaction shape, gas bound, wallet ownership rule, recipient or amount restriction was relaxed. Cryptographic verification and coin reads still fail closed. Malformed signed bytes return a controlled format error.
+
+The authenticated payment handler returns an allowlisted explanation, stable category code and random request reference. Unexpected errors remain generic but include that reference. Function diagnostics record only action, category, reference and a five-character database error code when available. No raw exception message, SQL, connection string, wallet, cookie, signed bytes, signature or stack is logged or exposed. Authorization failures keep their original 401/403 behavior.
+
+This is an observability and error-reporting release, not proof that the original wallet failure is fixed. After deployment the holder must cancel the currently unpaid quote through the existing atomic cancellation flow, then make one fresh attempt. Its new reason/reference can identify the exact rejection or correlate to redacted server diagnostics. Do not clear pending state locally, submit a second transaction automatically, bypass signature validation or discard a bound payment.
+
+Validation: 215 tests passed, one Windows-only skip; syntax and whitespace checks passed. New regressions cover gas owner/budget categories, changed inputs, Sui lookup failures, wrong signing address, redaction, correlation and logging failure isolation. No holder transaction was signed or submitted by the agent. Hosted release pending.
