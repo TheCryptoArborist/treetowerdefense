@@ -1,5 +1,7 @@
 # Polished Canopy home screen
 
+Layout update: see [play-first-home.md](play-first-home.md) for the compact gameplay-first menu and levels 1–6. The earlier tall hero and Veteran disclosure below are historical.
+
 Artwork correction: the two-character collage described below has been superseded by the unified Oak / Archer Watchtower forest scene. See [home-scene.md](home-scene.md) for the current asset, generation prompt and release. The other menu improvements below remain.
 
 Tree Hero stays in the opening artwork, paired with a full-resolution Ancient Oak cropped from the actual `oak-warriors.png` game atlas. `tools/render-home-guardian.mjs` uses the game's atlas bounds to reproduce `assets/brand/oak-home.png`; no substitute character or external image service is used.

@@ -6,7 +6,7 @@ export const VETERAN_PROFILES = {
   held: { label: 'Hold two Ancient defenders', placements: MIXED_PLACEMENTS.slice(0, 2) },
   pines: { label: 'Expand Ancient Pines', placements: MIXED_PLACEMENTS.map(([, pad]) => ['pine', pad]) },
   mixed: { label: 'Expand Ancient mixed formation', placements: MIXED_PLACEMENTS },
-  counters: { label: 'Expand Ancient piercing formation', placements: MIXED_PLACEMENTS.map(([type, pad]) => [[5, 7, 9].includes(pad) ? 'watchtower' : pad === 3 ? 'cannon' : type, pad]) }
+  counters: { label: 'Expand Ancient piercing formation', placements: MIXED_PLACEMENTS.map(([type, pad]) => [pad === 0 ? 'mushroom' : pad === 5 ? 'cypress' : [7, 9].includes(pad) ? 'watchtower' : pad === 3 ? 'cannon' : type, pad]) }
 };
 
 // Deterministic formations test counterplay, not human skill or live purchases.

@@ -5,6 +5,7 @@ import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.
 import { CombatFeedback, bossStatus } from './combat.js';
 import {applyEntitlement} from './paid.js';
 import {checkoutReviewState} from './checkout-review.js';
+import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel} from './levels.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 
 const $ = id => document.getElementById(id);
@@ -328,38 +329,30 @@ document.addEventListener('keydown', event => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
 window.addEventListener('pagehide', save);
 
-for (const [i, chapter] of CHAPTERS.entries()) {
-  const button = document.createElement('button'); button.className = 'chapter-button'; button.dataset.chapter = i;
-  button.innerHTML = `<span class="chapter-number">${i + 1}</span><span><strong>${chapter.name}</strong><small>${chapter.subtitle}</small></span><span class="chapter-stars">☆☆☆</span>`;
-  button.addEventListener('click', () => selectChapter(i)); $('chapter-trail').append(button);
+for(const level of CAMPAIGN_LEVELS){
+ const button=document.createElement('button');button.className='chapter-button';button.dataset.level=level.number;
+ button.innerHTML=`<span class="chapter-number">${level.number}</span><span><strong>${level.name}</strong><small>${level.difficulty==='veteran'?'VETERAN':'CAMPAIGN'}</small></span><span class="chapter-stars">☆☆☆</span>`;
+ button.addEventListener('click',()=>selectLevel(level.number));$('chapter-trail').append(button);
 }
-async function selectChapter(i) {
-  if(checkoutBusy)return;
-  if (game.wave > 0 && !['defeat', 'victory'].includes(game.phase) && !confirm('Travel to another chapter? Your current battle resets. Permanent growth and forest progress are kept.')) return;
+async function selectLevel(number){
+ const level=CAMPAIGN_LEVELS.find(l=>l.number===number);if(!level||checkoutBusy||!campaignLevelState(game,level).unlocked)return;
+ if(game.wave>0&&!['defeat','victory'].includes(game.phase)&&!confirm('Travel to level '+number+'? Your current battle resets. Permanent growth and forest progress are kept.'))return;
+ try{
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if (game.chooseChapter(i)) { feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI(); }
+  if(beginCampaignLevel(game,number)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);}
+ }catch(error){game.message=error.message;renderUI();}
 }
-$('next-chapter').addEventListener('click', () => selectChapter(game.chapter + 1));
+$('next-chapter').addEventListener('click',()=>selectLevel(game.chapter+2+(game.isVeteran?3:0)));
 $('enter-event').addEventListener('click',async()=>{
   if(checkoutBusy)return;
   if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Harvest of the Canopy? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return;
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   if(game.startEvent(HARVEST_CANOPY.id)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();focusControl(canvas);}
 });
-for(const[id,type]of [['lantern-look','oak'],['web-look','watchtower']])$(id).addEventListener('change',event=>act(()=>game.setSeasonLook(type,event.target.checked)));
 for(const[id,type]of [['copper-look','oak'],['harvest-tower-look','watchtower'],['amber-look','tree']])$(id).addEventListener('change',event=>act(()=>game.setHarvestLook(type,event.target.checked)));
-for(const[id,difficulty]of [['veteran-start','veteran'],['standard-start','standard']])$(id).addEventListener('click',async()=>{
- if(checkoutBusy||!game.access||difficulty==='veteran'&&!game.veteranUnlocked)return;
- if(!confirm('Start a fresh '+difficulty+' campaign? This replaces the current battle. Permanent growth, unlocks and seasonal cosmetics stay; current-run supplies do not carry over.'))return;
- if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
- if(game.startCampaign(difficulty)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();}
-});
 let seasonArtSignature='';
 function renderSeason(){
- $('veteran-start').disabled=!game.access||!game.veteranUnlocked;
- $('standard-start').disabled=!game.access;
- $('veteran-progress').textContent=game.veteranUnlocked?`${game.isVeteran?'VETERAN ACTIVE · ':''}${game.veteranStars.reduce((a,b)=>a+b,0)}/9 Veteran stars earned · no entry fee`:'Unlock Veteran by protecting all three standard chapters.';
-  const rewards=game.seasonRewards,harvest=game.harvestRewards;
+  const harvest=game.harvestRewards;
   $('harvest-badge-progress').textContent=harvest.includes('harvest-badge')?'Earned ✓':`${game.harvest.bestWave}/5 best waves cleared`;
   $('copper-progress').textContent=harvest.includes('copperleaf-oak')?'Earned ✓':`Best completed run: ${game.harvest.bestHealth}/80 health`;
   $('harvest-team-progress').textContent=harvest.includes('harvest-watchtower')?'Earned ✓':game.isHarvest?`${Math.min(3,game.eventTeam.length)}/3 types planted · finish to earn`:'Win with three defender types';
@@ -368,15 +361,8 @@ function renderSeason(){
   $('enter-event').disabled=!game.access || !game.forest.stars[0];
   $('enter-event').textContent=game.isHarvest?'Restart the Harvest →':'Enter the Harvest →';
   $('season-access').textContent=game.forest.stars[0]?'Unlocked · five waves · campaign roster and permanent growth available':'Unlock by protecting Emerald Crossing.';
-  $('badge-progress').textContent=rewards.includes('grove-badge')?'Earned ✓':`${game.season.bestWave}/5 best waves cleared`;
-  $('lantern-progress').textContent=rewards.includes('lantern-oak')?'Earned ✓':`Best completed run: ${game.season.bestHealth}/80 health`;
-  $('web-progress').textContent=rewards.includes('web-watchtower')?'Earned ✓':game.mode===HAUNTED_GROVE.id?`${Math.min(3,game.eventTeam.length)}/3 types planted · finish to earn`:'Clear with three defender types to earn';
-  for(const[id,type,reward]of [['lantern-look','oak','lantern-oak'],['web-look','watchtower','web-watchtower']]){
-    $(id).disabled=!game.access || !rewards.includes(reward);$(id).checked=game.seasonLooks[type];
-  }
   const signature=getAimArtStatus().loaded.length+':'+getStructureArtStatus().loaded.length+':'+getDefenderArtStatus().loaded.length;
   if(signature!==seasonArtSignature){
-    for(const[id,type]of [['lantern-preview','oak'],['web-preview','watchtower']]){const c=$(id).getContext('2d');c.clearRect(0,0,144,176);shapeTree(c,type,72,150,1.08,0,1);paintSeasonLook(c,type,72,150,1.08);}
     for(const[id,type]of [['copper-preview','oak'],['harvest-tower-preview','watchtower'],['amber-preview','tree']]){const c=$(id).getContext('2d');c.clearRect(0,0,144,176);if(type==='tree')paintLifeTree(c,'oak',72,150,1.08,0,1,0);else shapeTree(c,type,72,150,1.08,0,1);paintHarvestLook(c,type,72,150,1.08);}
     seasonArtSignature=signature;
   }
@@ -418,17 +404,17 @@ function renderUI() {
   const starCount = game.forest.stars.reduce((a,b) => a+b,0);
   $('home-campaign-progress').value=starCount;
   $('home-star-total').textContent=`${starCount} / 9 ★`;
-  $('home-veteran-state').textContent=game.isVeteran?'Veteran campaign active':game.veteranUnlocked?'Unlocked · ready for your next challenge':'Unlock after all three chapters';
   $('forest-summary').textContent = game.forestRank ? `${starCount}/9 stars · permanent defender growth saved` : 'Clear a chapter to build your first landmark.';
   $('map-name').textContent = game.runName.toUpperCase();
   $('map-tactics').textContent = game.chapter>0 && !game.isEvent && game.mapId==='crossing-v1' ? `Saved battle · original route preserved. Start a new run to explore the new ${CHAPTERS[game.chapter].name} layout.` : game.map.tip;
-  document.querySelectorAll('[data-chapter]').forEach(button => {
-    const i = Number(button.dataset.chapter), stars = (game.isVeteran?game.veteranStars:game.forest.stars)[i];
-    button.disabled = !game.access || i > game.unlockedChapter;
-    button.classList.toggle('active', i === game.chapter && !game.isEvent); button.setAttribute('aria-pressed', String(i === game.chapter && !game.isEvent));
-    button.querySelector('.chapter-stars').textContent = i > game.unlockedChapter ? 'Locked' : '★'.repeat(stars) + '☆'.repeat(3-stars);
-    button.setAttribute('aria-label', `${CHAPTERS[i].name}: ${i > game.unlockedChapter ? 'locked' : `${stars} of 3 stars`}`);
-  });
+  for(const button of document.querySelectorAll('[data-level]')){
+    const level=CAMPAIGN_LEVELS[Number(button.dataset.level)-1],state=campaignLevelState(game,level);
+    button.disabled=!state.unlocked||checkoutBusy;button.classList.toggle('active',state.active);button.setAttribute('aria-pressed',String(state.active));
+    button.querySelector('.chapter-stars').textContent=state.unlocked?'★'.repeat(state.stars)+'☆'.repeat(3-state.stars):'Locked';
+    button.setAttribute('aria-label',`Level ${level.number}: ${level.name}, ${level.difficulty}. ${state.unlocked?state.stars+' of 3 stars':level.difficulty==='veteran'?'Protect all three campaign forests to unlock':'Protect the previous forest to unlock'}`);
+  }
+  const currentLevel=CAMPAIGN_LEVELS[game.chapter+(game.isVeteran?3:0)];
+  $('level-unlocks').textContent=game.isEvent?'Seasonal battle active · choose a level above to return to the campaign.':levelUnlockText(currentLevel);
   const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
@@ -515,7 +501,8 @@ function renderUI() {
     $('outcome-title').textContent = won ? 'The Tree of Life stands.' : 'The Tree of Life has fallen.';
     const stars = game.health >= 80 ? 3 : game.health >= 40 ? 2 : 1;
     $('outcome-stars').textContent = won && !game.isEvent ? '★'.repeat(stars) + '☆'.repeat(3-stars) : '';
-    $('next-chapter').hidden = !won || game.isEvent || game.chapter >= CHAPTERS.length-1;
+    $('next-chapter').hidden = !won || game.isEvent || (game.isVeteran && game.chapter >= CHAPTERS.length-1);
+    $('next-chapter').textContent = 'Explore level '+(game.chapter+2+(game.isVeteran?3:0))+' →';
     $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : `Continue to restore health and keep your towers and current wave. Costs 20,000 ${paidMode?'TREE plus SUI network gas':'preview TREE'}. A fresh run is included with NFTree access.`;
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
   }

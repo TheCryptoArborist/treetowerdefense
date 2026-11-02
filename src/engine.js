@@ -32,8 +32,8 @@ export const TOWERS = {
   cypress: { name: 'Cypress', role: 'Piercing roots', cost: 120, range: 230, damage: 42, interval: 1.1, color: '#64a8cf', icon: '◆', description: 'Long-range strikes that hit a second nearby pest.' },
   mushroom: { name: 'Mushroom', role: 'Spore cloud', cost: 100, range: 155, damage: 10, interval: 1.0, color: '#c58bce', icon: '●', description: 'Poisons nearby pests for damage over time.' },
   willow: { name: 'Willow', role: 'Chain pulse', cost: 145, range: 190, damage: 30, interval: 1.15, color: '#9ac6bd', icon: 'ϟ', description: 'A charged branch pulse jumps to two nearby pests for 65% then 40% damage.' },
-  watchtower: { name: 'Archer Watchtower', role: 'Armor-piercing bolt', cost: 160, range: 275, damage: 54, interval: 1.4, color: '#c6b183', icon: '⌂', structure: true, description: 'A mounted bow fires long-range bolts that ignore beetle armor.' },
-  cannon: { name: 'Sap Cannon', role: 'Sap bombardment', cost: 180, range: 200, damage: 66, interval: 1.9, color: '#d2a35d', icon: '●', structure: true, description: 'Slow heavy shells splash nearby pests for 70% damage within 95 range.' },
+  watchtower: { name: 'Archer Watchtower', role: 'Armor-piercing bolt', cost: 160, range: 245, damage: 48, interval: 1.6, color: '#c6b183', icon: '⌂', structure: true, description: 'A mounted bow fires long-range bolts that ignore beetle armor.' },
+  cannon: { name: 'Sap Cannon', role: 'Sap bombardment', cost: 180, range: 200, damage: 66, interval: 2.1, color: '#d2a35d', icon: '●', structure: true, description: 'Slow heavy shells splash nearby pests for 55% damage within 80 range.' },
 };
 export const ORIGINAL_GUARDIANS = Object.freeze(['oak', 'pine', 'palm', 'cypress', 'mushroom']);
 export const UNLOCKS = Object.freeze({
@@ -486,7 +486,7 @@ export class Game {
       if (tower.type === 'palm') target.slowUntil = this.time + 2;
       if (tower.type === 'cypress' && targets[1]) this.strike(targets[1], damage * 0.5, tower.type, tower.style);
       if (tower.type === 'mushroom') this.enemies.filter(e => distance(e, target) < 65).forEach(e => { e.poisonUntil = this.time + 3; e.poisonDamage = 14 * tower.level; });
-      if (tower.type === 'cannon') this.enemies.filter(e => e.hp > 0 && e.id !== target.id && distance(e, target) < 95).forEach(e => this.strike(e, damage * .7 * (e.kind === 'beetle' ? .8 : 1), tower.type, tower.style));
+      if (tower.type === 'cannon') this.enemies.filter(e => e.hp > 0 && e.id !== target.id && distance(e, target) < 80).forEach(e => this.strike(e, damage * .55 * (e.kind === 'beetle' ? .8 : 1), tower.type, tower.style));
       if (tower.type === 'willow') {
         const visited = new Set([target.id]); let previous = target;
         for (const multiplier of [.65, .4]) {
