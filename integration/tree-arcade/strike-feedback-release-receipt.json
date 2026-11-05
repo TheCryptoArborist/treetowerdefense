@@ -1,0 +1,41 @@
+{
+  "release": "Canopy strike feedback",
+  "status": "blocked-unpublished",
+  "sourceCommit": "63d077066a2a34aafb44d5da4f8eaf13e3a856d6",
+  "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+  "siteName": "tree-token",
+  "branch": "canopy-checkout-test",
+  "intendedUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "draftBackendDeployId": "6aec9da83f3d4551149055c6",
+  "unusedRoutingCandidateId": "6aec9d2d365fab9a371abdfc",
+  "publishedDeployId": null,
+  "existingCanonicalRouteChanged": false,
+  "blockingError": "Missing required path variable 'account_id'",
+  "deployLogUrl": "https://app.netlify.com/projects/tree-token/deploys/6aec9da83f3d4551149055c6",
+  "checks": {
+    "testsPassed": 239,
+    "testsSkipped": 1,
+    "testsFailed": 0,
+    "syntax": "passed",
+    "gatedBuild": "passed",
+    "balanceScenariosUnchanged": 84,
+    "ciRun": 42051780463,
+    "ciPlatforms": [
+      "Linux",
+      "Windows",
+      "PostgreSQL 16"
+    ],
+    "nativeRendererReviewed": true,
+    "uploadedPackageMatchesLocal": true,
+    "databaseBranchPreserved": true,
+    "anonymousSource": 401,
+    "anonymousPayments": 401,
+    "draftCanonicalChallenge": 403,
+    "holderGameplay": "not verified",
+    "walletTransactionInitiated": false
+  },
+  "limitations": [
+    "Canonical-origin sign-in must pass before publishing this draft.",
+    "Other defender animation and mini-boss artwork remain separate work."
+  ]
+}

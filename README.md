@@ -43,7 +43,8 @@ The new collection preview changes growth from species-wide to individual number
 - **Strike feedback matches damage timing:** hits now show their target-connected
   strike and impact immediately, followed by a fading trace. Cannon uses an
   immediate blast and ballistic afterimage. Damage, balance, prices and saves are
-  unchanged. See [strike feedback](docs/strike-feedback.md).
+  unchanged. Committed; test publication is blocked by deployment configuration.
+  See [strike feedback and release status](docs/strike-feedback.md).
 
 - **November active season: Harvest of the Canopy.** Five authored waves, the Hollow Harvester, copper foliage and earnable Oak, Watchtower and Tree of Life cosmetics. Halloween progress and earned looks are preserved in the archived collection; saved Haunted Grove battles still resume. See [Harvest rules and validation](docs/harvest-canopy.md).
 

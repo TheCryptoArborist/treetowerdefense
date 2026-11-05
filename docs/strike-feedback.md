@@ -31,3 +31,27 @@ checks and the gated function build passed. All 72 structure-balance trials and
 12 Veteran formation results exactly matched the pre-change baseline. Actual
 painter comparisons were inspected for every playable defense. Full defender
 attack animation is not claimed by this presentation fix.
+
+## Release status
+
+Gameplay source `63d077066a2a34aafb44d5da4f8eaf13e3a856d6` is committed.
+GitHub validation run 42051780463 passed on Linux, Windows and PostgreSQL 16.
+The fix is not published to the canonical checkout-test route.
+
+Draft backend `6aec9da83f3d4551149055c6` built successfully, and its uploaded
+function digest matches the locally validated package. Its database branch,
+memory, region and effective runtime match the preceding test backend.
+However, the canonical-origin sign-in challenge returned 403: the three
+checkout-test runtime flags were absent. A documented named-branch environment
+update failed with `Missing required path variable 'account_id'`. Further
+Netlify operations stopped. No wallet signature or payment was initiated.
+
+Affected site: `tree-token`, branch `canopy-checkout-test`. Deploy log:
+https://app.netlify.com/projects/tree-token/deploys/6aec9da83f3d4551149055c6
+
+The unused routing candidate was not published. Its local publication state is
+quarantined as `.netlify/canonical-checkout-release.blocked.json`, outside Git.
+Before any later publication, resolve the named-branch runtime configuration
+using documented Netlify tools, rebuild, and verify canonical-origin sign-in,
+anonymous source/payment protection and exact backend preservation again.
+Keep checkout and individual progression limited to the isolated preview.
