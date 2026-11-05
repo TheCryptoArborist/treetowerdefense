@@ -71,3 +71,13 @@ local assets. Browser entry was verified at the NFTree gate.
 Holder gameplay, phone layout and real TREE purchase/recovery acceptance remain
 pending. No wallet signature or payment was initiated. Full defender animation
 and replacement Raider/Sprayer artwork remain separate work.
+
+## Published Watchtower arrow correction
+
+The physical-arrow correction is live on checkout-test. Backend
+`6aecfb0e1a5fd6a3bea6ea62`, routing `6aecfbb27e7d4b9299fb819b`, source
+`a857124`. All 254 local tests pass, with one Windows-only skip on Linux; Linux,
+Windows and PostgreSQL CI passed. The actual painter was compared at long range
+and diagonal aim. All 43 existing production backend identities/configurations,
+five schedules and 299 static paths are retained; only the test rewrite changed.
+See [release evidence](../integration/tree-arcade/watchtower-arrow-release-receipt.json).

@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aecf77eb8248a2d2846f3a3",
-    "upstreamDeployId": "6aecf70daad207deed8d6aa4",
-    "backendSourceCommit": "d6b72442b872c7a9eed31bcc79a991f4ef1380f4",
-    "releaseSourceCommit": "c39e1c9c64644a16e71a9279ef1c84c79113bf6c",
+    "productionDeployId": "6aecfbb27e7d4b9299fb819b",
+    "upstreamDeployId": "6aecfb0e1a5fd6a3bea6ea62",
+    "backendSourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
+    "releaseSourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
     "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "6e0d42f1249c135b275aca061417340ed95c22b1",
+    "gameplaySourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
     "existingStaticEntriesRetained": 299
   },
   "gatewayRedesign": {
@@ -810,5 +810,63 @@
       ],
       "regularSimulatedRoutePreserved": true
     }
+  },
+  "watchtowerArrowRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
+    "backendDeployId": "6aecfb0e1a5fd6a3bea6ea62",
+    "productionRoutingDeployId": "6aecfbb27e7d4b9299fb819b",
+    "previousProductionRoutingDeployId": "6aecf77eb8248a2d2846f3a3",
+    "functionDigest": "499cd569d7737e3684300cc3d456007c70b587baec0d9e6d2c5b3a46b561973b",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 254,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42116895941,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "visualChange": "Fixed-length wooden arrow with feathered tail and metal head at the recorded hit; no bow-to-target beam or muzzle glow.",
+    "visualVerification": "Actual painter before/after, long-range and diagonal shots; offline, not authenticated holder gameplay.",
+    "damageTimingChanged": false,
+    "gameplayRulesChanged": false,
+    "pricesOrSavesChanged": false,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false,
+    "holderVisualAcceptance": "pending",
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200
+      },
+      {
+        "path": "src/art.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      }
+    ]
   }
 }
