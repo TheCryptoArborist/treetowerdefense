@@ -40,6 +40,11 @@ The new collection preview changes growth from species-wide to individual number
 
 ## Fantasy forest build · v0.17
 
+- **Strike feedback matches damage timing:** hits now show their target-connected
+  strike and impact immediately, followed by a fading trace. Cannon uses an
+  immediate blast and ballistic afterimage. Damage, balance, prices and saves are
+  unchanged. See [strike feedback](docs/strike-feedback.md).
+
 - **November active season: Harvest of the Canopy.** Five authored waves, the Hollow Harvester, copper foliage and earnable Oak, Watchtower and Tree of Life cosmetics. Halloween progress and earned looks are preserved in the archived collection; saved Haunted Grove battles still resume. See [Harvest rules and validation](docs/harvest-canopy.md).
 
 End-of-run battle reports show breaches by pest, actual root damage and shield absorption, earned Sap, simulated TREE spending, continues, new roster/season unlocks, and a next goal. Reports survive reload/continue; older saves have explicitly partial history. See [battle reports](docs/battle-reports.md).
@@ -59,7 +64,7 @@ End-of-run battle reports show breaches by pest, actual root damage and shield a
 
 - Per-guardian targeting orders: **First** follows route progress, **Strongest** focuses remaining health, and **Fastest** responds to actual movement speed including slows. The inspector provides touch/keyboard controls; aiming and attacks share the choice. Orders are included, remain with a saved/continued run, and do not change growth prices. See [guardian targeting and playtest notes](docs/guardian-targeting.md).
 - Deliberate opening waves: termites first, armored beetles in wave 2, fast moths in wave 3, blight in wave 4, and combined pressure in wave 5. Named scouting briefs and wave-start notices explain each threat. Spawn spacing gives armor a measured introduction, then narrows through later waves. Beetles have clearer armor plates and blight pests have larger silhouettes. See [wave balance and simulation results](docs/wave-balance.md).
-- Guardians now face targets in eight directions using front, side, and rear poses at all three growth levels. Shots leave calibrated gauntlet, staff, spear, or casting-hand points; Oak sends a shockwave from the roots. Firing poses hold while their projectile finishes, including the final killing shot. See [directional art and verification notes](docs/guardian-aiming.md).
+- Guardians now face targets in eight directions using front, side, and rear poses at all three growth levels. Shots leave calibrated gauntlet, staff, spear, or casting-hand points; Oak sends a shockwave from the roots. Facing holds while the resolved strike fades, including the final killing shot. See [directional art and verification notes](docs/guardian-aiming.md).
 - Clearer combat feedback: brief pest hit reactions, impact rings, collapsing/fading defeat silhouettes, dust, and Tree of Life damage or shield messages.
 - Wave start/clear notices, an advance warning for the final wave, an arrival warning when the Blight King actually spawns, and a persistent boss health display. See [combat feedback and verification notes](docs/combat-feedback.md).
 - Effects hold during pause, dialogs, and hidden tabs. Reduced-motion mode omits impact motion and hit tinting; transient effects never enter saves or change battle rules.

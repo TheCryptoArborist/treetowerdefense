@@ -1,5 +1,5 @@
 import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor, pestAppearance } from './engine.js';
-import { GUARDIAN_SCALE } from './aiming.js';
+import { GUARDIAN_SCALE, SHOT_DURATION } from './aiming.js';
 import { paintEnemySprite } from './enemy-art.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
@@ -731,20 +731,69 @@ export function paintBackdrop(c,chapter=0,rank=0,map=LEGACY_MAP) {
   if(rank>=3){c.save();if(map.id==='marsh-v1')c.translate(-462,399);ellipse(c,882,261,55,26,'#455747','#273d32',4);ellipse(c,882,257,48,20,'#4b6e69');line(c,[[850,250],[885,248],[909,253]],'#b3c0a34d',1.5);ellipse(c,865,260,9,4,'#79866b');c.restore();}
   const vignette=c.createRadialGradient(WIDTH/2,HEIGHT/2,230,WIDTH/2,HEIGHT/2,650);vignette.addColorStop(0,'#06120a00');vignette.addColorStop(1,'#06120a60');c.fillStyle=vignette;c.fillRect(0,0,WIDTH,HEIGHT);c.restore();
 }
-export function paintShot(c, shot) {
-  const t=Math.max(0,Math.min(1,1-shot.life/.32)),p=STYLES[shot.style];
-  const origin=shot.origin||(shot.facing?getGuardianShotOrigin(shot):{x:shot.x,y:shot.y-28});
-  const sx=origin.x,sy=origin.y,tx=shot.tx,ty=shot.ty;
-  const x=sx+(tx-sx)*t,y=sy+(ty-sy)*t;
-  c.save();c.globalAlpha=Math.min(1,shot.life/.08);
-  if(t<.24)ellipse(c,sx,sy,4+(1-t/.24)*3,3+(1-t/.24)*2,p.accent+'90');
-  if(shot.type==='willow'){const dx=tx-sx,dy=ty-sy,length=Math.hypot(dx,dy)||1;const points=Array.from({length:7},(_,i)=>{const at=i/6,z=i===0||i===6?0:(i%2?1:-1)*5;return[sx+dx*at-dy/length*z,sy+dy*at+dx/length*z];});line(c,points,'#35665f',6);line(c,points,'#d4f3dd',2);}
-  else if(shot.type==='cannon'){ellipse(c,x,y-Math.sin(t*Math.PI)*22,6,6,'#f4c66d','#6e4928',2);if(t>.7)ellipse(c,tx,ty,10+(t-.7)*95,6+(t-.7)*55,'#d39b4525','#e4b661',2);}
-  else if(shot.type==='cypress'){line(c,[[sx,sy],[tx,ty]],'#785d3d',6);line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);}
-  else if(shot.type==='oak'){c.strokeStyle='#c4aa73';c.lineWidth=4;c.beginPath();c.ellipse(x,y,8+t*28,5+t*16,0,0,TAU);c.stroke();if(t>.65){c.lineWidth=2;c.beginPath();c.ellipse(tx,ty,8+(t-.65)*90,5+(t-.65)*45,0,0,TAU);c.stroke();}}
-  else if(shot.type==='mushroom'){ellipse(c,tx,ty,8+t*47,6+t*33,p.canopy+'40',p.accent+'80',2);for(let i=0;i<4;i++)ellipse(c,x+Math.sin(i)*12,y+Math.cos(i)*8,4,4,p.accent);}
-  else if(shot.type==='palm'){c.strokeStyle='#e1f8cb';c.lineWidth=3;c.beginPath();c.arc(x,y,10+t*11,-1,2);c.stroke();c.beginPath();c.arc(x+5,y+4,6+t*7,2,5);c.stroke();}
-  else {c.translate(x,y);c.rotate(Math.atan2(ty-sy,tx-sx));polygon(c,[[-10,-3],[11,0],[-10,3]],'#fff4a9','#5b843e',1.4);}
+// Combat is instantaneous in the engine. These are traces of a resolved strike,
+// not projectiles still traveling toward a pest that may already be defeated.
+// Every effect reaches its recorded impact point on the first rendered frame.
+export function paintShot(c, shot, { reducedMotion = false } = {}) {
+  if (!(shot.life > 0)) return;
+  const elapsed = Math.max(0, Math.min(1, 1 - shot.life / SHOT_DURATION));
+  const motion = reducedMotion ? 0 : elapsed;
+  const p = STYLES[shot.style];
+  const origin = shot.origin || (shot.facing ? getGuardianShotOrigin(shot) : { x:shot.x, y:shot.y-28 });
+  const sx = origin.x, sy = origin.y, tx = shot.tx, ty = shot.ty;
+  const dx = tx-sx, dy = ty-sy, length = Math.hypot(dx,dy) || 1;
+  const nx = -dy/length, ny = dx/length;
+  c.save();
+  c.globalAlpha = (1-elapsed) ** 2;
+  if (!reducedMotion && elapsed < .24) ellipse(c,sx,sy,5,3,p.accent+'90');
+  if (shot.type === 'willow') {
+    const points = Array.from({length:7},(_,i) => {
+      const at=i/6, z=i===0||i===6 ? 0 : (i%2 ? 1 : -1)*5;
+      return [sx+dx*at+nx*z,sy+dy*at+ny*z];
+    });
+    line(c,points,'#35665f',6); line(c,points,'#d4f3dd',2);
+    ellipse(c,tx,ty,5+motion*13,4+motion*9,'#b4edce50','#d4f3dd',1.5);
+  } else if (shot.type === 'cannon') {
+    // A faint ballistic afterimage and immediate blast communicate the same hit.
+    c.beginPath(); c.moveTo(sx,sy);
+    c.quadraticCurveTo((sx+tx)/2,(sy+ty)/2-44,tx,ty);
+    c.strokeStyle='#bd985c80'; c.lineWidth=2; c.stroke();
+    ellipse(c,tx,ty,12+motion*38,8+motion*24,'#d39b4530','#e4b661',2.5);
+    if (!reducedMotion) for (let i=0;i<5;i++) {
+      const angle=i*TAU/5, reach=8+motion*24;
+      line(c,[[tx+Math.cos(angle)*reach,ty+Math.sin(angle)*reach*.6],
+        [tx+Math.cos(angle)*(reach+6),ty+Math.sin(angle)*(reach+6)*.6]],'#f4cc78',2);
+    }
+  } else if (shot.type === 'cypress') {
+    line(c,[[sx,sy],[tx,ty]],'#785d3d',6);
+    line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);
+    ellipse(c,tx,ty,6+motion*13,4+motion*8,'#d8e1a330','#d8e1a3',1.5);
+  } else if (shot.type === 'oak') {
+    line(c,[[sx,sy],[sx+dx*.33+nx*5,sy+dy*.33+ny*5],
+      [sx+dx*.66-nx*5,sy+dy*.66-ny*5],[tx,ty]],'#aa8b5d90',3);
+    c.strokeStyle='#c4aa73'; c.lineWidth=3;
+    c.beginPath(); c.ellipse(tx,ty,12+motion*37,7+motion*21,0,0,TAU); c.stroke();
+  } else if (shot.type === 'mushroom') {
+    line(c,[[sx,sy],[tx,ty]],p.accent+'60',2);
+    ellipse(c,tx,ty,12+motion*35,8+motion*25,p.canopy+'40',p.accent+'80',2);
+    for (let i=0;i<4;i++) {
+      const angle=i*TAU/4, reach=6+motion*15;
+      ellipse(c,tx+Math.cos(angle)*reach,ty+Math.sin(angle)*reach*.7,3,3,p.accent);
+    }
+  } else if (shot.type === 'palm') {
+    line(c,[[sx,sy],[sx+dx*.5+nx*9,sy+dy*.5+ny*9],[tx,ty]],'#a3d2c080',2);
+    c.strokeStyle='#e1f8cb'; c.lineWidth=3;
+    c.beginPath(); c.arc(tx,ty,10+motion*11,-1,2); c.stroke();
+    c.beginPath(); c.arc(tx+5,ty+4,6+motion*7,2,5); c.stroke();
+  } else {
+    // Pine needles and Watchtower bolts mark the hit, then fade in place.
+    line(c,[[sx,sy],[tx,ty]],shot.type==='watchtower' ? '#c2a16a90' : '#c1d49f80',2);
+    c.save(); c.translate(tx,ty); c.rotate(Math.atan2(dy,dx));
+    if (shot.type === 'pine') for (const offset of [-4,4])
+      line(c,[[-15,offset],[0,offset*.25]],'#c1d49f',1.5);
+    polygon(c,[[-12,-3],[0,0],[-12,3]],'#fff4a9','#5b843e',1.4);
+    c.restore();
+  }
   c.restore();
 }
 

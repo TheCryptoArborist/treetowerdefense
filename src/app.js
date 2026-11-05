@@ -720,7 +720,7 @@ function draw(clock, dt) {
   ctx.textAlign='left';
   for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
   paintCombatEffects(ctx,feedback,reducedMotion);
-  for (const shot of aiming.shots) paintShot(ctx,shot);
+  for (const shot of aiming.shots) paintShot(ctx,shot,{reducedMotion});
   for (const e of game.enemies) paintPestHealth(ctx,e);
   if (!held && aiming.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of events) {
