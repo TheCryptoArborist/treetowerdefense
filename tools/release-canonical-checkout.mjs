@@ -19,7 +19,7 @@ function verify(s){const d=api('getDeploy',{deploy_id:s.candidate});assert.equal
 if(mode==='prepare'){
  const upstream=process.argv[3];assert(/^[a-f0-9]{24}$/.test(upstream));
  const site=api('getSite',{site_id:siteId}),d=api('getDeploy',{deploy_id:site.published_deploy.id});
- assert.equal(d.locked,true);assert.equal(d.available_functions.length,41);assert.equal(d.function_schedules.length,5);assert(!d.edge_functions_present);assert(!d.server);
+ assert.equal(d.locked,true);assert.equal(d.available_functions.length,43);assert.equal(d.function_schedules.length,5);assert(!d.edge_functions_present);assert(!d.server);
  const originalFiles=inventory();assert(Object.keys(originalFiles).length>250);
  if(originalFiles['/_redirects']){
   const receipt=JSON.parse(fs.readFileSync('integration/tree-arcade/checkout-preview-receipt.json'));

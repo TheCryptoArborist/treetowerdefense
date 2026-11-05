@@ -15,3 +15,16 @@ export function beginCampaignLevel(game,number){
  if(!game.startCampaign(level.difficulty))return false;
  return level.chapter===0||game.chooseChapter(level.chapter);
 }
+// Pure navigation policy: seasonal completion always offers a route into campaign.
+export function completionAction(game){
+ if(game.phase!=='victory')return null;
+ if(game.isEvent){
+  const standard=game.forest.stars.findIndex(stars=>stars===0);
+  const veteran=game.veteranStars.findIndex(stars=>stars===0);
+  const number=standard>=0?standard+1:veteran>=0?veteran+4:1;
+  return {number,label:`Return to campaign · Level ${number} →`};
+ }
+ const number=game.chapter+2+(game.isVeteran?3:0);
+ const level=CAMPAIGN_LEVELS.find(l=>l.number===number);
+ return level&&campaignLevelState(game,level).unlocked?{number,label:`Continue to Level ${number} →`}:null;
+}

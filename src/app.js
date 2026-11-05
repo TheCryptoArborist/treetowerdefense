@@ -5,7 +5,7 @@ import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.
 import { CombatFeedback, bossStatus } from './combat.js';
 import {applyEntitlement} from './paid.js';
 import {checkoutReviewState} from './checkout-review.js';
-import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel} from './levels.js';
+import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,completionAction} from './levels.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 
@@ -352,7 +352,7 @@ async function selectLevel(number){
   if(beginCampaignLevel(game,number)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);}
  }catch(error){game.message=error.message;renderUI();}
 }
-$('next-chapter').addEventListener('click',()=>selectLevel(game.chapter+2+(game.isVeteran?3:0)));
+$('next-chapter').addEventListener('click',()=>{const action=completionAction(game);if(action)selectLevel(action.number);});
 $('enter-event').addEventListener('click',async()=>{
   if(checkoutBusy)return;
   if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Harvest of the Canopy? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return;
@@ -491,10 +491,11 @@ function renderUI() {
     // Chapter unlocks use standard campaign progress, never the active Veteran/event wave.
     const unlockCurrent=chapterGoal?Math.min(game.forest.bestWaves[rule.chapter],10):status.current;
     const requirement=chapterGoal?`Clear ${CHAPTERS[rule.chapter].name} (Level ${rule.chapter+1})`:status.label;
-    const unlockText=`${requirement}\n${rule.kind==='stars'?'Stars':'Waves'}: ${unlockCurrent} / ${chapterGoal?10:unlockGoal}`;
+    const fullUnlockText=`${requirement}. ${rule.kind==='stars'?'Stars':'Waves'}: ${unlockCurrent} / ${unlockGoal}`;
+    const unlockText=rule.kind==='stars'?`4 campaign stars\n${unlockCurrent}/4 earned`:chapterGoal?`Beat Level ${rule.chapter+1}\n${unlockCurrent}/10 waves`:`Level ${rule.chapter+1} · wave ${rule.wave}\n${unlockCurrent}/${unlockGoal} cleared`;
     button.querySelector('.roster-progress').textContent = status.unlocked ? (game.collection?`${game.availableDefenders(type).length}/12 available · individual levels`:`${GROWTH_NAMES[game.forest.levels[type]-1]} · unlocked`) : unlockText;
     const track=button.querySelector('.unlock-track');track.hidden=status.unlocked;track.max=chapterGoal?10:unlockGoal;track.value=unlockCurrent;track.setAttribute('aria-label',`${TOWERS[type].name} unlock progress: ${requirement}`);
-    button.title=status.unlocked?'':unlockText.replace('\n','. ');
+    button.title=status.unlocked?'':fullUnlockText;
     button.setAttribute('aria-label', `${TOWERS[type].name}: ${TOWERS[type].role}. ${status.unlocked ? `${TOWERS[type].cost} Sap. ${TOWERS[type].description}` : `Locked. ${status.label}. Progress ${status.current} of ${status.goal}.`}`);
   });
   renderRosterProgress();renderCommandCollections();
@@ -551,11 +552,13 @@ function renderUI() {
     $('report-goal').textContent = report.goal;
     const won = game.phase === 'victory';
     $('outcome-label').textContent = won ? 'THE FOREST REMEMBERS' : 'ROOTS CAN RISE AGAIN';
-    $('outcome-title').textContent = won ? 'The Tree of Life stands.' : 'The Tree of Life has fallen.';
+    $('outcome-title').textContent = !won?'The Tree of Life has fallen.':game.isEvent?`${game.isHarvest?'Harvest':game.runName} complete · ${game.waveCount}/${game.waveCount} waves`:`Level ${game.chapter+1+(game.isVeteran?3:0)} complete · ${game.waveCount}/${game.waveCount} waves`;
     const stars = game.health >= 80 ? 3 : game.health >= 40 ? 2 : 1;
     $('outcome-stars').textContent = won && !game.isEvent ? '★'.repeat(stars) + '☆'.repeat(3-stars) : '';
-    $('next-chapter').hidden = !won || game.isEvent || (game.isVeteran && game.chapter >= CHAPTERS.length-1);
-    $('next-chapter').textContent = 'Explore level '+(game.chapter+2+(game.isVeteran?3:0))+' →';
+    const nextAction=completionAction(game);
+    $('next-chapter').hidden=!nextAction;
+    $('next-chapter').textContent=nextAction?.label||'';
+    $('outcome-new-run').textContent=game.isEvent?'Replay seasonal event · included':'Replay this level · included';
     $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : `Continue to restore health and keep your towers and current wave. Costs 20,000 ${paidMode?'TREE plus SUI network gas':'preview TREE'}. A fresh run is included with NFTree access.`;
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
   }

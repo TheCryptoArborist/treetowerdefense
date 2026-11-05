@@ -17,3 +17,17 @@ test('level selection leaves a seasonal run using the correct campaign difficult
  assert.ok(beginCampaignLevel(g,6));assert.equal(g.mode,'campaign');assert.equal(g.isVeteran,true);assert.equal(g.chapter,2);assert.equal(g.forest.levels.oak,3);
  assert.ok(beginCampaignLevel(g,2));assert.equal(g.isVeteran,false);assert.equal(g.chapter,1);
 });
+
+test('completion offers the next unlocked campaign level and stops at Veteran six',async()=>{
+ const {completionAction}=await import('../src/levels.js');const g=new Game();g.allowPreview();
+ assert.equal(completionAction(g),null);g.phase='victory';g.forest.stars=[1,0,0];assert.equal(completionAction(g).number,2);
+ g.forest.stars=[1,1,1];g.chapter=2;assert.equal(completionAction(g).number,4);
+ g.difficulty='veteran';g.chapter=2;assert.equal(completionAction(g),null);
+});
+test('Harvest completion returns to earned campaign progression without changing rewards or growth',async()=>{
+ const {completionAction}=await import('../src/levels.js');const g=new Game();g.allowPreview();g.forest.stars=[3,0,0];g.forest.levels.oak=3;g.startEvent('harvest-canopy');g.phase='victory';
+ const before=g.snapshot(),action=completionAction(g);assert.equal(action.number,2);assert.match(action.label,/Return to campaign/);assert.deepEqual(g.snapshot(),before);
+ assert.ok(beginCampaignLevel(g,action.number));assert.equal(g.mode,'campaign');assert.equal(g.chapter,1);assert.equal(g.forest.levels.oak,3);
+ g.mode='harvest-canopy';g.phase='victory';g.forest.stars=[3,3,3];g.veteranStars=[3,0,0];assert.equal(completionAction(g).number,5);
+ g.veteranStars=[3,3,3];assert.equal(completionAction(g).number,1);
+});
