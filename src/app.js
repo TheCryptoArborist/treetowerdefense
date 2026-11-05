@@ -2,6 +2,7 @@ import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, 
 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
+import { loadEnemyArt } from './enemy-art.js';
 import { CombatFeedback, bossStatus } from './combat.js';
 import {applyEntitlement} from './paid.js';
 import {checkoutReviewState} from './checkout-review.js';
@@ -422,6 +423,7 @@ function tone(frequency, duration = .08) {
 }
 let cardSignature = '';
 loadEnvironmentArt();
+loadEnemyArt().then(() => { scoutSignature = ''; renderUI(); });
 loadStructureArt().then(() => { cardSignature = ''; inspectorSignature = null; renderUI(); });
 loadAimArt().then(status=>{cardSignature = ''; inspectorSignature = null; renderUI(); if(status.failed.length)console.warn('Some directional guardian sprites were unavailable; aiming canvas artwork is active.');});
 loadDefenderArt().then(status => {

@@ -1,5 +1,6 @@
 import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor, pestAppearance } from './engine.js';
 import { GUARDIAN_SCALE } from './aiming.js';
+import { paintEnemySprite } from './enemy-art.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
 function ellipse(c, x, y, rx, ry, fill, stroke = null, width = 3) {
@@ -503,6 +504,7 @@ function pestAngle(e) {
 }
 export function pestHealthBounds(e) {
   const appearance=pestAppearance(e),size=appearance.scale,boss=e.kind==='boss',moth=e.kind==='moth';
+  if(e.miniBoss)return {x:e.x-20*size,y:Math.max(7,e.y-(e.miniBoss==='ironroot'?79:57)*size),width:40*size,height:5};
   const reach=appearance.tier>0?(moth?48:36):(moth?36:26),front=appearance.tier>0?(boss||e.kind==='beetle'?-65:-56):boss?-53:-39,tail=appearance.tier>0?35:24;
   const angle=pestAngle(e),cos=Math.cos(angle),sin=Math.sin(angle);
   const top=(-Math.abs(sin)*reach+Math.min(front*cos,tail*cos))*size;
@@ -559,7 +561,7 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   const appearance=pestAppearance(e),size=appearance.scale;
   const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='harvest-canopy'?{termite:['#bb864b','#493323'],beetle:['#ad7639','#493526'],moth:['#d1aa68','#60492e'],blight:['#987048','#493528'],boss:['#b8914c','#433324']}[e.kind]:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
   const angle=pestAngle(e);
-  c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
+  c.save();c.translate(e.x,e.y);ellipse(c,0,e.miniBoss?22*size:7,23*size,9*size,'#0a100b65');if(!e.miniBoss)c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
   const march=Math.sin(clock*14+e.id)*3;
   if(mothDashing(e,time)) {
@@ -570,7 +572,10 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     c.strokeStyle='#b78dac';c.lineWidth=2;c.beginPath();c.ellipse(0,4,27,32,0,0,TAU);c.stroke();
     line(c,[[16,-35],[16,-27]],'#d6b2cb',2);line(c,[[12,-31],[20,-31]],'#d6b2cb',2);
   }
-  if(e.miniBoss)paintMiniBoss(c,e,clock);
+  if(e.miniBoss){
+    // Upright actors change view instead of being rotated like top-down insects.
+    if(!paintEnemySprite(c,e,Math.sin(angle),-Math.cos(angle),reducedMotion))paintMiniBoss(c,e,reducedMotion?0:clock);
+  }
   else if(appearance.tier>0)paintEvolvedPest(c,e,clock,appearance,colors);
   else {
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
