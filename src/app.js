@@ -7,6 +7,7 @@ import {applyEntitlement} from './paid.js';
 import {checkoutReviewState} from './checkout-review.js';
 import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,completionAction} from './levels.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
+import {createStoryDirector} from './story.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 
 const $ = id => document.getElementById(id);
@@ -64,7 +65,31 @@ const ctx = canvas.getContext('2d');
 const accessDialog = $('access-dialog');
 const helpDialog = $('help-dialog');
 const purchaseDialog = $('purchase-dialog');
-const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open,
+const storyDialog=$('story-dialog');
+let storyEnabled=true,storyBeat=0,activeScene=null;
+try{storyEnabled=localStorage.getItem('canopy-story-enabled')!=='false';}catch{}
+$('story-enabled').checked=storyEnabled;
+$('story-enabled').onchange=()=>{storyEnabled=$('story-enabled').checked;try{localStorage.setItem('canopy-story-enabled',String(storyEnabled));}catch{}};
+function renderStoryBeat(){
+ $('story-text').textContent=storyBeat===0?activeScene.narration:`“${activeScene.dialogue}”`;
+ $('story-next').textContent=storyBeat===0?'Hear your guardian →':activeScene.ending?'See chapter results →':'Return to the battlefield →';
+ $('story-speaker').textContent=storyBeat===0?'THE FOREST REMEMBERS':TOWERS[activeScene.speaker].name;
+}
+const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
+ blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open,
+ enabled:()=>storyEnabled,
+ render:scene=>{activeScene=scene;storyBeat=0;storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;const c=$('story-portrait').getContext('2d');c.clearRect(0,0,240,280);shapeTree(c,scene.speaker,120,220,1.5,0,2);renderStoryBeat();},
+ onClose:()=>{save();renderUI();focusControl($('wave-button'));}
+});
+$('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();}else stories.close();};
+$('story-skip').onclick=()=>stories.close();
+$('story-replay').onclick=()=>stories.open(game.wave,{replay:true});
+function sendWave(){
+ if(storyDialog.open||checkoutBusy)return;
+ if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;
+ act(()=>game.startWave());
+}
+const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open,
  render:section=>{renderCommandWindow(section);renderUI();},save,
  returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
@@ -156,7 +181,7 @@ canvas.addEventListener('pointermove', event => { hoveredPad = pointerPad(event)
 canvas.addEventListener('pointerleave', () => { hoveredPad = null; });
 canvas.addEventListener('pointerup', event => { const pad = pointerPad(event); if (pad !== null) choosePad(pad); });
 function act(action) { action(); save(); renderUI(); }
-$('wave-button').addEventListener('click', () => act(() => game.startWave()));
+$('wave-button').addEventListener('click', sendWave);
 $('pause-button').addEventListener('click', () => act(() => game.pause()));
 document.querySelectorAll('[data-supply]').forEach(button => button.addEventListener('click', () => reviewPurchase(button.dataset.supply)));
 $('preview-button').addEventListener('click', () => { if(game.phase==='running')game.pause();window.canopyAccess.open();renderUI(); });
@@ -164,6 +189,7 @@ $('preview-button').addEventListener('click', () => { if(game.phase==='running')
 $('help-button').addEventListener('click',()=>openCommand('guide',$('help-button')));
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
+  if(storyDialog.open)return;
   if(paidMode)return reviewPaidPurchase(kind,towerId);
   if (purchaseDialog.open) return;
   pendingPurchase = new PurchaseReview(game, kind, towerId);
@@ -328,12 +354,12 @@ $('reset-button').addEventListener('click', async() => {
   game = new Game();game.enableCollection();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
-  if (accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
+  if (storyDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
   const index = Number(event.key) - 1;
   if (index >= 0 && index < Object.keys(TOWERS).length && Number.isInteger(index)) {
     selectDefender(Object.keys(TOWERS)[index]);
   } else if (event.code === 'Space') { event.preventDefault(); act(() => game.pause()); }
-  else if (event.key.toLowerCase() === 'n') act(() => game.startWave());
+  else if (event.key.toLowerCase() === 'n') sendWave();
   else if (event.key === 'Escape') { selectedTower = null; selectedType = null; renderUI(); }
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
@@ -652,11 +678,12 @@ let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
   const visualClock = reducedMotion ? 0 : clock;
-  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || document.hidden || checkoutBusy;
+  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || document.hidden || checkoutBusy;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
   aiming.advance(effectDt);
   const events = game.events.splice(0);
+  if(events.some(event=>event.type==='wave-clear')){save();stories.open(game.wave);}
   feedback.consume(events);
   aiming.consume(events);
   aiming.track(game,held);
@@ -718,7 +745,7 @@ function draw(clock, dt) {
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
-  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
+  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
   if (now - lastUI > 150) { renderUI(); lastUI = now; }
   if (now - lastSave > 2000 && game.access) { save(); lastSave = now; }
