@@ -40,6 +40,11 @@ The new collection preview changes growth from species-wide to individual number
 
 ## Fantasy forest build · v0.17
 
+- **Combat motion pass:** distinct grounded guardian follow-through, Watchtower
+  draw/reload, Cannon barrel recoil, directional human mini-bosses and
+  distance-driven insect steps. Existing art is animated procedurally; combat
+  timing and progression are unchanged. See [motion and validation](docs/combat-motion.md).
+
 - **Strike feedback matches damage timing:** hits now show their target-connected
   strike and impact immediately, followed by a fading trace. Cannon uses an
   immediate blast and ballistic afterimage. Damage, balance, prices and saves are

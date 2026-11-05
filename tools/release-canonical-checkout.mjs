@@ -9,7 +9,8 @@ const siteId='aa62f324-b880-47d6-85b8-4ba0700ff5bf';
 const statePath='.netlify/canonical-checkout-release.json';
 const mode=process.argv[2];
 assert(['prepare','candidate','verify','publish','verify-live'].includes(mode));
-const api=(method,data)=>JSON.parse(execFileSync('npx',['--yes','netlify-cli','api',method,'--data',JSON.stringify(data)],{encoding:'utf8',maxBuffer:8e6}));
+const api=(method,data)=>JSON.parse(execFileSync(process.env.NETLIFY_CLI_PATH||'npx',
+ [...(process.env.NETLIFY_CLI_PATH?[]:['--yes','netlify-cli']),'api',method,'--data',JSON.stringify(data)],{encoding:'utf8',maxBuffer:8e6}));
 const save=s=>fs.writeFileSync(statePath,JSON.stringify(s,null,2)+'\n');
 const inventory=()=>Object.fromEntries(api('listSiteFiles',{site_id:siteId}).map(f=>[f.path,f.sha]));
 const identity=functions=>functions.map(f=>Object.fromEntries(Object.entries(f).filter(([k])=>k!=='c'))).sort((a,b)=>a.n.localeCompare(b.n));

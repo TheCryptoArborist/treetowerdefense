@@ -1,6 +1,7 @@
 import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor, pestAppearance } from './engine.js';
 import { GUARDIAN_SCALE, SHOT_DURATION } from './aiming.js';
-import { paintEnemySprite } from './enemy-art.js';
+import { paintEnemySprite, enemySpriteHeight } from './enemy-art.js';
+import {defenderMotion,defenderMotionPoint} from './defender-motion.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
 function ellipse(c, x, y, rx, ry, fill, stroke = null, width = 3) {
@@ -381,7 +382,7 @@ function structureSocket(type,level,facing,attack=false) {
   const length=(type==='watchtower'?30:36)-(attack?2:0);
   return {x:Math.sin(angle)*length,y:mount.y+Math.cos(angle)*length};
 }
-function paintStructure(c,type,x,y,scale,style,level,attack,facing) {
+function paintStructure(c,type,x,y,scale,style,level,attack,facing,motion) {
   const p=STYLES[style],mount=structureMount(type,level),art=structureSprites.get(type);
   c.save();c.translate(x,y);c.scale(scale,scale);
   ellipse(c,0,17,type==='watchtower'?31:44,10,'#0a100b70');
@@ -391,11 +392,15 @@ function paintStructure(c,type,x,y,scale,style,level,attack,facing) {
   if(level===3)ellipse(c,0,17,32,9,p.accent+'18',p.accent+'70',2);
   ellipse(c,0,mount.y,8,5,'#665735','#c2a16a',1.5);
   const angle=(facing?.direction??0)*Math.PI/4;
-  c.translate(0,mount.y);c.rotate(Math.atan2(Math.cos(angle),Math.sin(angle)));if(attack)c.translate(-2,0);
+  c.translate(0,mount.y);c.rotate(Math.atan2(Math.cos(angle),Math.sin(angle)));
+  c.translate(-(motion?.recoil??(attack?2:0)),0);
   if(type==='watchtower'){
     line(c,[[-8,0],[26,0]],'#171912',8);line(c,[[-8,0],[26,0]],'#8e7850',4);
-    c.beginPath();c.moveTo(9,-20);c.quadraticCurveTo(27,0,9,20);c.strokeStyle='#171912';c.lineWidth=6;c.stroke();c.strokeStyle='#b7965d';c.lineWidth=3;c.stroke();
-    line(c,[[9,-20],[-2,0],[9,20]],'#d8c49a',1);polygon(c,[[22,-3],[30,0],[22,3]],p.accent,'#342e21',1);
+    const draw=motion?.draw??0;
+    c.beginPath();c.moveTo(9,-20);c.quadraticCurveTo(27-draw*5,0,9,20);c.strokeStyle='#171912';c.lineWidth=6;c.stroke();c.strokeStyle='#b7965d';c.lineWidth=3;c.stroke();
+    line(c,[[9,-20],[-2-draw*12,0],[9,20]],'#d8c49a',1);
+    c.save();c.globalAlpha*=motion?.arrow??1;
+    line(c,[[-2-draw*12,0],[24-draw*12,0]],'#d8c49a',1.5);polygon(c,[[22-draw*12,-3],[30-draw*12,0],[22-draw*12,3]],p.accent,'#342e21',1);c.restore();
   }else{
     const wood=c.createLinearGradient(0,-11,0,11);wood.addColorStop(0,'#2b241b');wood.addColorStop(.3,'#8a704b');wood.addColorStop(.65,'#55412c');wood.addColorStop(1,'#241f17');
     polygon(c,[[-10,-11],[33,-10],[36,-7],[36,7],[33,10],[-10,11]],wood,'#151a13',2);
@@ -406,18 +411,31 @@ function paintStructure(c,type,x,y,scale,style,level,attack,facing) {
   }
   c.restore();
 }
-export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false,facing=null) {
-  if(['watchtower','cannon'].includes(type)){paintStructure(c,type,x,y,scale,style,level,attack,facing);return;}
+function paintRiggedSprite(c,image,motion) {
+  if(!motion||!(motion.x||motion.y||motion.twist)){c.drawImage(image,-64,-112,128,144);return;}
+  // Contiguous strips share their transformed edges, keeping the original art
+  // intact while the upper body bends and the roots remain on the build site.
+  for(let sy=0;sy<180;sy+=12){
+    const sh=Math.min(12,180-sy),y0=-112+sy*.8,y1=y0+sh*.8;
+    const a=defenderMotionPoint(0,y0,motion),b=defenderMotionPoint(0,y1,motion);
+    const shear=(b.x-a.x)/(y1-y0),stretch=(b.y-a.y)/(y1-y0);
+    c.save();c.transform(1,0,shear,stretch,a.x-shear*y0,a.y-stretch*y0);
+    c.drawImage(image,0,sy,160,sh,-64,y0,128,sh*.8+.15);c.restore();
+  }
+}
+export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false,facing=null,motion=null) {
+  if(['watchtower','cannon'].includes(type)){paintStructure(c,type,x,y,scale,style,level,attack,facing,motion);return;}
   const p=STYLES[style];c.save();c.translate(x,y);c.scale(scale,scale);
   ellipse(c,0,17,36+(level-1)*4,10,'#26372a30');
   if(style>=2)ellipse(c,0,17,37,10,p.accent+'35',p.accent+'90',2);
-  const bob=clock>0&&(!facing||!attack)?Math.sin(clock*2.5+x*.03)*1.2:0;c.translate(0,bob);
+  const performing=motion&&motion.phase!=='idle';
+  const bob=clock>0&&!performing&&(!facing||!attack)?Math.sin(clock*2.5+x*.03)*1.2:0;c.translate(0,bob);
   if(attack&&!facing)c.rotate(Math.sin(clock*30)*.028);
   const sprite=defenderSprites.get(type);
   if(type==='willow'&&!facing)facing={direction:0,view:0,flip:false};
   const aimed=facing&&aimSprites.get(type);
-  if(aimed){c.save();if(facing.flip)c.scale(-1,1);c.drawImage(aimed.variants[level-1][facing.view][style],-64,-112,128,144);c.restore();}
-  else if(facing)paintAimingFallback(c,type,style,level,facing);
+  if(aimed){c.save();if(facing.flip)c.scale(-1,1);const rig=motion&&facing.flip?{...motion,x:-motion.x,twist:-motion.twist}:motion;paintRiggedSprite(c,aimed.variants[level-1][facing.view][style],rig);c.restore();}
+  else if(facing){c.save();const p=defenderMotionPoint(0,-60,motion||defenderMotion(type));c.transform(1,0,p.x/-76,(p.y-16)/-76,-16*p.x/-76,16-16*(p.y-16)/-76);paintAimingFallback(c,type,style,level,facing);c.restore();}
   else if(sprite)c.drawImage(sprite.variants[level-1][style],-64,-112,128,144);
   else paintReferenceGuardian(c,type,style,level,clock,attack);
   if(style===1){flower(c,-20,-58,'#ffdbe9',.85);flower(c,20,-67,'#fff1bc',.75);}
@@ -429,7 +447,7 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
 }
 // Later broods have distinct anatomy at the same drawing scale: new heads,
 // hooked limbs, broken wing contours and layered chitin, not only larger bodies.
-function paintEvolvedPest(c,e,clock,appearance,colors) {
+function paintEvolvedPest(c,e,clock,appearance,colors,walkPhase=0) {
   const elite=appearance.tier===2,boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight',beetle=e.kind==='beetle';
   const ink='#10161a',bone=elite?'#bca98b':'#9e947b',edge=blight?'#ba859e':beetle?'#a6ae8b':'#bd9c73';
   const dark=colors[1],primary=colors[0],eye=appearance.enraged?'#ff754c':blight?'#e0b1d3':elite?'#ed9766':'#dbb97d';
@@ -445,7 +463,7 @@ function paintEvolvedPest(c,e,clock,appearance,colors) {
     }c.restore();
   }
   for(const side of [-1,1])for(let i=0;i<3;i++){
-    const y=-10+i*13,march=Math.sin(clock*14+e.id+i)*2*side,reach=(beetle||boss?31:27)+(elite?4:0);
+    const y=-10+i*13,march=Math.sin(walkPhase+i*Math.PI+(side<0?Math.PI:0))*2,reach=(beetle||boss?31:27)+(elite?4:0);
     polygon(c,[[side*8,y-3],[side*20,y-9],[side*reach,y-4+march],[side*(reach-3),y+9+march],[side*(reach-8),y+15+march],[side*(reach-6),y+3+march],[side*17,y-1],[side*9,y+3]],dark,ink,1.8);
     line(c,[[side*11,y-2],[side*20,y-6],[side*(reach-2),y-3+march]],primary,2);
     polygon(c,[[side*(reach-3),y+8+march],[side*(reach+1),y+15+march],[side*(reach-8),y+17+march]],bone,ink,1);
@@ -503,12 +521,17 @@ function paintEvolvedPest(c,e,clock,appearance,colors) {
 }
 
 function pestAngle(e) {
-  const map=mapFor(e.mapId),ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
-  return ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
+  if(!Number.isFinite(e.progress))return 0;
+  const map=mapFor(e.mapId),ahead=pointAt(Math.min(map.length,e.progress+8),map),behind=pointAt(Math.max(0,e.progress-8),map);
+  return Math.atan2(ahead.y-behind.y,ahead.x-behind.x)+Math.PI/2;
+}
+export function pestWalkPhase(e,reducedMotion=false) {
+  const stride=e.kind==='boss'||e.kind==='beetle'?72:e.kind==='blight'?54:44;
+  return reducedMotion?0:Math.max(0,Number.isFinite(e.progress)?e.progress:0)/stride*TAU;
 }
 export function pestHealthBounds(e) {
   const appearance=pestAppearance(e),size=appearance.scale,boss=e.kind==='boss',moth=e.kind==='moth';
-  if(e.miniBoss)return {x:e.x-20*size,y:Math.max(7,e.y-(e.miniBoss==='ironroot'?79:57)*size),width:40*size,height:5};
+  if(e.miniBoss)return {x:e.x-20*size,y:Math.max(7,e.y-(enemySpriteHeight(e.miniBoss)-13)*size),width:40*size,height:5};
   const reach=appearance.tier>0?(moth?48:36):(moth?36:26),front=appearance.tier>0?(boss||e.kind==='beetle'?-65:-56):boss?-53:-39,tail=appearance.tier>0?35:24;
   const angle=pestAngle(e),cos=Math.cos(angle),sin=Math.sin(angle);
   const top=(-Math.abs(sin)*reach+Math.min(front*cos,tail*cos))*size;
@@ -519,7 +542,7 @@ export function pestHealthBounds(e) {
 function paintMiniBoss(c,e,clock){
   const shade=(a,b,d)=>{const g=c.createLinearGradient(-22,-20,24,20);g.addColorStop(0,a);g.addColorStop(.4,b);g.addColorStop(1,d);return g;};
   const metal=shade('#1d3032','#6d7f76','#243637'),edge='#899890',ink='#101b1d',wood=shade('#2d271d','#80633d','#382d20');
-  const stride=Math.sin(clock*9+e.id)*3;
+  const stride=Math.sin(pestWalkPhase(e,clock===0))*3;
   for(const side of [-1,1]){
     polygon(c,[[side*5,10],[side*14,9],[side*15,29+side*stride],[side*5,32+side*stride]],e.miniBoss==='ironroot'?wood:metal,ink,2);
     ellipse(c,side*11,31+side*stride,7,4,ink,edge,1);
@@ -567,7 +590,7 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
   const angle=Number.isFinite(facingAngle)?facingAngle:pestAngle(e);
   c.save();c.translate(e.x,e.y);ellipse(c,0,e.miniBoss?22*size:7,23*size,9*size,'#0a100b65');if(!e.miniBoss)c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
-  const march=Math.sin(clock*14+e.id)*3;
+  const walkPhase=pestWalkPhase(e,reducedMotion);
   if(mothDashing(e,time)) {
     // Static streaks remain legible with reduced motion; phase follows battle time.
     for(const side of [-1,1])line(c,[[side*20,22],[side*20,37]],'#d5c9a0',2);
@@ -580,9 +603,10 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     // Upright actors change view instead of being rotated like top-down insects.
     if(!paintEnemySprite(c,e,Math.sin(angle),-Math.cos(angle),reducedMotion))paintMiniBoss(c,e,reducedMotion?0:clock);
   }
-  else if(appearance.tier>0)paintEvolvedPest(c,e,clock,appearance,colors);
+  else if(appearance.tier>0)paintEvolvedPest(c,e,reducedMotion?0:clock,appearance,colors,walkPhase);
   else {
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
+    const march=Math.sin(walkPhase+(i+1)*Math.PI+(side<0?Math.PI:0))*3;
     line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);
     line(c,[[side*9,i*8],[side*18,i*12+march*side]],colors[0],1.4);
   }

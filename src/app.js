@@ -687,11 +687,11 @@ let backdropKey = '', floaters = [];
 let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
-  const visualClock = reducedMotion ? 0 : clock;
   const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || document.hidden || checkoutBusy;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
   aiming.advance(effectDt);
+  const visualClock = reducedMotion ? 0 : aiming.time;
   const events = game.events.splice(0);
   if(events.some(event=>event.type==='wave-clear')){save();stories.open(game.wave);}
   feedback.consume(events);
@@ -719,14 +719,15 @@ function draw(clock, dt) {
     paintBuildSite(ctx,x,y,{selected,hovered:hoveredPad===i,recommended:suggestedPad===i,occupied:!!tower,number:i+1});
     if (tower) {
       const pose=aiming.pose(tower.id);
-      shapeTree(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing);
+      shapeTree(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing,
+        aiming.motion(tower,{battleActive:['running','paused'].includes(game.phase),reducedMotion}));
       if(game.seasonLooks[tower.type])paintSeasonLook(ctx,tower.type,x,y,GUARDIAN_SCALE);if(game.harvestLooks[tower.type])paintHarvestLook(ctx,tower.type,x,y,GUARDIAN_SCALE);
       ctx.fillStyle='#d9c592';ctx.strokeStyle='#283d2e';ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(x+29,y+7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#435b39';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText(tower.level,x+29,y+10);
     }
   }
   ctx.textAlign='left';
-  for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
+  for (const e of game.enemies) paintPest(ctx,e,visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
   paintCombatEffects(ctx,feedback,reducedMotion);
   for (const shot of aiming.shots) paintShot(ctx,shot,{reducedMotion});
   for (const e of game.enemies) paintPestHealth(ctx,e);

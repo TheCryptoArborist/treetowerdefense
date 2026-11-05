@@ -1,3 +1,4 @@
+import {defenderMotion} from './defender-motion.js';
 export const GUARDIAN_SCALE = 1.04;
 // Lifetime of the fading, already-resolved strike. Never a damage/travel delay.
 export const SHOT_DURATION = .32;
@@ -17,7 +18,7 @@ export class GuardianAiming {
       if (event.type === 'chain') { this.shots.push({ ...event, type: 'willow', origin: {x:event.x,y:event.y}, life: SHOT_DURATION }); continue; }
       if (event.type !== 'attack') continue;
       const facing = facingFor(event.tx - event.x, event.ty - event.y);
-      this.poses.set(event.towerId, { facing, targetId: event.targetId, hold: SHOT_DURATION, attack: .18 });
+      this.poses.set(event.towerId, { facing, targetId: event.targetId, hold: SHOT_DURATION, attack: .18, firedAt:this.time });
       this.shots.push({ ...event, type: event.guardian, facing, life: SHOT_DURATION });
     }
     this.shots = this.shots.slice(-64);
@@ -36,8 +37,15 @@ export class GuardianAiming {
       const pose = this.poses.get(tower.id);
       if (pose && (held || pose.hold > 0)) continue;
       const target = game.targetsFor(tower)[0];
-      if (target) this.poses.set(tower.id, { facing: facingFor(target.x - tower.x, target.y - tower.y), targetId: target.id, hold: 0, attack: 0 });
+      if (target) this.poses.set(tower.id, { ...pose, facing: facingFor(target.x - tower.x, target.y - tower.y), targetId: target.id, hold: 0, attack: 0 });
+      else if(pose)pose.targetId=null;
     }
   }
   pose(id) { return this.poses.get(id) || { facing: facingFor(0, 1), hold: 0, attack: 0 }; }
+  motion(tower,{battleActive=true,reducedMotion=false}={}) {
+    const pose=this.pose(tower.id);
+    return defenderMotion(tower.type,{age:Number.isFinite(pose.firedAt)?this.time-pose.firedAt:Infinity,
+      prepare:battleActive&&pose.targetId&&tower.cooldown>0&&tower.cooldown<.14?1-tower.cooldown/.14:0,
+      direction:pose.facing.direction,reducedMotion});
+  }
 }
