@@ -31,7 +31,7 @@ story scenes and the eight existing defense identities.
 
 ## Verification
 
-`npm test`: 251 passing, zero failures, one Windows-only skip on Linux.
+`npm test`: 253 passing, zero failures, one Windows-only skip on Linux.
 Syntax checks and the gated function build pass. All 72 structure trials and
 12 Veteran formation scenarios pass. No engine, payment, ownership, inventory,
 price, save or targeting rules changed.
@@ -47,3 +47,15 @@ atlases, blended mini-boss turns and character-specific death sequences remain
 possible later art improvements; this pass does not claim them complete.
 
 Deployment evidence is recorded separately after test-route publication.
+
+## Publication recovery
+
+The interrupted staged backend was not linked from the canonical test route.
+Its archive retained a checkout-local `node_modules` link instead of dependency
+files, causing a missing-package startup failure. Packaging now rejects a linked
+dependency root, and ZIP validation rejects symbolic links. The rebuilt archive
+was extracted into a separate directory and its handler imported successfully
+without the checkout's dependencies. Node 24 matches the preceding live test
+backend; package staging preserves that runtime. Regression coverage also checks
+that the test entry discloses real TREE and SUI gas in both its banner and gate,
+while the regular simulated entry is unchanged.

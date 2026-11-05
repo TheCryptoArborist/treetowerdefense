@@ -6,7 +6,7 @@ A playable, mobile-friendly tower-defense prototype for the TREE Arcade.
 
 ## Status
 
-This repository contains the **development preview**, not a mainnet launch. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. TREE balances and purchases remain simulated; the game sends no transactions, transfers no tokens, and awards no money or token rewards. Saved gameplay remains editable browser data. See [NFTree access](docs/nftree-access.md). The [TREE purchase ledger](docs/tree-payments.md) is implemented and tested separately; checkout and recovery integration are prepared for an isolated preview; hosted migration and real-wallet acceptance remain pending.
+This repository contains the **development preview**, not a final release. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. The regular `/play/canopy-defense/` route uses simulated TREE purchases. The isolated `/play/canopy-defense/checkout-test/` route spends real TREE plus SUI gas and uses its separate test database; it includes the hosted payment ledger and individual defender progression. Real-wallet purchase/recovery and holder desktop/phone acceptance remain pending. Saved battle progress stays in the browser; paid growth in checkout-test is server-owned. Neither route offers money or token rewards. See [NFTree access](docs/nftree-access.md), [TREE purchase ledger](docs/tree-payments.md), and [latest motion work](docs/combat-motion.md).
 
 ## TREE Arcade home
 

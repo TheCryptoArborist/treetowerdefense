@@ -20,11 +20,16 @@ test('upload validator rejects incomplete archives and corrupt entry data',()=>{
  const good=zip();assert.equal(validateZip(good).size,2);assert.throws(()=>validateZip(good.subarray(0,good.length-3)),/Incomplete ZIP/);
  const bad=Buffer.from(good);bad[80]^=0xff;assert.throws(()=>validateZip(bad));
 });
+test('upload validator rejects dependency links that would point outside the deployed function',()=>{
+ const bytes=zip(),directory=bytes.readUInt32LE(bytes.length-22+16);
+ bytes.writeUInt32LE(0xa1ff0000,directory+38);
+ assert.throws(()=>validateZip(bytes),/dependency files, not symbolic links/);
+});
 test('staging replaces a malformed CLI package and retains routes/runtime in its manifest',async()=>{
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'canopy-zip-')),packageDir=path.join(root,'source'),dist=path.join(root,'dist');
  try{
   await fs.mkdir(packageDir);await fs.mkdir(dist);const bytes=zip();await fs.writeFile(path.join(packageDir,'canopy-access.zip'),bytes);await fs.writeFile(path.join(dist,'canopy-access.zip'),bytes.subarray(0,40));
-  const fn={name:'canopy-access',invocationMode:'stream',runtimeVersion:'nodejs22.x',path:'old',routes:[{pattern:'/play/canopy-defense/api/access'}],trafficRules:{fixture:true}};
+  const fn={name:'canopy-access',invocationMode:'stream',runtimeVersion:'nodejs24.x',path:'old',routes:[{pattern:'/play/canopy-defense/api/access'}],trafficRules:{fixture:true}};
   await fs.writeFile(path.join(packageDir,'manifest.json'),JSON.stringify({functions:[fn]}));
   await stageCanopyPackage({packageDir,dist});assert.deepEqual(await fs.readFile(path.join(dist,'canopy-access.zip')),bytes);
   const deployed=JSON.parse(await fs.readFile(path.join(dist,'manifest.json')));assert.deepEqual(deployed.functions[0].routes,fn.routes);assert.deepEqual(deployed.functions[0].trafficRules,fn.trafficRules);assert.equal(deployed.functions[0].path,path.join(dist,'canopy-access.zip'));
