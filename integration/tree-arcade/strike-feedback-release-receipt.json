@@ -1,17 +1,15 @@
 {
   "release": "Canopy strike feedback",
-  "status": "blocked-unpublished",
+  "status": "live-test",
   "sourceCommit": "63d077066a2a34aafb44d5da4f8eaf13e3a856d6",
   "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
   "siteName": "tree-token",
   "branch": "canopy-checkout-test",
   "intendedUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-  "draftBackendDeployId": "6aec9da83f3d4551149055c6",
-  "unusedRoutingCandidateId": "6aec9d2d365fab9a371abdfc",
-  "publishedDeployId": null,
-  "existingCanonicalRouteChanged": false,
-  "blockingError": "Missing required path variable 'account_id'",
-  "deployLogUrl": "https://app.netlify.com/projects/tree-token/deploys/6aec9da83f3d4551149055c6",
+  "publishedDeployId": "6aeca3a49e359f82ebf586db",
+  "existingCanonicalRouteChanged": true,
+  "blockingError": null,
+  "deployLogUrl": "https://app.netlify.com/projects/tree-token/deploys/6aeca3a49e359f82ebf586db",
   "checks": {
     "testsPassed": 239,
     "testsSkipped": 1,
@@ -19,7 +17,7 @@
     "syntax": "passed",
     "gatedBuild": "passed",
     "balanceScenariosUnchanged": 84,
-    "ciRun": 42051780463,
+    "ciRun": 42054675088,
     "ciPlatforms": [
       "Linux",
       "Windows",
@@ -30,12 +28,37 @@
     "databaseBranchPreserved": true,
     "anonymousSource": 401,
     "anonymousPayments": 401,
-    "draftCanonicalChallenge": 403,
-    "holderGameplay": "not verified",
-    "walletTransactionInitiated": false
+    "draftCanonicalChallenge": 200,
+    "holderGameplay": "pending holder acceptance",
+    "walletTransactionInitiated": false,
+    "ci": "success",
+    "canonicalChallenge": 200,
+    "wrongOriginChallenge": 403,
+    "entryPage": 200,
+    "staticBuildMatchesLocal": true,
+    "protectedSource": 401,
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "existingStaticEntriesRetained": 293,
+    "unchangedStaticFiles": 292,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "unrelatedEnvironmentVariablesPreserved": 50,
+    "branchFlagsVerified": true,
+    "browserEntry": "Verified at NFTree gate"
   },
   "limitations": [
-    "Canonical-origin sign-in must pass before publishing this draft.",
+    "Holder gameplay and phone acceptance remain pending.",
+    "Real TREE purchase/recovery acceptance remains pending; no wallet transaction was initiated.",
     "Other defender animation and mini-boss artwork remain separate work."
-  ]
+  ],
+  "backendSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
+  "backendDeployId": "6aeca2d705b5f9de8a54917f",
+  "productionBaseline": "6aec99bf240f589972b4b367",
+  "previousBlockingError": "Missing required path variable 'account_id'",
+  "configurationResolution": "Documented account-scoped environment API; three flags limited to canopy-checkout-test",
+  "databaseBranch": "canopy-checkout-test",
+  "functionDigest": "bb425ffb6b6201e638d1f898dd9bf570329c44ab709677bebbf0fc5a2f844f04",
+  "verifiedAt": "2026-11-05T15:45:12.308Z"
 }

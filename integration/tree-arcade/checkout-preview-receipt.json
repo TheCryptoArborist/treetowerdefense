@@ -57,11 +57,11 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aebf70ad3b2d01755518023",
-    "upstreamDeployId": "6aebf672530dce02c3942cb4",
-    "backendSourceCommit": "a0b8f23d2b9c0cf6774930cbcc0bce58f1e97696",
-    "releaseSourceCommit": "a0b8f23d2b9c0cf6774930cbcc0bce58f1e97696",
-    "existingStaticFilesPreserved": 290,
+    "productionDeployId": "6aeca3a49e359f82ebf586db",
+    "upstreamDeployId": "6aeca2d705b5f9de8a54917f",
+    "backendSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
+    "releaseSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
+    "existingStaticFilesPreserved": 292,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
     "newStaticFiles": [],
@@ -69,8 +69,10 @@
     "productionDatabaseChanged": false,
     "regularGameCheckoutEnabled": false,
     "changedStaticFiles": [
-      "_redirects"
-    ]
+      "/_redirects"
+    ],
+    "gameplaySourceCommit": "63d077066a2a34aafb44d5da4f8eaf13e3a856d6",
+    "existingStaticEntriesRetained": 293
   },
   "gatewayRedesign": {
     "art": "Existing Oak Guardian game artwork and forest terrain",
@@ -573,5 +575,29 @@
     "paymentLogicChanged": false,
     "regularGamePromoted": false,
     "initialStoryPublication": "6aebf649a6f33f424f7a3285"
+  },
+  "strikeFeedbackRelease": {
+    "state": "live",
+    "sourceCommit": "63d077066a2a34aafb44d5da4f8eaf13e3a856d6",
+    "backendSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
+    "backendDeployId": "6aeca2d705b5f9de8a54917f",
+    "publishedDeployId": "6aeca3a49e359f82ebf586db",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 239,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 42054675088,
+    "canonicalChallenge": 200,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "balanceScenariosUnchanged": 84,
+    "holderVisualAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
   }
 }

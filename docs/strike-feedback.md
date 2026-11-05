@@ -34,24 +34,32 @@ attack animation is not claimed by this presentation fix.
 
 ## Release status
 
-Gameplay source `63d077066a2a34aafb44d5da4f8eaf13e3a856d6` is committed.
-GitHub validation run 42051780463 passed on Linux, Windows and PostgreSQL 16.
-The fix is not published to the canonical checkout-test route.
+Published at https://tree-token.xyz/play/canopy-defense/checkout-test/.
+Gameplay source `63d077066a2a34aafb44d5da4f8eaf13e3a856d6`, build source
+`036a5a6f9ead3ffa52996c7835da1622dd8b94ad`; CI run 42054675088 passed on
+Linux, Windows and PostgreSQL 16. Backend `6aeca2d705b5f9de8a54917f`, routing
+publication `6aeca3a49e359f82ebf586db`. The uploaded function digest matches
+the locally validated package.
 
-Draft backend `6aec9da83f3d4551149055c6` built successfully, and its uploaded
-function digest matches the locally validated package. Its database branch,
-memory, region and effective runtime match the preceding test backend.
-However, the canonical-origin sign-in challenge returned 403: the three
-checkout-test runtime flags were absent. A documented named-branch environment
-update failed with `Missing required path variable 'account_id'`. Further
-Netlify operations stopped. No wallet signature or payment was initiated.
+The missing CLI account context was resolved through the documented public
+account-scoped environment API. The three existing-mode flags are now explicitly
+limited to branch `canopy-checkout-test`: `CANOPY_CANONICAL_CHECKOUT_PREVIEW`
+(Builds and Functions), `CANOPY_CHECKOUT_ENABLED` and
+`CANOPY_INDIVIDUAL_DEFENDERS` (Functions). All 50 unrelated variables were
+preserved. No global or production value was enabled. The test database branch,
+effective runtime, memory and region match the preceding backend.
 
-Affected site: `tree-token`, branch `canopy-checkout-test`. Deploy log:
-https://app.netlify.com/projects/tree-token/deploys/6aec9da83f3d4551149055c6
+All 293 existing static paths remain; 292 file hashes are unchanged. Only the
+checkout-test rewrite in `/_redirects` changed. All 43 existing backend function
+identities/configurations and all five schedules exactly match the production
+baseline `6aec99bf240f589972b4b367`. The regular game was not promoted.
 
-The unused routing candidate was not published. Its local publication state is
-quarantined as `.netlify/canonical-checkout-release.blocked.json`, outside Git.
-Before any later publication, resolve the named-branch runtime configuration
-using documented Netlify tools, rebuild, and verify canonical-origin sign-in,
-anonymous source/payment protection and exact backend preservation again.
-Keep checkout and individual progression limited to the isolated preview.
+The canonical entry returns 200 with the real-TREE test notice. Its sign-in
+challenge returns 200 with the fixed canonical origin and rejects a wrong origin
+with 403. Anonymous app/art source, access and payment requests return 401.
+Gateway, stylesheet and committed Ironroot walking artwork match the validated
+local assets. Browser entry was verified at the NFTree gate.
+
+Holder gameplay, phone layout and real TREE purchase/recovery acceptance remain
+pending. No wallet signature or payment was initiated. Full defender animation
+and replacement Raider/Sprayer artwork remain separate work.
