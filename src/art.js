@@ -773,7 +773,7 @@ export function paintShot(c, shot, { reducedMotion = false } = {}) {
   const nx = -dy/length, ny = dx/length;
   c.save();
   c.globalAlpha = (1-elapsed) ** 2;
-  if (!reducedMotion && elapsed < .24) ellipse(c,sx,sy,5,3,p.accent+'90');
+  if (shot.type !== 'watchtower' && !reducedMotion && elapsed < .24) ellipse(c,sx,sy,5,3,p.accent+'90');
   if (shot.type === 'willow') {
     const points = Array.from({length:7},(_,i) => {
       const at=i/6, z=i===0||i===6 ? 0 : (i%2 ? 1 : -1)*5;
@@ -813,9 +813,18 @@ export function paintShot(c, shot, { reducedMotion = false } = {}) {
     c.strokeStyle='#e1f8cb'; c.lineWidth=3;
     c.beginPath(); c.arc(tx,ty,10+motion*11,-1,2); c.stroke();
     c.beginPath(); c.arc(tx+5,ty+4,6+motion*7,2,5); c.stroke();
+  } else if (shot.type === 'watchtower') {
+    // A physical arrow at the resolved hit. Never connect the bow and target
+    // with a full-range beam or stretch the shaft to match the shot distance.
+    c.save(); c.translate(tx,ty); c.rotate(Math.atan2(dy,dx));
+    line(c,[[-32,0],[-5,0]],'#252c23',4);
+    line(c,[[-32,0],[-5,0]],'#bb9158',2);
+    polygon(c,[[-30,0],[-33,-4],[-28,-4],[-22,0],[-28,4],[-33,4]],'#b8bea1','#3c4535',1);
+    polygon(c,[[0,0],[-8,-3.5],[-5,0],[-8,3.5]],'#c4c9bf','#3a443d',1);
+    c.restore();
   } else {
-    // Pine needles and Watchtower bolts mark the hit, then fade in place.
-    line(c,[[sx,sy],[tx,ty]],shot.type==='watchtower' ? '#c2a16a90' : '#c1d49f80',2);
+    // Pine needles mark the hit, then fade in place.
+    line(c,[[sx,sy],[tx,ty]],'#c1d49f80',2);
     c.save(); c.translate(tx,ty); c.rotate(Math.atan2(dy,dx));
     if (shot.type === 'pine') for (const offset of [-4,4])
       line(c,[[-15,offset],[0,offset*.25]],'#c1d49f',1.5);

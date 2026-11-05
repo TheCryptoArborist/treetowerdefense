@@ -5,12 +5,20 @@ the attack step. The old presentation then drew a projectile traveling for 0.32
 seconds, so a health bar or defeated pest could change before its visible hit.
 
 The painter now draws a resolved strike at the recorded impact point on its first
-frame. Pine and Watchtower use target-connected needle/bolt traces; Oak shows a
+frame. Pine uses a target-connected needle trace; Oak shows a
 root connection and impact ring; Palm shows a wind snare at the target; Mushroom
 shows its spore burst there; Cypress and Willow retain connected root/pulse
 strikes. Cannon shows an immediate blast with a faint ballistic afterimage,
 rather than a shell still in flight after its damage has happened. Traces fade
 over the existing 0.32-second presentation lifetime. They do not cause damage.
+
+Watchtower playtest correction: its former full-range bolt trace looked like a
+laser. It now shows a short physical arrow at the recorded hit, with a wooden
+shaft, feathered tail and metal head. Its size stays fixed at every range; no
+beam or muzzle glow joins it to the bow. The arrow points along the actual shot
+direction and fades with the same held effect clock. Existing immediate impact,
+final-kill, pause and reduced-motion behavior is preserved. Damage and attack
+cadence are unchanged.
 
 Reduced-motion rendering keeps the strike geometry fixed while fading it. It
 omits the muzzle flash and Cannon's moving burst fragments. Pause and modal

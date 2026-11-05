@@ -88,3 +88,23 @@ test('held strikes keep their geometry, and expired strikes draw nothing',()=>{
     const c=recorder();paintShot(c,{...shot,life});assert.deepEqual(c.calls,[]);
   }
 });
+
+test('Watchtower arrows stay short at every range and direction, without a bow-to-target beam or muzzle glow',()=>{
+  for(const [tx,ty]of [[350,100],[-250,100],[50,400],[50,-200],[350,400],[-250,-200],[50,100]]){
+    const c=recorder(),shot={type:'watchtower',style:0,life:SHOT_DURATION,origin:{x:50,y:100},tx,ty};
+    paintShot(c,shot);
+    assert.ok(reaches(c,tx,ty),'arrow must meet the already resolved hit');
+    assert.equal(c.calls.filter(([kind])=>kind==='ellipse').length,0,'physical bow has no muzzle glow');
+    let previous=null,longest=0;
+    for(const [kind,x,y]of c.calls){
+      if(kind==='beginPath')previous=null;
+      if(kind==='moveTo')previous=[x,y];
+      if(kind==='lineTo'){
+        if(previous)longest=Math.max(longest,Math.hypot(x-previous[0],y-previous[1]));
+        previous=[x,y];
+      }
+    }
+    assert.ok(longest>15&&longest<36,'arrow shaft has a fixed, readable physical length');
+    assert.ok(c.calls.filter(([kind])=>kind==='fill').length>=2,'separate head and fletching are visible');
+  }
+});
