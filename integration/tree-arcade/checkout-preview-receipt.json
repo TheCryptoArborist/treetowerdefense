@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aecfbb27e7d4b9299fb819b",
-    "upstreamDeployId": "6aecfb0e1a5fd6a3bea6ea62",
-    "backendSourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
-    "releaseSourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
+    "productionDeployId": "6aed035fb385f2f7869ac7f8",
+    "upstreamDeployId": "6aed02cdccaac36672b4b658",
+    "backendSourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
+    "releaseSourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
     "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
+    "gameplaySourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
     "existingStaticEntriesRetained": 299
   },
   "gatewayRedesign": {
@@ -861,6 +861,196 @@
       },
       {
         "path": "src/art.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      }
+    ]
+  },
+  "cutsceneAudioRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
+    "backendDeployId": "6aed02cdccaac36672b4b658",
+    "productionRoutingDeployId": "6aed035fb385f2f7869ac7f8",
+    "previousProductionRoutingDeployId": "6aecfbb27e7d4b9299fb819b",
+    "functionDigest": "2eb39691698c890003d2c3656bb262b16fc293d6a93bfe8ccdab1bf653e30044",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 264,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42121667995,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "audioFeatures": [
+      "Original four-palette score and ambience",
+      "Presentation-clock camera/footstep/strike/root cues",
+      "Shared header/in-scene enable and mute",
+      "Optional device narration, replay and readable fallback",
+      "Cancel on beat/skip/close/mute/hidden/access holds",
+      "Speech/music separation and narration ducking"
+    ],
+    "offlineSignalVerification": {
+      "verification": "Offline graph rendering; browser/device audio and narration acceptance remain pending",
+      "reports": [
+        {
+          "tone": "crossing",
+          "seconds": 13.055419501133787,
+          "rms": 0.025121788917018165,
+          "peak": 0.1098647490143776,
+          "secondRms": [
+            0.03510209985400023,
+            0.03533772107973486,
+            0.03197105622724451,
+            0.0033328686650097375,
+            0.030014665903670888,
+            0.031183705293933627,
+            0.02823195327924699,
+            0.0023004946404354934,
+            0.020018876119614205,
+            0.02121319288932569,
+            0.022470713007249284,
+            0.026340664590013878
+          ],
+          "silentAfterClose": true
+        },
+        {
+          "tone": "meadow",
+          "seconds": 13.055419501133787,
+          "rms": 0.025237891167027866,
+          "peak": 0.10881763696670532,
+          "secondRms": [
+            0.03506651354915173,
+            0.0353740823345976,
+            0.03196268026738542,
+            0.003356275519156365,
+            0.029990951760022012,
+            0.03127243384331877,
+            0.028227477979641587,
+            0.0023043817478964916,
+            0.02002084812563407,
+            0.02121814136915771,
+            0.02372317654568726,
+            0.02661652854347157
+          ],
+          "silentAfterClose": true
+        },
+        {
+          "tone": "marsh",
+          "seconds": 13.055419501133787,
+          "rms": 0.02497518831525406,
+          "peak": 0.10457306355237961,
+          "secondRms": [
+            0.035091806943880526,
+            0.03531494189135645,
+            0.031932684666897686,
+            0.0031594508025192445,
+            0.029968075037109583,
+            0.0312589805412616,
+            0.028154632806643518,
+            0.0023578963707423903,
+            0.02001732430803087,
+            0.021214842636860073,
+            0.020831492437279914,
+            0.026019592378685123
+          ],
+          "silentAfterClose": true
+        },
+        {
+          "tone": "harvest",
+          "seconds": 13.055419501133787,
+          "rms": 0.024973946318527486,
+          "peak": 0.10715069621801376,
+          "secondRms": [
+            0.03502630284552234,
+            0.03536512719527223,
+            0.0319425838411603,
+            0.00327132901317027,
+            0.030033229161133917,
+            0.03120362379357662,
+            0.02819019286335209,
+            0.002299156572732545,
+            0.020017911867330547,
+            0.0212225395313566,
+            0.020778723789710945,
+            0.02599166567086381
+          ],
+          "silentAfterClose": true
+        }
+      ]
+    },
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "inSceneAudioControls": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "browserPlaybackAcceptance": "pending; cloud browser policy blocked local-file preview navigation; no workaround attempted",
+    "phoneLayoutAcceptance": "pending; 390px component fixture generated but not visually accepted",
+    "deviceNarrationAcceptance": "pending; voice availability varies by device",
+    "protectedAudioSourceAnonymousStatus": 401,
+    "gameplayOrPaymentRulesChanged": false,
+    "pricesOrSavesChanged": false,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false,
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "inSceneAudioControls": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/audio.js",
         "status": 401
       },
       {

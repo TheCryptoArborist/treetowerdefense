@@ -46,4 +46,17 @@ parse successfully. The cloud browser's security policy blocked local-file
 navigation; browser playback, physical phone layout and device narration were
 not accepted by this check. It never bypasses holder access or loads gameplay.
 
-Test-route publication evidence is recorded after live verification.
+## Published checkout test
+
+Live at https://tree-token.xyz/play/canopy-defense/checkout-test/. Backend
+`6aed02cdccaac36672b4b658`, routing `6aed035fb385f2f7869ac7f8`, source
+`bc3d240`. Uploaded function digest matches the validated package. Linux,
+Windows and PostgreSQL CI passed. The live entry includes all audio controls
+inside the native story dialog, its stylesheet matches the source, and anonymous
+source/access/payment requests remain protected.
+
+All 43 existing production function identities/configurations, five scheduled
+jobs and 299 static paths are preserved; only the checkout rewrite changed.
+No wallet transaction or production database migration was initiated. Device
+listening, narration and physical phone layout acceptance remain pending.
+See [release evidence](../integration/tree-arcade/cutscene-audio-release-receipt.json).
