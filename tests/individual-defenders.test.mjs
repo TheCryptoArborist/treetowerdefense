@@ -3,6 +3,17 @@ import assert from 'node:assert/strict';
 import {Game,TOWERS} from '../src/engine.js';
 import {PurchaseReview} from '../src/playtest.js';
 const fresh=()=>{const g=new Game();g.allowPreview();g.enableCollection();return g;};
+test('automatic planting chooses a fresh level-one copy even after an Ancient copy returns to the roster',()=>{
+ for(const type of Object.keys(TOWERS)){
+  const g=fresh();g.forest.unlocked=Object.keys(TOWERS);g.sap=10000;g.tree=50000;
+  const veteran=g.place(type,0);g.upgrade(veteran.id);g.upgrade(veteran.id);assert.equal(veteran.level,3);
+  g.sell(veteran.id);const added=g.place(type,1);assert.equal(added.level,1,type);assert.equal(added.defenderSlot,1,type);
+  assert.equal(g.collection.levels[type][0],3);g.newRun();g.sap=10000;
+  assert.equal(g.place(type,2).level,1,type);
+  const selected=g.place(type,3,0);assert.equal(selected.level,3,type);
+  assert.equal(Game.restore(g.snapshot()).towers.find(t=>t.id===selected.id).level,3);
+ }
+});
 test('one TREE upgrade affects one numbered defender and survives removal, runs and reload',()=>{
  const g=fresh(),a=g.place('pine',0,0),b=g.place('pine',1,1),before=g.tree;
  const review=new PurchaseReview(g,'upgrade',a.id);assert.match(review.details().title,/#1/);assert.match(review.details().description,/Only this numbered/);

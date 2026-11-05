@@ -2,7 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game,TOWERS,pointAt} from '../src/engine.js';
 import {GuardianAiming,SHOT_DURATION} from '../src/aiming.js';
-import {paintShot} from '../src/art.js';
+import {paintShot,getGuardianShotOrigin} from '../src/art.js';
+import {facingFor} from '../src/aiming.js';
+
+test('Oak launches from its raised hand in every fallback direction and growth level',()=>{
+ for(let level=1;level<=3;level++)for(const [dx,dy]of [[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]]){
+  const s={type:'oak',x:100,y:200,level,facing:facingFor(dx,dy)},o=getGuardianShotOrigin(s);
+  assert.ok(Number.isFinite(o.x)&&Number.isFinite(o.y));assert.ok(o.y<s.y,'hand must be above the feet');
+  if(dx)assert.equal(Math.sign(o.x-s.x),Math.sign(dx));
+ }
+});
 
 function recorder() {
   const calls=[];

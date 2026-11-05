@@ -243,6 +243,11 @@ export async function loadAimArt() {
 // Hand-calibrated launch points in the unmodified 1619×971 v1 atlases.
 // Growth rows: Sapling, Guardian, Ancient. Views: S, SE, E, NE, N.
 const aimSockets = {
+  oak: [
+    [[54,187],[433,187],[905,187],[1239,176],[1559,172]],
+    [[40,497],[423,491],[917,495],[1254,476],[1578,469]],
+    [[41,815],[436,807],[942,817],[1259,793],[1580,783]]
+  ],
   willow: [
     [[46,91],[620,129],[930,108],[1217,115],[1497,80]],
     [[51,394],[625,454],[927,447],[1226,448],[1496,373]],
@@ -271,11 +276,10 @@ const aimSockets = {
 };
 function fallbackSocket(type,level,facing) {
   const angle=facing.direction*Math.PI/4,growth=1+(level-1)*.12;
-  return type==='oak'?{x:0,y:17}:{x:Math.sin(angle)*38*growth,y:(-30+Math.cos(angle)*18)*growth};
+  return {x:Math.sin(angle)*38*growth,y:(-30+Math.cos(angle)*18)*growth};
 }
 export function getGuardianShotOrigin(shot) {
   if(['watchtower','cannon'].includes(shot.type)){const socket=structureSocket(shot.type,shot.level,shot.facing,true);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
-  if(shot.type==='oak')return{x:shot.x,y:shot.y+17*GUARDIAN_SCALE};
   const art=aimSprites.get(shot.type),f=art?.frames[shot.level-1]?.[shot.facing.view];
   if(!f){const socket=fallbackSocket(shot.type,shot.level,shot.facing);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
   const [px,py]=aimSockets[shot.type][shot.level-1][shot.facing.view];
@@ -292,7 +296,7 @@ function paintAimingFallback(c,type,style,level,facing) {
   if(facing.view<3){const side=facing.flip?-1:1;ellipse(c,facing.view===2?side*14:-10,-61,5,7,'#10150e');if(facing.view<2)ellipse(c,10,-61,5,7,'#10150e');ellipse(c,facing.view===2?side*16:0,-43,facing.view===2?5:12,7,'#10150e');}
   for(let i=0;i<3;i++)sprout(c,-12+i*12,-78,(i-1)*17,-24,p.canopy);
   if(type==='mushroom')ellipse(c,0,-83,32,12,p.canopy,'#151c13',2);
-  const socket=fallbackSocket(type,1,facing),hand=type==='oak'?fallbackSocket('pine',1,facing):socket;
+  const hand=fallbackSocket(type,1,facing);
   line(c,[[0,-30],[hand.x*.6,hand.y],[hand.x,hand.y]],wood,12);ellipse(c,hand.x,hand.y,7,6,wood,'#151c13',2);
   if(type==='pine'){ellipse(c,hand.x,hand.y,8,6,'#574b2e','#151c13',2);ellipse(c,hand.x,hand.y,3,3,p.canopy);}
   if(type==='palm'||type==='cypress'||type==='willow'){line(c,[[hand.x*.5,-35],[hand.x,hand.y]],'#5d4d31',5);ellipse(c,hand.x,hand.y,5,7,type==='willow'?'#abdace':type==='palm'?p.canopy:'#d4c09b','#151c13',1);}
@@ -556,11 +560,11 @@ function paintMiniBoss(c,e,clock){
     }
   }
 }
-export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
+export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true,facingAngle=null}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
   const appearance=pestAppearance(e),size=appearance.scale;
   const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='harvest-canopy'?{termite:['#bb864b','#493323'],beetle:['#ad7639','#493526'],moth:['#d1aa68','#60492e'],blight:['#987048','#493528'],boss:['#b8914c','#433324']}[e.kind]:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
-  const angle=pestAngle(e);
+  const angle=Number.isFinite(facingAngle)?facingAngle:pestAngle(e);
   c.save();c.translate(e.x,e.y);ellipse(c,0,e.miniBoss?22*size:7,23*size,9*size,'#0a100b65');if(!e.miniBoss)c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
   const march=Math.sin(clock*14+e.id)*3;

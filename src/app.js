@@ -9,6 +9,7 @@ import {checkoutReviewState} from './checkout-review.js';
 import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,completionAction} from './levels.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 import {createStoryDirector,storyCheckpoint} from './story.js';
+import {createStoryAnimation} from './story-art.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 
 const $ = id => document.getElementById(id);
@@ -67,6 +68,7 @@ const accessDialog = $('access-dialog');
 const helpDialog = $('help-dialog');
 const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
+const storyAnimation=createStoryAnimation();
 let storyEnabled=true,storyBeat=0,activeScene=null;
 try{storyEnabled=localStorage.getItem('canopy-story-enabled')!=='false';}catch{}
 $('story-enabled').checked=storyEnabled;
@@ -79,8 +81,8 @@ function renderStoryBeat(){
 const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
  blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open,
  enabled:()=>storyEnabled,
- render:scene=>{activeScene=scene;storyBeat=0;storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;const c=$('story-portrait').getContext('2d');c.clearRect(0,0,240,280);shapeTree(c,scene.speaker,120,220,1.5,0,2);renderStoryBeat();},
- onClose:()=>{save();renderUI();focusControl($('wave-button'));}
+ render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
+ onClose:()=>{storyAnimation.clear();save();renderUI();focusControl($('wave-button'));}
 });
 $('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();}else stories.close();};
 $('story-skip').onclick=()=>stories.close();
@@ -167,7 +169,7 @@ function choosePad(pad) {
   if (!game.access) { accessDialog.showModal(); return; }
   const existing = game.towers.find(t => t.pad === pad);
   if (existing) { selectedTower = existing.id; selectedType = null; game.message = `${TOWERS[existing.type].name} selected. Upgrade or choose a new appearance.`; }
-  else if (selectedType) { const tower = game.place(selectedType, pad, deploymentChoice.type===selectedType?deploymentChoice.slot:null); if (tower) { selectedTower = tower.id; game.message = `${dName(tower)} planted. Upgrade this defender or choose another site.`; } }
+  else if (selectedType) { const tower = game.place(selectedType, pad, deploymentChoice.type===selectedType?deploymentChoice.slot:null); if (tower) { selectedTower = tower.id; game.message = `${dName(tower)}${game.collection?' #'+(tower.defenderSlot+1):''} · level ${tower.level} planted. Upgrade this defender or choose another site.`; } }
   else game.message = 'Choose a defender from the planting menu first.';
   save(); renderUI();if(existing)openCommand('shop',canvas);
 }
@@ -453,7 +455,7 @@ function renderCommandCollections(){
    const art=document.createElement('canvas');art.width=144;art.height=176;art.setAttribute('aria-hidden','true');button.append(art);
    const name=document.createElement('strong');name.textContent=d.name;button.append(name);
    const detail=document.createElement('small');detail.textContent=status.unlocked?d.cost+' Sap · '+(game.collection?game.availableDefenders(type).length+'/12 available':'Unlocked'):status.label+' · '+status.current+'/'+status.goal;button.append(detail);
-   shapeTree(art.getContext('2d'),type,72,150,1.08,0,game.forest.levels[type]);button.onclick=()=>selectDefender(type);$('collection-roster').append(button);
+   shapeTree(art.getContext('2d'),type,72,150,1.08,0,deploymentLevel(type));button.onclick=()=>selectDefender(type);$('collection-roster').append(button);
    const row=document.createElement('article');row.className='unlock-row';const portrait=art.cloneNode();portrait.getContext('2d').drawImage(art,0,0);row.append(portrait);
    const text=document.createElement('div'),title=document.createElement('strong'),note=document.createElement('p');title.textContent=d.name;note.textContent=status.unlocked?'Earned · '+d.role:status.label+' · '+status.current+'/'+status.goal;text.append(title,note);row.append(text);$('unlock-roster').append(row);
   }
@@ -487,10 +489,10 @@ function renderUI() {
   }
   const currentLevel=CAMPAIGN_LEVELS[game.chapter+(game.isVeteran?3:0)];
   $('level-unlocks').textContent=game.isEvent?'Seasonal battle active · choose a level above to return to the campaign.':levelUnlockText(currentLevel);
-  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
+  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + JSON.stringify(deploymentChoice) + game.towers.map(t=>t.id).join(',') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
-      const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = game.collection?Math.max(...game.collection.levels[type]):game.forest.levels[type];
+      const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = deploymentLevel(type);
       c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level); if(game.seasonLooks[type])paintSeasonLook(c,type,72,150,1.08);if(game.harvestLooks[type])paintHarvestLook(c,type,72,150,1.08);
     }); cardSignature = nextCards;
   }
@@ -592,12 +594,16 @@ function renderUI() {
   }
 }
 
-$('defender-copy').addEventListener('change',event=>{deploymentChoice={type:selectedType,slot:Number(event.target.value)};});
+function deploymentLevel(type){
+ const available=game.availableDefenders(type);
+ return game.collection?(available.find(d=>deploymentChoice.type===type&&d.slot===deploymentChoice.slot)??available[0])?.level??1:game.forest.levels[type];
+}
+$('defender-copy').addEventListener('change',event=>{deploymentChoice={type:selectedType,slot:Number(event.target.value)};cardSignature='';commandRosterSignature='';renderUI();});
 function renderCollection(){
  const wrap=$('collection-picker'),select=$('defender-copy');
  wrap.hidden=!game.collection||!selectedType||!game.isUnlocked(selectedType);
  if(wrap.hidden)return;
- const available=game.availableDefenders(selectedType).sort((a,b)=>b.level-a.level||a.slot-b.slot);
+ const available=game.availableDefenders(selectedType);
  if(deploymentChoice.type!==selectedType||!available.some(d=>d.slot===deploymentChoice.slot))deploymentChoice={type:selectedType,slot:available[0]?.slot??null};
  const signature=selectedType+':'+JSON.stringify(available);
  if(select.dataset.signature!==signature){
@@ -605,7 +611,9 @@ function renderCollection(){
   select.dataset.signature=signature;
  }
  select.disabled=!available.length;select.value=String(deploymentChoice.slot);
- $('collection-summary').textContent=available.length?`${available.length}/12 available. TREE upgrades this defender only; Sap deploys it.`:'All 12 defenders of this type are deployed. Remove one to redeploy it.';
+ const chosen=available.find(d=>d.slot===deploymentChoice.slot);
+ const inherited=chosen&&game.forest.levels[selectedType]>1&&chosen.level===game.forest.levels[selectedType];
+ $('collection-summary').textContent=chosen?`Deploy #${chosen.slot+1} · level ${chosen.level}. ${chosen.level===1?'New defender: upgrade this copy individually with TREE.':inherited?'Legacy species purchase retained on this copy.':'Previously upgraded defender; its purchased level is retained.'} ${available.length}/12 available · Sap deploys it.`:'All 12 defenders of this type are deployed. Remove one to redeploy it.';
 }
 function renderRosterProgress() {
  renderCollection();
@@ -749,6 +757,11 @@ function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
   if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
+  if(storyDialog.open&&!document.hidden){
+    storyAnimation.advance(dt);
+    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion,beat:storyBeat});
+    if(frame&&$('story-shot').textContent!==frame.label)$('story-shot').textContent=frame.label;
+  }
   if (now - lastUI > 150) { renderUI(); lastUI = now; }
   if (now - lastSave > 2000 && game.access) { save(); lastSave = now; }
   requestAnimationFrame(frame);

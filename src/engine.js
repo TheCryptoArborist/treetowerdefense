@@ -280,7 +280,8 @@ export class Game {
   }
   availableDefenders(type) {
     if (!this.collection || !Object.hasOwn(TOWERS,type)) return [];
-    return this.collection.levels[type].map((level,slot)=>({slot,level})).filter(d=>!this.towers.some(t=>t.type===type&&t.defenderSlot===d.slot));
+    // Fresh copies first. Never silently reuse the strongest purchased defender.
+    return this.collection.levels[type].map((level,slot)=>({slot,level})).filter(d=>!this.towers.some(t=>t.type===type&&t.defenderSlot===d.slot)).sort((a,b)=>a.level-b.level||a.slot-b.slot);
   }
   applyPurchasedCollection(baseline, defenders) {
     if(!baseline||!Array.isArray(defenders))return false;
@@ -305,7 +306,7 @@ export class Game {
     if (this.towers.some(t => t.pad === pad)) return false;
     if(this.collection){
       const available=this.availableDefenders(type);
-      if(defenderSlot===null)defenderSlot=available.sort((a,b)=>b.level-a.level||a.slot-b.slot)[0]?.slot;
+      if(defenderSlot===null)defenderSlot=available[0]?.slot;
       if(!available.some(d=>d.slot===defenderSlot)){this.message='That defender is already deployed or unavailable.';return false;}
     }
     const definition = TOWERS[type];

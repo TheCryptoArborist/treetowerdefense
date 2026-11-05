@@ -59,7 +59,9 @@ export function storyScene(game,cleared=game.wave){
  if(game.isVeteran&&!seasonal){title=`Echoes of Severance · ${title}`;narration=`The roots remember this battle. Now the remaining machines return with reinforced shells and a faster command. ${narration}`;}
  const next=cleared<game.waveCount?scoutWave(game.chapter,cleared+1,game.enemyRules,game.mode,game.difficulty,game.encounters):null;
  const mini=next?miniBossFor(game.chapter,cleared+1,game.mode,game.encounters):null;
- return {title,narration,speaker,dialogue,chapter:seasonal?game.runName:CHAPTERS[game.chapter].name,eyebrow:cleared===0?'PROLOGUE':cleared===game.waveCount?'CHAPTER COMPLETE':`AFTER WAVE ${cleared} · BEFORE WAVE ${cleared+1}`,hint:next?`${mini?MINI_BOSSES[mini].name:next.title}: ${next.tip}`:'The story continues in your campaign. Your earned progression is kept.',ending:!next,tone:seasonal?'harvest':game.chapter===2?'marsh':game.chapter===1?'meadow':'crossing'};
+ const finalApproach=!!next&&cleared===game.waveCount-1;
+ const enemyName=mini?MINI_BOSSES[mini].name:finalApproach?(game.isHarvest?'Hollow Harvester':seasonal?'Hollow King':'Blight King'):null;
+ return {title,narration,speaker,dialogue,chapter:seasonal?game.runName:CHAPTERS[game.chapter].name,eyebrow:cleared===0?'PROLOGUE':cleared===game.waveCount?'CHAPTER COMPLETE':`AFTER WAVE ${cleared} · BEFORE WAVE ${cleared+1}`,hint:next?`${mini?MINI_BOSSES[mini].name:next.title}: ${next.tip}`:'The story continues in your campaign. Your earned progression is kept.',ending:!next,tone:seasonal?'harvest':game.chapter===2?'marsh':game.chapter===1?'meadow':'crossing',cinematic:!next?'renewal':mini||finalApproach?'warning':'defend',enemyBoss:mini,enemyName,enemyKind:finalApproach?'boss':mini?'beetle':['beetle','moth','blight'][cleared%3]};
 }
 // A per-run latch: draws cannot reopen a scene; replay never spends or starts waves.
 export function createStoryDirector({dialog,getGame,blocked,render,onClose,enabled=()=>true}){

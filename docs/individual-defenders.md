@@ -6,6 +6,8 @@ User-approved direction: TREE buys a level for one defender rather than an entir
 
 Each species has twelve permanently numbered copies, matching the maximum twelve battlefield sites. Unlocking the species grants its copies without a recruitment charge. The collection is a game account feature, not a new tradable NFT. Choose an available copy in the roster picker; Sap deploys it. Each copy can appear only once on a battlefield. Removing it refunds the existing 60% Sap and returns it to the collection with its level; new runs clear deployment and Sap while retaining collection levels. Chapter and season travel use the same collection.
 
+November 5 playtest correction: automatic planting prefers level-one copies, then the lowest available level/number, rather than silently choosing the strongest copy. Deployment art follows the actual selection and the picker identifies reused upgraded copies or legacy purchase grants. See [playtest corrections](playtest-corrections.md).
+
 A TREE upgrade affects only the selected copy. Other copies retain their levels. The copy number appears in the picker, inspector, purchase review, invoice history and server invoice. Three levels and combat multipliers are unchanged, so this changes purchase scope and progression choices rather than increasing the stat ceiling. Cosmetic rarity remains separate.
 
 ## Existing purchases
