@@ -4,7 +4,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-const script=new URL('../tools/prepare-checkout-preview.mjs',import.meta.url);
+import {fileURLToPath} from 'node:url';
+const script=fileURLToPath(new URL('../tools/prepare-checkout-preview.mjs',import.meta.url));
 test('prepared checkout entry discloses real TREE in the banner and gate while regular preview stays simulated',async()=>{
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'canopy-entry-'));
  try{
@@ -13,7 +14,7 @@ test('prepared checkout entry discloses real TREE in the banner and gate while r
   for(const file of ['styles.css','gateway.js'])await fs.writeFile(path.join(root,file),'');
   for(const dir of ['assets','integration/tree-arcade/canopy-preview'])await fs.mkdir(path.join(root,dir),{recursive:true});
   for(const enabled of [false,true]){
-   execFileSync(process.execPath,[script.pathname],{cwd:root,env:{...process.env,CANOPY_CANONICAL_CHECKOUT_PREVIEW:String(enabled)},stdio:'pipe'});
+   execFileSync(process.execPath,[script],{cwd:root,env:{...process.env,CANOPY_CANONICAL_CHECKOUT_PREVIEW:String(enabled)},stdio:'pipe'});
    const html=await fs.readFile(path.join(root,'.netlify/checkout-site/play/canopy-defense/index.html'),'utf8');
    const banner=html.match(/<div class="preview-banner">(.*?)<\/div>/s)[1];
    if(enabled){
