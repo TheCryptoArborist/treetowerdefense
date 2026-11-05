@@ -57,12 +57,12 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6ae7eee018d3f212df6696d0",
-    "upstreamDeployId": "6ae7ee72f3a12d5acb787a55",
-    "backendSourceCommit": "7e4589ded17156918ccc6588448706b2ad728e45",
-    "releaseSourceCommit": "7e4589ded17156918ccc6588448706b2ad728e45",
-    "existingStaticFilesPreserved": 284,
-    "functionsPreservedExactly": 41,
+    "productionDeployId": "6aebf0c0293cf24b5ac29829",
+    "upstreamDeployId": "6aebf03aca7378b1200ca5d0",
+    "backendSourceCommit": "26877006c0d746ef7c32afbe3e7bc7cb24363303",
+    "releaseSourceCommit": "26877006c0d746ef7c32afbe3e7bc7cb24363303",
+    "existingStaticFilesPreserved": 290,
+    "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
     "newStaticFiles": [],
     "browserRedirectsToNetlify": false,
@@ -518,6 +518,31 @@
     "anonymousGameSource": 401,
     "unlockRequirementsChanged": false,
     "authenticatedVisualAcceptance": "pending holder desktop/mobile review",
+    "regularGamePromoted": false
+  },
+  "completionNavigationRelease": {
+    "state": "live",
+    "sourceCommit": "26877006c0d746ef7c32afbe3e7bc7cb24363303",
+    "backendDeployId": "6aebf03aca7378b1200ca5d0",
+    "publishedDeployId": "6aebf0c0293cf24b5ac29829",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 226,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41958305428,
+    "gate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "cabinetScene": 200,
+    "cabinetMarkupPreserved": true,
+    "holderVisualAcceptance": "pending desktop/mobile",
+    "holderPaymentAcceptance": "pending",
+    "paymentLogicChanged": false,
+    "combatTimingChanged": false,
     "regularGamePromoted": false
   }
 }
