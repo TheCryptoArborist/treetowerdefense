@@ -12,6 +12,7 @@ import {createStoryDirector,storyCheckpoint} from './story.js';
 import {createStoryAnimation} from './story-art.js';
 import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
+import {createWorldMap} from './world-map-view.js';
 
 const $ = id => document.getElementById(id);
 const holder=window.canopyAccess?.account;
@@ -69,6 +70,8 @@ const accessDialog = $('access-dialog');
 const helpDialog = $('help-dialog');
 const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
+const worldMapDialog=$('world-map-dialog');
+let worldMap=null;
 const storyAnimation=createStoryAnimation();
 let audioStorage;try{audioStorage=localStorage;}catch{}
 let narrationVoiceSignature='';
@@ -115,7 +118,7 @@ function renderStoryBeat(){
  gameAudio.setBeat(storyBeat);
 }
 const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
- blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open,
+ blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open||worldMapDialog.open,
  enabled:()=>storyEnabled,
  render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);gameAudio.openScene(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
  onClose:()=>{gameAudio.closeScene();storyAnimation.clear();save();renderUI();focusControl($('wave-button'));}
@@ -124,12 +127,12 @@ $('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();if(
 $('story-skip').onclick=()=>stories.close();
 $('story-replay').onclick=()=>{if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();stories.open(storyCheckpoint(game),{replay:true});};
 function sendWave(){
- if(storyDialog.open||checkoutBusy)return;
+ if(storyDialog.open||worldMapDialog.open||checkoutBusy)return;
  if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();
  if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;
  act(()=>game.startWave());
 }
-const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open,
+const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open,
  render:section=>{renderCommandWindow(section);renderUI();},save,
  returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
@@ -394,7 +397,7 @@ $('reset-button').addEventListener('click', async() => {
   game = new Game();game.enableCollection();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
-  if (storyDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
+  if (storyDialog.open || worldMapDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
   const index = Number(event.key) - 1;
   if (index >= 0 && index < Object.keys(TOWERS).length && Number.isInteger(index)) {
     selectDefender(Object.keys(TOWERS)[index]);
@@ -409,23 +412,34 @@ window.addEventListener('pagehide',()=>gameAudio.silence());
 for(const level of CAMPAIGN_LEVELS){
  const button=document.createElement('button');button.className='chapter-button';button.dataset.level=level.number;
  button.innerHTML=`<span class="chapter-number">${level.number}</span><span><strong>${level.name}</strong><small>${level.difficulty==='veteran'?'VETERAN':'CAMPAIGN'}</small></span><span class="chapter-stars">☆☆☆</span>`;
- button.addEventListener('click',()=>selectLevel(level.number));$('chapter-trail').append(button);
+ button.addEventListener('click',()=>worldMap?.selectRegion('level-'+level.number));$('chapter-trail').append(button);
 }
 async function selectLevel(number){
- const level=CAMPAIGN_LEVELS.find(l=>l.number===number);if(!level||checkoutBusy||!campaignLevelState(game,level).unlocked)return;
- if(game.wave>0&&!['defeat','victory'].includes(game.phase)&&!confirm('Travel to level '+number+'? Your current battle resets. Permanent growth and forest progress are kept.'))return;
+ const level=CAMPAIGN_LEVELS.find(l=>l.number===number);if(!level||checkoutBusy||!campaignLevelState(game,level).unlocked)return false;
+ if(game.wave>0&&!['defeat','victory'].includes(game.phase)&&!confirm('Travel to level '+number+'? Your current battle resets. Permanent growth and forest progress are kept.'))return false;
  try{
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if(beginCampaignLevel(game,number)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);}
+  if(beginCampaignLevel(game,number)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);return true;}
  }catch(error){game.message=error.message;renderUI();}
+ return false;
 }
 $('next-chapter').addEventListener('click',()=>{const action=completionAction(game);if(action)selectLevel(action.number);});
-$('enter-event').addEventListener('click',async()=>{
-  if(checkoutBusy)return;
-  if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Harvest of the Canopy? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return;
+$('enter-event').addEventListener('click',()=>{void enterHarvest();});
+async function enterHarvest(){
+  if(checkoutBusy||!game.access||!game.forest.stars[0])return false;
+  if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Harvest of the Canopy? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return false;
+  try{
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if(game.startEvent(HARVEST_CANOPY.id)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();commandMenu.close(canvas);focusControl(canvas);}
+  if(game.startEvent(HARVEST_CANOPY.id)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();commandMenu.close(canvas);focusControl(canvas);return true;}
+  }catch(error){game.message=error.message;renderUI();}
+  return false;
+}
+worldMap=createWorldMap({dialog:worldMapDialog,getGame:()=>game,
+ blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||helpDialog.open||accessDialog.open,
+ onTravel:selectLevel,onSeason:enterHarvest,save,
+ returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
+document.querySelectorAll('[data-open-world-map]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();worldMap.open(button);}));
 for(const[id,type]of [['copper-look','oak'],['harvest-tower-look','watchtower'],['amber-look','tree']])$(id).addEventListener('change',event=>act(()=>game.setHarvestLook(type,event.target.checked)));
 let seasonArtSignature='';
 function renderSeason(){
@@ -495,6 +509,7 @@ function renderCommandCollections(){
 }
 
 function renderUI() {
+  worldMap?.refresh();
   renderSeason(); renderGuide(); renderScout(); renderPurchase(); renderCombatUI();
   const tower = game.towers.find(t => t.id === selectedTower);
   $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
@@ -710,7 +725,7 @@ let backdropKey = '', floaters = [];
 let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
-  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || document.hidden || checkoutBusy;
+  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || worldMapDialog.open || document.hidden || checkoutBusy;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
   aiming.advance(effectDt);
@@ -779,7 +794,7 @@ function draw(clock, dt) {
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
-  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
+  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !worldMapDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
   if(storyDialog.open&&!document.hidden){
     storyAnimation.advance(dt);

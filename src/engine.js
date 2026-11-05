@@ -184,6 +184,7 @@ export class Game {
     this.chapter = 0;
     this.mode = 'campaign';
     this.difficulty='standard';this.veteranStars=[0,0,0];
+    this.veteranBestWaves=CHAPTERS.map(()=>0);
     this.season = { bestWave: 0, bestHealth: 0, teamClear: false };
     this.seasonLooks = { oak: false, watchtower: false };
     this.harvest={bestWave:0,bestHealth:0,teamClear:false};this.harvestLooks={oak:false,watchtower:false,tree:false};
@@ -520,6 +521,7 @@ export class Game {
       this.shots = [];
       this.phase = this.wave === this.waveCount ? 'victory' : 'build';
       if(this.isEvent)this.seasonProgress.bestWave=Math.max(this.seasonProgress.bestWave,this.wave);
+      else if(this.isVeteran)this.veteranBestWaves[this.chapter]=Math.max(this.veteranBestWaves[this.chapter],this.wave);
       else if(!this.isVeteran)this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
       this.events.push({ type: 'wave-clear', wave: this.wave, sap: 85 });
       if(this.isEvent)this.events.at(-1).waveCount=5;
@@ -625,6 +627,13 @@ export class Game {
     game.veteranStars=Array.isArray(data.veteranStars)&&data.veteranStars.length===3?data.veteranStars.map(v=>Number.isInteger(v)&&v>=0&&v<=3?v:0):[0,0,0];
     if(data.difficulty==='veteran'){if(game.isEvent||!game.veteranUnlocked)return null;game.difficulty='veteran';}
     else if(data.difficulty!==undefined&&data.difficulty!=='standard')return null;
+    // Additive local atlas history. Older clears are inferred only from medals
+    // and the active run; never grant campaign stars or paid entitlements.
+    game.veteranBestWaves=CHAPTERS.map((_,i)=>Math.max(
+      Number.isInteger(data.veteranBestWaves?.[i])&&data.veteranBestWaves[i]>=0&&data.veteranBestWaves[i]<=10?data.veteranBestWaves[i]:0,
+      game.veteranStars[i]>0?10:0,
+      game.isVeteran&&i===game.chapter?Math.max(0,data.wave-(['running','paused','defeat'].includes(data.phase)?1:0)):0
+    ));
     for(const enemy of game.enemies){if(game.isVeteran)enemy.veteran=true;else{delete enemy.veteran;delete enemy.enraged;}}
     game.eventTeam=game.isEvent?[...new Set([...(Array.isArray(data.eventTeam)?data.eventTeam.filter(t=>typeof t==='string'&&Object.hasOwn(TOWERS,t)):[]),...game.towers.map(t=>t.type)])]:[];
     for(const[type,reward]of [['oak','lantern-oak'],['watchtower','web-watchtower']])game.seasonLooks[type]=data.seasonLooks?.[type]===true&&game.seasonRewards.includes(reward);
