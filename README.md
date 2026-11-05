@@ -40,6 +40,11 @@ The new collection preview changes growth from species-wide to individual number
 
 ## Fantasy forest build · v0.17
 
+- **Cutscene audio:** enable original music and forest effects inside the scene;
+  optional voice narration and replay use available device voices. Mute/skip and
+  tab/access changes stop playback; story pacing remains manual. See
+  [audio behavior and verification](docs/cutscene-audio.md).
+
 - **Combat motion pass:** distinct grounded guardian follow-through, Watchtower
   draw/reload, Cannon barrel recoil, directional human mini-bosses and
   distance-driven insect steps. Existing art is animated procedurally; combat

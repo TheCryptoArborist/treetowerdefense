@@ -10,6 +10,7 @@ import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,co
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 import {createStoryDirector,storyCheckpoint} from './story.js';
 import {createStoryAnimation} from './story-art.js';
+import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 
 const $ = id => document.getElementById(id);
@@ -69,26 +70,49 @@ const helpDialog = $('help-dialog');
 const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
 const storyAnimation=createStoryAnimation();
+let audioStorage;try{audioStorage=localStorage;}catch{}
+const gameAudio=createGameAudio({AudioContext:window.AudioContext||window.webkitAudioContext,
+ speech:window.speechSynthesis,Utterance:window.SpeechSynthesisUtterance,storage:audioStorage,onChange:renderAudioState});
+function renderAudioState(){
+ const s=gameAudio.state;
+ for(const id of ['sound-button','story-sound']){
+  const button=$(id);button.textContent=!s.available?'Audio unavailable':s.ready?(id==='story-sound'?'Mute audio':'Sound on'):(id==='story-sound'?'Enable audio':'Enable sound');
+  button.setAttribute('aria-pressed',String(s.ready));button.disabled=!s.available;
+  button.title=s.ready?'Mute music, effects and narration':'Enable music, effects and narration';
+ }
+ $('story-voice').checked=s.voiceEnabled;$('story-voice').disabled=!s.voiceSupported;
+ $('story-replay-audio').disabled=!s.ready||!s.canNarrate||!s.voiceEnabled||!s.sceneActive||s.hidden;
+ $('story-audio-status').textContent=s.error||(!s.available?'Audio is unavailable on this device. Story captions still work.':!s.ready?'Enable audio for music, forest sounds and narration.':
+  !s.voiceEnabled?'Music and forest sounds on · narration off.':!s.canNarrate?'Music on. No narration voice is available on this device.':
+  s.voiceError||({speaking:'Narration playing · music softened.',starting:'Starting narration…',interrupted:'Music on. Replay narration to hear this line again.',finished:'Narration finished. Continue when you’re ready.'}[s.voiceStatus]||'Music and narration enabled.'));
+}
+for(const id of ['sound-button','story-sound'])$(id).addEventListener('click',()=>{void gameAudio.toggle();});
+$('story-voice').onchange=()=>{gameAudio.setVoice($('story-voice').checked);if($('story-voice').checked&&!gameAudio.state.ready)void gameAudio.enable();};
+$('story-replay-audio').onclick=()=>gameAudio.replay();
+renderAudioState();
+window.canopyAccess.subscribe(account=>gameAudio.setHidden(document.hidden||!account||account.address!==holder.address));
 let storyEnabled=true,storyBeat=0,activeScene=null;
 try{storyEnabled=localStorage.getItem('canopy-story-enabled')!=='false';}catch{}
 $('story-enabled').checked=storyEnabled;
 $('story-enabled').onchange=()=>{storyEnabled=$('story-enabled').checked;try{localStorage.setItem('canopy-story-enabled',String(storyEnabled));}catch{}};
 function renderStoryBeat(){
  $('story-text').textContent=storyBeat===0?activeScene.narration:`“${activeScene.dialogue}”`;
- $('story-next').textContent=storyBeat===0?'Hear your guardian →':activeScene.ending?'See chapter results →':'Return to the battlefield →';
+ $('story-next').textContent=storyBeat===0?'Guardian dialogue →':activeScene.ending?'See chapter results →':'Return to the battlefield →';
  $('story-speaker').textContent=storyBeat===0?'THE FOREST REMEMBERS':TOWERS[activeScene.speaker].name;
+ gameAudio.setBeat(storyBeat);
 }
 const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
  blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open,
  enabled:()=>storyEnabled,
- render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
- onClose:()=>{storyAnimation.clear();save();renderUI();focusControl($('wave-button'));}
+ render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);gameAudio.openScene(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
+ onClose:()=>{gameAudio.closeScene();storyAnimation.clear();save();renderUI();focusControl($('wave-button'));}
 });
-$('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();}else stories.close();};
+$('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();}else stories.close();};
 $('story-skip').onclick=()=>stories.close();
-$('story-replay').onclick=()=>stories.open(storyCheckpoint(game),{replay:true});
+$('story-replay').onclick=()=>{if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();stories.open(storyCheckpoint(game),{replay:true});};
 function sendWave(){
  if(storyDialog.open||checkoutBusy)return;
+ if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();
  if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;
  act(()=>game.startWave());
 }
@@ -365,8 +389,9 @@ document.addEventListener('keydown', event => {
   else if (event.key.toLowerCase() === 'n') sendWave();
   else if (event.key === 'Escape') { selectedTower = null; selectedType = null; renderUI(); }
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
+document.addEventListener('visibilitychange', () => { gameAudio.setHidden(document.hidden||!game.access);if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
 window.addEventListener('pagehide', save);
+window.addEventListener('pagehide',()=>gameAudio.silence());
 
 for(const level of CAMPAIGN_LEVELS){
  const button=document.createElement('button');button.className='chapter-button';button.dataset.level=level.number;
@@ -406,23 +431,8 @@ function renderSeason(){
     seasonArtSignature=signature;
   }
 }
-let sound = false, audio = null, lastTone = 0;
-$('sound-button').addEventListener('click', () => {
-  try {
-    sound = !sound;
-    if (sound) { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); }
-    $('sound-button').textContent = sound ? 'Sound on' : 'Sound off'; $('sound-button').setAttribute('aria-pressed', String(sound));
-    if (sound) tone(420, .15);
-  } catch { sound = false; $('sound-button').textContent = 'Sound unavailable'; $('sound-button').disabled = true; }
-});
-function tone(frequency, duration = .08) {
-  if (!sound || !audio || audio.state !== 'running' || document.hidden) return;
-  const oscillator = audio.createOscillator(), gain = audio.createGain();
-  oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(frequency, audio.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(frequency * .6, audio.currentTime + duration);
-  gain.gain.setValueAtTime(.035, audio.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
-  oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(); oscillator.stop(audio.currentTime + duration);
-}
+let lastTone=0;
+function tone(frequency,duration=.08){gameAudio.tone(frequency,duration);}
 let cardSignature = '';
 loadEnvironmentArt();
 loadEnemyArt().then(() => { scoutSignature = ''; renderUI(); });
@@ -760,6 +770,7 @@ function frame(now) {
   draw(now / 1000, dt);
   if(storyDialog.open&&!document.hidden){
     storyAnimation.advance(dt);
+    gameAudio.tick(storyAnimation.seconds,{reducedMotion});
     const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion,beat:storyBeat});
     if(frame&&$('story-shot').textContent!==frame.label)$('story-shot').textContent=frame.label;
   }
