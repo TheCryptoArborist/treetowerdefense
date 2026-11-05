@@ -46,7 +46,7 @@ Holder desktop/phone acceptance remains pending. Bespoke limb/weapon animation
 atlases, blended mini-boss turns and character-specific death sequences remain
 possible later art improvements; this pass does not claim them complete.
 
-Deployment evidence is recorded separately after test-route publication.
+Deployment evidence: [verified test release](../integration/tree-arcade/combat-motion-release-receipt.json).
 
 ## Publication recovery
 
@@ -59,3 +59,18 @@ without the checkout's dependencies. Node 24 matches the preceding live test
 backend; package staging preserves that runtime. Regression coverage also checks
 that the test entry discloses real TREE and SUI gas in both its banner and gate,
 while the regular simulated entry is unchanged.
+
+## Published test route
+
+Live at https://tree-token.xyz/play/canopy-defense/checkout-test/. Backend
+`6aecf70daad207deed8d6aa4`, canonical routing `6aecf77eb8248a2d2846f3a3`.
+The uploaded function matches the verified self-contained ZIP. Test runtime,
+memory, region and database branch match the preceding test backend. Linux,
+Windows and PostgreSQL checks passed at validation commit `c39e1c9`.
+
+All 43 existing production function identities/configurations and all five
+schedules are unchanged; all 299 static paths remain, with only `/_redirects`
+changed. The live gate, real-TREE notices, assets and anonymous access controls
+passed. The regular simulated game is preserved. No wallet signature, payment
+or production database migration was initiated. Holder gameplay, phone and
+real-purchase/recovery acceptance remain pending.

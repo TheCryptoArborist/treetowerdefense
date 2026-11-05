@@ -57,11 +57,11 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aecab809924c531a486d91e",
-    "upstreamDeployId": "6aecaab7cc70d5c4903fa917",
-    "backendSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
-    "releaseSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
-    "existingStaticFilesPreserved": 292,
+    "productionDeployId": "6aecf77eb8248a2d2846f3a3",
+    "upstreamDeployId": "6aecf70daad207deed8d6aa4",
+    "backendSourceCommit": "d6b72442b872c7a9eed31bcc79a991f4ef1380f4",
+    "releaseSourceCommit": "c39e1c9c64644a16e71a9279ef1c84c79113bf6c",
+    "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
     "newStaticFiles": [],
@@ -71,8 +71,8 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
-    "existingStaticEntriesRetained": 293
+    "gameplaySourceCommit": "6e0d42f1249c135b275aca061417340ed95c22b1",
+    "existingStaticEntriesRetained": 299
   },
   "gatewayRedesign": {
     "art": "Existing Oak Guardian game artwork and forest terrain",
@@ -645,5 +645,170 @@
     "walletTransactionInitiated": false,
     "productionDatabaseChanged": false,
     "regularGamePromoted": false
+  },
+  "combatMotionRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "gameplaySourceCommit": "6e0d42f1249c135b275aca061417340ed95c22b1",
+    "packageSourceCommit": "d6b72442b872c7a9eed31bcc79a991f4ef1380f4",
+    "validationCommit": "c39e1c9c64644a16e71a9279ef1c84c79113bf6c",
+    "backendDeployId": "6aecf70daad207deed8d6aa4",
+    "productionRoutingDeployId": "6aecf77eb8248a2d2846f3a3",
+    "previousProductionRoutingDeployId": "6aecd939bda31b9caab62bf8",
+    "functionDigest": "0acee1fb09041931201da852cfd27141a54f0c685da84bd8233f75c43eb0253b",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 253,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42114625295,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "balanceScenariosUnchanged": 84,
+    "renderedDefenderCombinations": 1152,
+    "reducedMotionStatic": true,
+    "packageIsolatedImport": "passed",
+    "packageEntries": 676,
+    "packageBytes": 1678640,
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "realTreeNotice": true,
+        "realTreeBanner": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/enemies/ironroot-walk-v1.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/enemies/chainsaw-raider-walk-v1.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/enemies/blight-sprayer-walk-v1.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/defender-motion.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "originVerification": [
+      {
+        "origin": "https://tree-token.xyz",
+        "status": 200,
+        "canonicalOriginBound": true
+      },
+      {
+        "origin": "https://wrong-origin.example",
+        "status": 403
+      }
+    ],
+    "fixedInterruptedStagedDeploy": "6aecd1ed709f274c1e1f2fd6",
+    "interruptedFailure": "Archive contained a checkout-local node_modules link instead of deployed dependencies; backend was not linked from the canonical test route.",
+    "deploymentOnlyFlags": [
+      "CANOPY_CANONICAL_CHECKOUT_PREVIEW",
+      "CANOPY_CHECKOUT_ENABLED",
+      "CANOPY_INDIVIDUAL_DEFENDERS"
+    ],
+    "globalEnvironmentChanged": false,
+    "productionDatabaseChanged": false,
+    "regularGamePromoted": false,
+    "walletTransactionInitiated": false,
+    "holderDesktopAndPhoneAcceptance": "pending",
+    "realPurchaseAndRecoveryAcceptance": "pending",
+    "animationLimit": "Procedural performances of existing directional art; not new hand-painted or skeletal attack atlases.",
+    "previewLimit": "Offline native renderer; not authenticated holder gameplay.",
+    "browserGateVerified": true,
+    "canonicalHttpVerification": {
+      "checks": [
+        {
+          "path": "index.html",
+          "status": 200,
+          "realTreeBanner": true,
+          "realTreeNotice": true
+        },
+        {
+          "path": "styles.css",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "gateway.js",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "assets/enemies/chainsaw-raider-walk-v1.png",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "assets/enemies/blight-sprayer-walk-v1.png",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "src/app.js",
+          "status": 401
+        },
+        {
+          "path": "src/defender-motion.js",
+          "status": 401
+        },
+        {
+          "path": "api/access",
+          "status": 401
+        },
+        {
+          "path": "api/payments",
+          "status": 401
+        }
+      ],
+      "regularSimulatedRoutePreserved": true
+    }
   }
 }
