@@ -71,6 +71,7 @@ const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
 const storyAnimation=createStoryAnimation();
 let audioStorage;try{audioStorage=localStorage;}catch{}
+let narrationVoiceSignature='';
 const gameAudio=createGameAudio({AudioContext:window.AudioContext||window.webkitAudioContext,
  speech:window.speechSynthesis,Utterance:window.SpeechSynthesisUtterance,storage:audioStorage,onChange:renderAudioState});
 function renderAudioState(){
@@ -81,6 +82,16 @@ function renderAudioState(){
   button.title=s.ready?'Mute music, effects and narration':'Enable music, effects and narration';
  }
  $('story-voice').checked=s.voiceEnabled;$('story-voice').disabled=!s.voiceSupported;
+ $('story-voice-style').value=s.narrationStyle;
+ const voiceSelect=$('story-voice-select'),signature=JSON.stringify(s.voiceChoices);
+ if(signature!==narrationVoiceSignature){
+  narrationVoiceSignature=signature;voiceSelect.replaceChildren();
+  for(const voice of [{id:'',name:'Automatic',lang:''},...s.voiceChoices]){
+   const option=document.createElement('option');option.value=voice.id;option.textContent=voice.lang?`${voice.name} (${voice.lang})`:voice.name;voiceSelect.append(option);
+  }
+ }
+ voiceSelect.value=s.narrationVoice;voiceSelect.disabled=!s.canNarrate;
+ voiceSelect.title=s.voiceChoices.find(v=>v.id===s.narrationVoice)?.name||'Automatic device voice';
  $('story-replay-audio').disabled=!s.ready||!s.canNarrate||!s.voiceEnabled||!s.sceneActive||s.hidden;
  $('story-audio-status').textContent=s.error||(!s.available?'Audio is unavailable on this device. Story captions still work.':!s.ready?'Enable audio for music, forest sounds and narration.':
   !s.voiceEnabled?'Music and forest sounds on · narration off.':!s.canNarrate?'Music on. No narration voice is available on this device.':
@@ -89,6 +100,8 @@ function renderAudioState(){
 for(const id of ['sound-button','story-sound'])$(id).addEventListener('click',()=>{void gameAudio.toggle();});
 $('story-voice').onchange=()=>{gameAudio.setVoice($('story-voice').checked);if($('story-voice').checked&&!gameAudio.state.ready)void gameAudio.enable();};
 $('story-replay-audio').onclick=()=>gameAudio.replay();
+$('story-voice-style').onchange=()=>gameAudio.setNarrationStyle($('story-voice-style').value);
+$('story-voice-select').onchange=()=>gameAudio.setNarrationVoice($('story-voice-select').value);
 renderAudioState();
 window.canopyAccess.subscribe(account=>gameAudio.setHidden(document.hidden||!account||account.address!==holder.address));
 let storyEnabled=true,storyBeat=0,activeScene=null;

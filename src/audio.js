@@ -2,6 +2,11 @@
 const hz=midi=>440*2**((midi-69)/12);
 const keys={crossing:50,meadow:55,marsh:40,harvest:45};
 const voices={narrator:[.94,.94,0],oak:[.96,.82,1],pine:[1.02,1.08,2],palm:[.98,1.02,3],cypress:[.96,.92,1],mushroom:[1.02,1.15,2],willow:[.92,.88,3]};
+// Generic original delivery presets, not impressions of a performer or character.
+export function narrationProfile(speaker,style='heroic'){
+ const [rate,pitch,index]=voices[speaker]||voices.narrator;
+ return style==='natural'?{rate,pitch,index}:{rate:Math.max(.82,Math.min(.98,rate*.92)),pitch:Math.max(.72,Math.min(.95,pitch*.82)),index};
+}
 export function sceneAudioCues(scene){
  const root=keys[scene.tone]??50;
  return [
@@ -20,15 +25,19 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
  setTimer=setTimeout,clearTimer=clearTimeout}={}){
  const read=(key,fallback)=>{try{const v=storage?.getItem(key);return v===null||v===undefined?fallback:v==='true';}catch{return fallback;}};
  const write=(key,v)=>{try{storage?.setItem(key,String(v));}catch{}};
+ const readText=key=>{try{return storage?.getItem(key)||'';}catch{return '';}};
  let enabled=read('canopy-sound-enabled',false),voiceEnabled=read('canopy-voice-enabled',true);
+ let narrationStyle=readText('canopy-narration-style')==='natural'?'natural':'heroic',voiceChoice=readText('canopy-narration-voice');
  let context=null,music=null,noise=null,unlocked=false,hidden=false,disposed=false,error='';
  let scene=null,beat=0,seconds=0,played=new Set(),utterance=null,voiceToken=0,voiceTimer=null;
  let voiceStatus='idle',voiceError='',spokenKey='',sceneId=0,attempt=0;
  const nodes=new Set();
  const english=()=>{try{return (speech?.getVoices()||[]).filter(v=>/^en(?:-|_)?/i.test(v.lang)).sort((a,b)=>Number(b.localService)-Number(a.localService)||Number(b.default)-Number(a.default)||a.name.localeCompare(b.name));}catch{return [];}};
+ const voiceId=v=>v.voiceURI||`${v.name}::${v.lang}`;
  const ready=()=>!disposed&&enabled&&unlocked&&!hidden&&context?.state==='running';
- function state(){return {enabled,ready:ready(),available:!!AudioContext&&!disposed,voiceEnabled,
-  voiceSupported:!!speech?.speak&&!!Utterance,canNarrate:!!speech?.speak&&!!Utterance&&english().length>0,voiceStatus,voiceError,error,
+ function state(){const list=english();return {enabled,ready:ready(),available:!!AudioContext&&!disposed,voiceEnabled,narrationStyle,
+  voiceChoices:list.map(v=>({id:voiceId(v),name:v.name,lang:v.lang})),narrationVoice:list.some(v=>voiceId(v)===voiceChoice)?voiceChoice:'',
+  voiceSupported:!!speech?.speak&&!!Utterance,canNarrate:!!speech?.speak&&!!Utterance&&list.length>0,voiceStatus,voiceError,error,
   sceneActive:!!scene,hidden};}
  const notify=()=>{try{onChange(state());}catch{}};
  const duck=on=>{try{music?.gain.setTargetAtTime(on ? .36 : 1,context.currentTime,.06);}catch{}};
@@ -89,9 +98,10 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   if(utterance||spokenKey===key)return;
   const list=english();
   if(!speech?.speak||!Utterance||!list.length){voiceStatus='unavailable';notify();return;}
-  const profile=voices[beat?scene.speaker:'narrator']||voices.narrator,token=++voiceToken;
+  const profile=narrationProfile(beat?scene.speaker:'narrator',narrationStyle),token=++voiceToken;
   const u=new Utterance(beat?scene.dialogue:scene.narration);utterance=u;spokenKey=key;voiceError='';voiceStatus='starting';
-  u.lang='en-US';u.rate=profile[0];u.pitch=profile[1];u.volume=.9;u.voice=list[profile[2]%list.length];
+  u.rate=profile.rate;u.pitch=profile.pitch;u.volume=.9;
+  u.voice=list.find(v=>voiceId(v)===voiceChoice)||list[profile.index%list.length];u.lang=u.voice.lang||'en-US';
   const current=()=>utterance===u&&voiceToken===token&&!!scene&&enabled&&!hidden&&!disposed;
   u.onstart=()=>{if(!current())return;clearVoiceTimer();voiceStatus='speaking';duck(true);notify();};
   u.onend=()=>{if(!current())return;clearVoiceTimer();utterance=null;voiceStatus='finished';duck(false);notify();};
@@ -144,6 +154,8 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
    }
   },
   setVoice(value){voiceEnabled=!!value;write('canopy-voice-enabled',voiceEnabled);stopVoice();spokenKey='';voiceError='';if(voiceEnabled)speakCurrent();notify();},
+  setNarrationStyle(value){if(!['heroic','natural'].includes(value))return false;narrationStyle=value;write('canopy-narration-style',value);stopVoice();spokenKey='';voiceError='';speakCurrent();notify();return true;},
+  setNarrationVoice(value){if(value!==''&&!english().some(v=>voiceId(v)===value))return false;voiceChoice=value;write('canopy-narration-voice',value);stopVoice();spokenKey='';voiceError='';speakCurrent();notify();return true;},
   replay(){stopVoice();spokenKey='';voiceError='';speakCurrent();},closeScene,
   setHidden(value){if(hidden===!!value)return;hidden=!!value;if(hidden){stopVoice(scene?'interrupted':'idle');stopNodes();}else if(scene&&ready())bed();notify();},
   tone(frequency,duration=.08){if(!scene)note(frequency,duration,{end:frequency*.6,forScene:false,level:.035});},

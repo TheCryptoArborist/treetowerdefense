@@ -16,6 +16,13 @@ dialogue** so it remains truthful when narration is unavailable or muted.
 - Optional speech uses available English device/browser voices, with restrained
   per-guardian pitch/rate choices. It is not recorded actor voiceover. Local
   voices are preferred; actual voice availability and sound vary by device.
+- **Heroic announcer** is the default original delivery: lower pitch, slower
+  pacing and restrained per-guardian variation. **Natural storyteller** restores
+  the earlier delivery. Neither preset is a replica of a performer or character.
+  The in-scene voice picker lists only available English device voices, with
+  Automatic as a fallback. Changing delivery or voice auditions the current line
+  when audio/narration are enabled; it never unmutes or advances the scene.
+  Delivery and voice choice are remembered independently of wallet/game data.
 - Sound stays opt-in. Preferences persist, while each new page requires a click
   to unlock playback. A rejected/suspended audio context does not falsely show
   playback as enabled. The status explains unavailable or blocked narration.
@@ -29,8 +36,8 @@ dialogue** so it remains truthful when narration is unavailable or muted.
 
 ## Verification
 
-264 local tests pass, zero failures, one existing Windows-only skip on Linux.
-Ten audio regressions cover opt-in, persisted preferences, cancellation, stale
+267 local tests pass, zero failures, one existing Windows-only skip on Linux.
+Thirteen audio regressions cover opt-in, persisted preferences, cancellation, stale
 callbacks, missing/delayed voices, silent speech startup, autoplay rejection,
 hidden/ownership holds, reduced motion and manual progression. Syntax checks and
 the protected function build pass.

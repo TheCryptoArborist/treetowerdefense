@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGameAudio,sceneAudioCues} from '../src/audio.js';
+import {createGameAudio,sceneAudioCues,narrationProfile} from '../src/audio.js';
 import {Game} from '../src/engine.js';
 import {storyScene} from '../src/story.js';
 const scene=()=>storyScene(new Game(),0);
@@ -113,4 +113,37 @@ test('finishing speech never advances a wave, and teardown prevents late voices 
  const x=setup(),game=new Game(),before=game.snapshot();await x.audio.enable();x.audio.openScene(storyScene(game,0));
  x.utterances[0].onend();assert.deepEqual(game.snapshot(),before);assert.equal(x.audio.state.sceneActive,true);
  x.audio.dispose();const n=x.utterances.length;x.speech.dispatchEvent(new Event('voiceschanged'));x.flush();assert.equal(x.utterances.length,n);assert.equal(x.contexts[0].state,'closed');
+});
+
+test('Heroic announcer delivery is deeper and slower, with restrained bounds for every guardian',()=>{
+ for(const speaker of ['narrator','oak','pine','palm','cypress','mushroom','willow']){
+  const natural=narrationProfile(speaker,'natural'),heroic=narrationProfile(speaker,'heroic');
+  assert.ok(heroic.pitch<natural.pitch);assert.ok(heroic.rate<natural.rate);
+  assert.ok(heroic.pitch>=.72&&heroic.pitch<=.95);assert.ok(heroic.rate>=.82&&heroic.rate<=.98);
+  assert.equal(heroic.index,natural.index);
+ }
+});
+
+test('delivery changes replay only the current line and persist without unmuting or restarting the scene',async()=>{
+ const x=setup();await x.audio.enable();x.audio.openScene(scene());
+ assert.equal(x.audio.state.narrationStyle,'heroic');const original=x.utterances[0];
+ x.audio.setNarrationStyle('natural');assert.equal(x.utterances.length,2);assert.equal(x.utterances[1].text,original.text);
+ assert.ok(x.utterances[1].pitch>original.pitch);assert.ok(x.utterances[1].rate>original.rate);assert.equal(x.prefs.get('canopy-narration-style'),'natural');
+ original.onend();assert.equal(x.audio.state.voiceStatus,'starting');
+ const before=x.utterances.length;assert.equal(x.audio.setNarrationStyle('unsupported'),false);assert.equal(x.utterances.length,before);
+ x.audio.mute();x.audio.setNarrationStyle('heroic');assert.equal(x.utterances.length,before);assert.equal(x.audio.state.ready,false);x.audio.dispose();
+ const restored=setup({preferences:{'canopy-narration-style':'natural'}});assert.equal(restored.audio.state.narrationStyle,'natural');assert.equal(restored.contexts.length,0);restored.audio.dispose();
+});
+
+test('voice selection uses only available English voices and remains selected across dialogue and reload',async()=>{
+ const low={voiceURI:'voice-low',name:'Low device voice',lang:'en-GB',localService:true},other={voiceURI:'voice-other',name:'Other device voice',lang:'en-US',localService:true};
+ const x=setup();x.speech.voices=[low,other,{voiceURI:'voice-fr',name:'French',lang:'fr-FR'}];
+ await x.audio.enable();x.audio.openScene(scene());assert.equal(x.audio.state.voiceChoices.length,2);
+ assert.equal(x.audio.setNarrationVoice('voice-low'),true);assert.equal(x.utterances.at(-1).voice,low);assert.equal(x.utterances.at(-1).lang,'en-GB');
+ x.audio.setBeat(1);assert.equal(x.utterances.at(-1).voice,low);assert.equal(x.utterances.at(-1).text,scene().dialogue);
+ assert.equal(x.audio.setNarrationVoice('voice-fr'),false);assert.equal(x.audio.state.narrationVoice,'voice-low');
+ const saved=Object.fromEntries(x.prefs);x.audio.dispose();
+ const restored=setup({preferences:saved});restored.speech.voices=[low,other];restored.audio.openScene(scene());assert.equal(restored.contexts.length,0);
+ await restored.audio.enable();assert.equal(restored.utterances[0].voice,low);assert.equal(restored.audio.state.narrationVoice,'voice-low');
+ restored.speech.voices=[];restored.speech.dispatchEvent(new Event('voiceschanged'));assert.equal(restored.audio.state.narrationVoice,'');assert.equal(restored.audio.state.canNarrate,false);restored.audio.dispose();
 });
