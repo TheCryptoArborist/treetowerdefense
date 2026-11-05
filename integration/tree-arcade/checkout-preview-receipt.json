@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aeca3a49e359f82ebf586db",
-    "upstreamDeployId": "6aeca2d705b5f9de8a54917f",
-    "backendSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
-    "releaseSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
+    "productionDeployId": "6aecab809924c531a486d91e",
+    "upstreamDeployId": "6aecaab7cc70d5c4903fa917",
+    "backendSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
+    "releaseSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
     "existingStaticFilesPreserved": 292,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "63d077066a2a34aafb44d5da4f8eaf13e3a856d6",
+    "gameplaySourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
     "existingStaticEntriesRetained": 293
   },
   "gatewayRedesign": {
@@ -598,6 +598,52 @@
     "balanceScenariosUnchanged": 84,
     "holderVisualAcceptance": "pending",
     "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "playtestCorrectionsRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
+    "backendDeployId": "6aecaab7cc70d5c4903fa917",
+    "productionRoutingDeployId": "6aecab809924c531a486d91e",
+    "previousProductionRoutingDeployId": "6aeca3a49e359f82ebf586db",
+    "functionDigest": "739cef1958413b1b2f2e79059fd96cec0b0ce100109df94bf353fa13b84506fb",
+    "localTests": {
+      "passed": 244,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": [
+      {
+        "run": 42061903770,
+        "conclusion": "success"
+      },
+      {
+        "run": 42061897543,
+        "conclusion": "success"
+      }
+    ],
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 293,
+    "unchangedStaticFiles": 292,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "canonicalChallenge": 200,
+    "wrongOriginChallenge": 403,
+    "anonymousGameSource": 401,
+    "anonymousStorySource": 401,
+    "anonymousPayments": 401,
+    "indexMatchesBuildExceptUnchangedSiteSnippet": true,
+    "stylesAndGatewayMatch": true,
+    "placement": "Prefer level-one copies; explicitly selected upgrades and verified legacy grants retain purchased levels",
+    "oak": "Fifteen atlas fist sockets, mirrored for all eight directions at three levels; fallback hand corrected",
+    "story": "Twelve-second three-shot animation, separate paused-battle clock, skip/replay/preference and fixed reduced-motion composition",
+    "reference": "Inspected self-extracting DOS game and compiled ACT/BIN/S32 assets; no editable source; original implementation, full DOS scene playback not verified",
+    "holderDesktopAndPhoneAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "productionDatabaseChanged": false,
     "regularGamePromoted": false
   }
 }
