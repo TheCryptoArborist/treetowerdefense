@@ -1,0 +1,44 @@
+{
+  "fixture": "Veteran Moonlit Marsh, actual final wave after nine simulated waves",
+  "ownedGrowth": "Ancient, all species",
+  "collectionVersion": 1,
+  "consumables": 0,
+  "treeSpent": 0,
+  "peak": {
+    "count": 23,
+    "time": 13.05,
+    "kinds": {
+      "blight": 6,
+      "termite": 4,
+      "beetle": 7,
+      "moth": 5,
+      "boss": 1
+    }
+  },
+  "enrageAt": 40.3,
+  "typesSeen": [
+    "termite",
+    "beetle",
+    "moth",
+    "blight",
+    "boss"
+  ],
+  "outcome": "victory",
+  "health": 46,
+  "fullWaveSeconds": 52.95,
+  "windows": [
+    {
+      "name": "Crowded escort",
+      "start": 10.05,
+      "end": 22.05
+    },
+    {
+      "name": "Boss enrage",
+      "start": 37.3,
+      "end": 49.3
+    }
+  ],
+  "clipSeconds": 24.1,
+  "bytes": 956368,
+  "verificationLimit": "Offline native renderer, not a hosted holder session; 390px image is a scaled battlefield, not phone UI acceptance."
+}

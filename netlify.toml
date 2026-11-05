@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build:gate && node tools/prepare-checkout-preview.mjs"
+  publish = ".netlify/checkout-site"
+[build.environment]
+  AWS_LAMBDA_JS_RUNTIME = "nodejs22.x"
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+[context.production]
+  command = "node tools/refuse-production.mjs"
+[[plugins]]
+  package = "./tools/netlify-canopy-package"
+[context.deploy-preview.environment]
+  CANOPY_CANONICAL_CHECKOUT_PREVIEW = "true"

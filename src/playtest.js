@@ -1,4 +1,4 @@
-import { TOWERS, PRICES, GROWTH_NAMES, waveLineup, eventLineup } from './engine.js';
+import { TOWERS, PRICES, GROWTH_NAMES, waveLineup, eventLineup, pestTier, MINI_BOSSES, miniBossFor } from './engine.js';
 
 const PEST_GUIDE = {
   termite: { name: 'Termites', trait: 'Steady march', counter: 'Pine gives reliable coverage; Oak hits clusters.' },
@@ -20,19 +20,45 @@ const WAVE_BRIEFINGS = [
   ['Last stand', 'The largest mixed escort so far approaches. Poison suppresses blight recovery while armor-piercing bolts handle beetles. Prepare for the King next.'],
   ['Blight King', 'The King follows a mixed escort. Combine damage, poison, and Palm slows; protect the final bends.']
 ];
-export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign') {
-  const event = mode === 'haunted-grove';
-  const lineup = event ? eventLineup(wave) : waveLineup(chapter, wave);
+const VETERAN_BRIEFINGS = [
+  ['Veteran first roots', 'The opening termites are tougher and faster. Use overlapping coverage and expand with earned Sap.'],
+  ['Reinforced advance', 'Reinforced beetles resist ordinary direct hits by an extra 30%. Watchtower and Cypress bypass that extra shell; poison damage also bypasses it.'],
+  ['Veteran moth rush', 'Faster moths race alongside reinforced beetles. Combine Palm slows, Fastest targeting and piercing coverage.'],
+  ['Relentless blight', 'Blight regenerates between hits while reinforced beetles absorb ordinary fire. Keep Mushroom poison and overlapping coverage along the route.'],
+  ['Combined pressure', 'Armor, speed and regeneration arrive together with shorter gaps. Spread different defender roles across the bends.'],
+  ['Pierce the escort', 'The reinforced escort needs sustained damage. Pair Watchtower or Cypress with poison and protect the final bends.'],
+  ['Veteran wing surge', 'Dashing moths lead a tougher escort. Use Fastest targeting on a rapid-fire defender and keep Palm slows near survivors.'],
+  ['Break the shell', 'Beetles and moths pressure the route together. Combine piercing damage with slows instead of filling every site with the same defender.'],
+  ['Hold the rear', 'The final mixed escort tests your whole formation. Cover the exit and prepare slows for the boss next.'],
+  ['Enraging Blight King', 'The King moves another 30% faster below half health. Keep Palm slows and damage on the final bends; piercing and poison handle its escort.']
+];
+function pestDetails(kind, veteran) {
+  const info = PEST_GUIDE[kind];
+  if (!veteran) return info;
+  if (kind === 'beetle') return { ...info, trait: 'Reinforced shell · extra 30% direct-hit resistance', counter: 'Watchtower and Cypress bypass the extra shell; poison damage bypasses direct-hit resistance. Keep sustained coverage for the remaining armor.' };
+  if (kind === 'boss') return { ...info, trait: 'Enrages below half health · +30% speed', counter: 'The King accelerates below half health. Reserve Palm slows and overlapping damage for the final bends.' };
+  return info;
+}
+export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', difficulty = 'standard', encounters=enemyRules===1?1:0) {
+  const harvest=mode==='harvest-canopy',event = harvest||mode==='haunted-grove';
+  const veteran = difficulty === 'veteran' && !event;
+  const lineup = event ? eventLineup(wave,mode) : waveLineup(chapter, wave, encounters);
   const groups = Object.entries(PEST_GUIDE).flatMap(([kind, info]) => {
     const count = lineup.filter(pest => pest === kind).length;
     const legacy = enemyRules === 0 && ['moth','blight'].includes(kind);
-    let details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : info;
-    if(event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
-    return count ? [{ kind, count, ...details }] : [];
+    let details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : pestDetails(kind, veteran);
+    if(harvest)details={...details,name:{termite:'Leaf borers',beetle:'Bark beetles',moth:'Autumn moths',blight:'Harvest blight',boss:'Hollow Harvester'}[kind]};
+    else if(event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
+    const miniBoss=kind==='boss'?miniBossFor(chapter,wave,mode,encounters):null;
+    if(miniBoss)details={...MINI_BOSSES[miniBoss],trait:MINI_BOSSES[miniBoss].trait+(veteran?' · Enrages below half health':''),miniBoss};
+    const appearanceTier=pestTier(chapter,wave,mode);
+    return count ? [{ kind, count, ...details, appearanceTier, trait:enemyRules===0?details.trait:`${['Broodling','Hardened','Elite'][appearanceTier]} · ${details.trait}` }] : [];
   });
   const eventBriefings=[['Lantern watch','Dusk termites and two moths test the entrance. Start with Pine and Oak, then reinforce a later bend.'],['Hollow armor','Four armored beetles approach. The earned Watchtower ignores their armor; sustained fire also works.'],['Dusk swarm','Dense termites and six dashing moths approach. Oak splash and Palm slows help cover the rush.'],['Webbed escort','Blight regenerates between hits. Mushroom poison suppresses recovery; keep several bends covered.'],['Hollow King','The Hollow King follows twenty escorts. Spread damage and slows along the route. Finish with 80 health for Lantern Oak; use three defender types for the web-carved Watchtower.']];
-  const [title, tip] = lineup.length ? (event?eventBriefings:WAVE_BRIEFINGS)[wave-1] : ['', ''];
-  return { wave, title, total: lineup.length, groups, tip: enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : tip };
+  const harvestBriefings=[['Seed watch','Leaf borers and two armored bark beetles approach. Start with Pine and Oak.'],['Bark armor','Five beetles test your sustained damage. Watchtower armor-piercing bolts help break the escort.'],['Autumn flight','Seven dashing moths surge between beetles. Use Palm slows and overlapping coverage.'],['Blighted harvest','Five blight pests regenerate between hits. Mushroom poison suppresses recovery.'],['Hollow Harvester','The Harvester follows twenty escorts. Spread damage along the route. Finish at 80 health for Copperleaf Oak, use three defender types for Harvest banners, or finish at 100 for the amber Tree of Life.']];
+  const [title, tip] = lineup.length ? (harvest?harvestBriefings:event?eventBriefings:veteran?VETERAN_BRIEFINGS:WAVE_BRIEFINGS)[wave-1] : ['', ''];
+  const mini=miniBossFor(chapter,wave,mode,encounters);
+  return { wave, title:mini?MINI_BOSSES[mini].name+' incoming':title, total: lineup.length, groups, tip: mini?MINI_BOSSES[mini].counter+' Defeat it for 150 Sap; a breach costs 25 health. '+(veteran?'':tip+' ')+(veteran?'VETERAN · 2.4× health · 18% faster; enrages below half health.':''):enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : veteran && lineup.length ? `VETERAN · 2.4× health · 18% faster movement · 30% shorter spawn gaps. ${tip}` : tip };
 }
 
 export function starterTip(game) {
@@ -61,8 +87,8 @@ export function purchaseQuote(game, kind, towerId = null) {
     const tower = game.towers.find(item => item.id === towerId);
     if (!tower || tower.level >= 3) return { available: false, reason: 'This guardian cannot grow further.' };
     cost = game.upgradeCost(tower);
-    title = `Grow all ${TOWERS[tower.type].name} guardians`;
-    description = `${GROWTH_NAMES[tower.level - 1]} → ${GROWTH_NAMES[tower.level]}. Applies to every current and future ${TOWERS[tower.type].name}, and stays across runs.`;
+    title = game.collection?`Grow ${TOWERS[tower.type].name} #${tower.defenderSlot+1}`:`Grow all ${TOWERS[tower.type].name} guardians`;
+    description = `${GROWTH_NAMES[tower.level - 1]} → ${GROWTH_NAMES[tower.level]}. ${game.collection?'Only this numbered defender improves; its level stays across runs.':`Applies to every current and future ${TOWERS[tower.type].name}, and stays across runs.`}`;
     if (!active) reason = 'Start or resume a run before growing guardians.';
   } else if (Object.hasOwn(PRICES, kind)) {
     cost = PRICES[kind];
@@ -107,14 +133,19 @@ export class PurchaseReview {
 }
 
 
-const REWARD_NAMES = { 'grove-badge': 'Grove Defender badge', 'lantern-oak': 'Lantern Oak look', 'web-watchtower': 'Web-carved Watchtower look' };
+const REWARD_NAMES = { 'harvest-badge':'Harvest Defender badge','copperleaf-oak':'Copperleaf Oak look','harvest-watchtower':'Harvest Watchtower banners','amber-life-tree':'Amber Tree of Life look', 'grove-badge': 'Grove Defender badge', 'lantern-oak': 'Lantern Oak look', 'web-watchtower': 'Web-carved Watchtower look' };
 export function battleReport(game) {
   const r = game.runReport;
-  const leaks = Object.entries(r.leaks).filter(([,count]) => count > 0).map(([kind,count]) => ({ kind, count, name: kind === 'boss' && game.isEvent ? 'Hollow King' : PEST_GUIDE[kind].name, counter: PEST_GUIDE[kind].counter }));
+  const leaks = Object.entries(r.leaks).filter(([,count]) => count > 0).map(([kind,count]) => ({ kind, count, name: kind === 'boss' && game.isEvent ? game.bossName : PEST_GUIDE[kind].name, counter: pestDetails(kind, game.isVeteran).counter }));
   const worst = [...leaks].sort((a,b) => b.count-a.count)[0];
   const next = Object.keys(TOWERS).find(type => !game.isUnlocked(type));
   let goal = next ? `${TOWERS[next].name}: ${game.unlockStatus(next).label} (${game.unlockStatus(next).current}/${game.unlockStatus(next).goal}).` : 'Full roster earned. Improve chapter stars or try another defender combination.';
   if (game.isEvent) goal = !game.seasonRewards.includes('grove-badge') ? 'Clear all five Haunted Grove waves to earn the Grove Defender badge.' : !game.seasonRewards.includes('lantern-oak') ? 'Finish Haunted Grove with at least 80 health to earn Lantern Oak.' : !game.seasonRewards.includes('web-watchtower') ? 'Win Haunted Grove after planting three defender types to earn the Web-carved Watchtower.' : 'All Haunted Grove rewards earned. Equip your looks in the event panel.';
+  if(game.isHarvest)goal=game.harvestRewards.length===4?'All Harvest rewards earned. Equip your looks in the event panel.':'Protect five Harvest waves; finish at 80 health for Copperleaf Oak, plant three defender types for Harvest banners, and finish at 100 health for the amber Tree of Life.';
+  if(game.isVeteran){
+    const stars=game.veteranStars.reduce((a,b)=>a+b,0);
+    goal=stars===9?'All nine Veteran stars earned. Try a different formation or return for seasonal challenges.':`Earn all nine Veteran stars (${stars}/9). Finish each chapter with at least 80 health for three stars. Counter shells with piercing and poison; reserve slow coverage for enraging bosses.`;
+  }
   return { ...r, leaks, earned: [...r.unlocks.map(type => TOWERS[type].name), ...r.rewards.map(reward => REWARD_NAMES[reward])], goal,
     tip: worst ? worst.counter : 'Your defense stopped every recorded pest. Try a different formation or pursue your next unlock.' };
 }

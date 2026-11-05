@@ -23,7 +23,7 @@ test('kill rewards and wave bonus count once, but initial Sap and refunds are ex
 test('all campaign report totals agree with real kills and cleared waves',()=>{
  for(let chapter=0;chapter<3;chapter++){
   const result=simulateDefense(chapter,BALANCE_PROFILES.sapMixed);const g=Game.restore(result.snapshot);
-  assert.equal(g.phase,'victory');assert.equal(g.runReport.cleared,10);assert.equal(g.runReport.sapEarned,(g.kills-1)*12+150+850);assert.equal(g.runReport.treeSpent,0);
+  assert.equal(g.phase,'victory');assert.equal(g.runReport.cleared,10);assert.equal(g.runReport.sapEarned,(g.kills-3)*12+3*150+850);assert.equal(g.runReport.treeSpent,0);
   const report=battleReport(g);assert.ok(report.goal);assert.equal(report.complete,true);
  }
 });

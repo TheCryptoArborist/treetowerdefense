@@ -1,4 +1,5 @@
 export const GUARDIAN_SCALE = 1.04;
+// Lifetime of the fading, already-resolved strike. Never a damage/travel delay.
 export const SHOT_DURATION = .32;
 
 // Clockwise around the ground plane, starting with screen-down/front.

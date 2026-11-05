@@ -1,0 +1,649 @@
+{
+  "release": "Canopy TREE checkout isolated preview",
+  "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+  "deployId": "6ae779a7606d80668ff269ff",
+  "state": "ready",
+  "sourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
+  "publishedAt": null,
+  "context": "branch-deploy",
+  "previewUrl": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "databaseBranch": "canopy-checkout-test",
+  "migrations": [
+    {
+      "name": "20261101023000_canopy_payments",
+      "applied": true
+    },
+    {
+      "name": "20261101040000_checkout_recovery",
+      "applied": true
+    }
+  ],
+  "productionBaseline": "6ae76f2d9ef9b6c34dfba6e7",
+  "productionPublication": "Routing-only publication; regular game and all existing functions unchanged",
+  "checks": {
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "publicPreview": 200,
+    "publicGate": 200,
+    "windowsCI": "success",
+    "linuxCI": "success",
+    "postgres16CI": "success",
+    "gatewayMatchesLocal": true,
+    "walletPicker": "Slush available on canonical domain",
+    "databaseStatus": "Both migrations applied; no pending, missing or out-of-order migrations",
+    "anonymousAccess": 401,
+    "canonicalChallenge": 200,
+    "challengeOrigin": "https://tree-token.xyz",
+    "wrongOriginChallenge": 403,
+    "localTests": {
+      "total": 173,
+      "passed": 172,
+      "skipped": 1,
+      "failed": 0
+    },
+    "holderLogin": "Confirmed successful by Peter before gateway redesign",
+    "gatewayVisualReview": "Desktop canonical page verified; narrow layout implemented but not device-tested",
+    "workflowRuns": [
+      41332681774,
+      41332677720
+    ],
+    "ciSourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d"
+  },
+  "limitations": [
+    "Real TREE purchase/recovery and mobile wallet acceptance pending",
+    "No real payment was executed by the agent"
+  ],
+  "recoveryCleanupDeployed": true,
+  "canonicalRouting": {
+    "state": "live",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "productionDeployId": "6aecab809924c531a486d91e",
+    "upstreamDeployId": "6aecaab7cc70d5c4903fa917",
+    "backendSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
+    "releaseSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
+    "existingStaticFilesPreserved": 292,
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "newStaticFiles": [],
+    "browserRedirectsToNetlify": false,
+    "productionDatabaseChanged": false,
+    "regularGameCheckoutEnabled": false,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "gameplaySourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
+    "existingStaticEntriesRetained": 293
+  },
+  "gatewayRedesign": {
+    "art": "Existing Oak Guardian game artwork and forest terrain",
+    "progress": "Connect / Verify / Defend reflects actual wallet and verified session",
+    "verifiedState": "Forest unlocked; Enter the forest CTA",
+    "signingAndPaymentRules": "unchanged"
+  },
+  "seasonalRelease": {
+    "name": "Harvest of the Canopy",
+    "sourceCommit": "6c8fee69718ef03b704a90df7c13e192af8d537d",
+    "backendDeployId": "6ae779a7606d80668ff269ff",
+    "candidateDeployId": "6ae77a35cc69828cb3fe0ebd",
+    "state": "live",
+    "productionBaseline": "6ae76f2d9ef9b6c34dfba6e7",
+    "onlyChangedStaticFile": "/_redirects",
+    "functionsMatch": true,
+    "schedulesMatch": true,
+    "localTests": {
+      "passed": 172,
+      "skipped": 1,
+      "failed": 0
+    },
+    "workflowRuns": [
+      41332681774,
+      41332677720
+    ],
+    "ci": "success",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "publishedDeployId": "6ae77a35cc69828cb3fe0ebd",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "userPublicationApproval": true
+  },
+  "veteranRelease": {
+    "state": "live",
+    "sourceCommit": "3919ba85b8975c9415f34e1b29de515aca9efa0e",
+    "backendDeployId": "6ae7a04bbda517d9c4799666",
+    "publishedDeployId": "6ae7a122ad7e3d8166cb78a7",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 176,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41346776248,
+      41346770472
+    ],
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "holderGameplayAcceptance": "pending",
+    "onlyChangedStaticFile": "/_redirects"
+  },
+  "veteranReadinessRelease": {
+    "state": "live",
+    "sourceCommit": "730991a0796c5d31518ccb326c7fcbb57036381c",
+    "backendDeployId": "6ae7a2a2570d2e1e129346be",
+    "publishedDeployId": "6ae7a30025ff441e4157b208",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 179,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41347637018,
+      41347634854
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "holderGameplayAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "individualDefendersRelease": {
+    "state": "live",
+    "sourceCommit": "f33ec9d9eba581ff6165b2969515e0f210468c7a",
+    "backendDeployId": "6ae7a6a082b2ed56640b44aa",
+    "canonicalRoutingChanged": true,
+    "localTests": {
+      "passed": 188,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41349069836,
+      41349065029
+    ],
+    "migration": "20261101210000_individual_defenders",
+    "migrationVerifiedHosted": true,
+    "databaseStatusError": null,
+    "holderGameplayAcceptance": "pending",
+    "realPurchaseAcceptance": "pending",
+    "publishedDeployId": "6ae7a7c8bc69ad8dd702d627",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "collectionPickerInHtml": true,
+    "functionsPreservedExactly": 41,
+    "schedulesPreservedExactly": 5,
+    "existingStaticFilesPreserved": 284,
+    "onlyChangedStaticFile": "/_redirects",
+    "appliedMigrationVersions": [
+      20261101023000,
+      20261101040000,
+      20261101210000
+    ],
+    "pendingMigrations": [],
+    "regularGamePromoted": false
+  },
+  "enemyGrowthRelease": {
+    "state": "live",
+    "sourceCommit": "6ef7b5627a16a3725a163af744901bc2314f61b3",
+    "backendDeployId": "6ae7b88dd62e7b1f4fe7b649",
+    "publishedDeployId": "6ae7b8f36df0a5a02b5a7735",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 192,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41355631913,
+      41355627087
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "combatBalanceChanged": false,
+    "individualDefendersEnabled": true,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "enemyMorphologyRelease": {
+    "state": "live",
+    "sourceCommit": "487d2efc5ee43ddc3b45958af016e0fd563b06a4",
+    "backendDeployId": "6ae7bb1a9a800a8083fe0e67",
+    "publishedDeployId": "6ae7bb86eff49de4838ff79e",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 192,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41356585845,
+      41356580466
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "combatBalanceChanged": false,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false,
+    "comparison": "docs/enemy-morphology-preview.jpg"
+  },
+  "battleReadabilityRelease": {
+    "state": "live",
+    "sourceCommit": "af2c5ea0c4397716a69711ce5a525e74b8865c26",
+    "backendDeployId": "6ae7c0448dd5cdf1f03fc40f",
+    "publishedDeployId": "6ae7c0ad9b844a7d581817d1",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 193,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41358429676,
+      41358424673
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "combatBalanceChanged": false,
+    "capture": "docs/battle-readability/action-preview.mp4",
+    "captureSeconds": 24.1,
+    "nativePeakEnemies": 23,
+    "fixtureEndHealth": 46,
+    "fixtureConsumables": 0,
+    "holderAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "homePolishRelease": {
+    "state": "live",
+    "sourceCommit": "82ecf7c0579bd230d8c7e4ba72bc9caca95db33d",
+    "backendDeployId": "6ae7c65db1995270696e6593",
+    "publishedDeployId": "6ae7c6ca73c2c5158f3bfe33",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 193,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRuns": [
+      41360555839,
+      41360552145
+    ],
+    "onlyChangedStaticFile": "/_redirects",
+    "canonicalGate": 200,
+    "stylesheet": 200,
+    "oakArt": 200,
+    "oakArtMatchesSource": true,
+    "anonymousAccess": 401,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false,
+    "actualCharacter": "Ancient Oak, cropped from game atlas",
+    "treeHeroPreserved": true
+  },
+  "homeSceneRelease": {
+    "state": "live",
+    "sourceCommit": "4d9b7c5e79011b2bb926a4e681f368ed0011ef7c",
+    "backendDeployId": "6ae7cadce814394bf5995668",
+    "publishedDeployId": "6ae7cb4f2543792222234d70",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "asset": "assets/brand/canopy-home-scene.webp",
+    "localTests": {
+      "passed": 193,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41362142015,
+    "canonicalGate": 200,
+    "stylesheet": 200,
+    "scene": 200,
+    "sceneMatchesSource": true,
+    "anonymousGameSource": 401,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "checkoutRecoveryRelease": {
+    "state": "live",
+    "sourceCommit": "bb69cd29d2aa302e430ddcb86ea3cd6641790a46",
+    "backendDeployId": "6ae7cebf8dc9ef377f3fc837",
+    "publishedDeployId": "6ae7cf37915acf229383c5ea",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 199,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41363480330,
+    "canonicalGate": 200,
+    "gateway": 200,
+    "recoveryMarkupVerified": true,
+    "progressBundleVerified": true,
+    "anonymousReviewModule": 401,
+    "anonymousGameSource": 401,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "holderWalletAcceptance": "pending",
+    "originalInterruptionCause": "not established from screenshot",
+    "regularGamePromoted": false
+  },
+  "playFirstRelease": {
+    "state": "live",
+    "sourceCommit": "6edbebc099f852c2bddbb025d72100b1fd9d85b2",
+    "backendDeployId": "6ae7d5db54bc6a780d66b105",
+    "publishedDeployId": "6ae7d64b98da0c716654ff08",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 205,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41366009195,
+    "playableLevels": 6,
+    "newMaps": 0,
+    "halloweenArchiveRemoved": true,
+    "secondaryPanelsAfterGameplay": true,
+    "watchtower": {
+      "damage": 48,
+      "interval": 1.6,
+      "range": 245
+    },
+    "cannon": {
+      "damage": 66,
+      "interval": 2.1,
+      "splashMultiplier": 0.55,
+      "splashRadius": 80
+    },
+    "futureStructures": [
+      "Thorn Bastion",
+      "Root Obelisk"
+    ],
+    "holderVisualAcceptance": "pending",
+    "humanBalanceAcceptance": "pending",
+    "regularGamePromoted": false
+  },
+  "commandMenuRelease": {
+    "state": "live",
+    "sourceCommit": "a1c40ef6b4e8974830d5c89adbc5bfe90d6a2cd8",
+    "backendDeployId": "6ae7db010b9acad0b34eaf5a",
+    "publishedDeployId": "6ae7db875e8e5ebd64d6fac6",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 211,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41367968541,
+    "commandSections": [
+      "defenders",
+      "shop",
+      "harvest",
+      "guide",
+      "unlocks",
+      "scout"
+    ],
+    "canonicalGate": 200,
+    "stylesheet": 200,
+    "commandMarkupVerified": true,
+    "anonymousCommandModule": 401,
+    "anonymousGameSource": 401,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "holderVisualAcceptance": "pending",
+    "phoneAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "paymentDiagnosticsRelease": {
+    "state": "live",
+    "sourceCommit": "3d5d7544e448d0d1d890f673a4d6a084dafdfa80",
+    "backendDeployId": "6ae7df432b317c6321df68b0",
+    "publishedDeployId": "6ae7dfbd73c8a1d39280b805",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 216,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41369598975,
+    "originalFailureRequestId": "01M6CVCVR0PV83DP1W0PBEAAP6",
+    "originalFailureStatus": 503,
+    "originalCause": "unconfirmed; original request had no exception diagnostics",
+    "diagnosticOnly": true,
+    "holderPaymentAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "addressBalanceGasRelease": {
+    "state": "live",
+    "sourceCommit": "3beef778beab620c5a217cd844b5709fbc772281",
+    "backendDeployId": "6ae7e28a1badcba7520e2ad5",
+    "publishedDeployId": "6ae7e30d88b73d2c90234dc2",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 221,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41370809328,
+    "failureReference": "b2927c4b-1ac0-4984-8fa0-07c73210d532",
+    "failureCode": "GAS_BUDGET",
+    "originalGuardConflatedEmptyGasCoinsWithBudgetViolation": true,
+    "gasBudgetCapMist": "50000000",
+    "addressBalanceGas": true,
+    "mainnetFeatureBalanceChainEpochChecks": true,
+    "holderPaymentAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "upgradeMiniBossRelease": {
+    "state": "live",
+    "sourceCommit": "1ae385036af774829ce4ec2d1ea4c65f799dfabd",
+    "backendDeployId": "6ae7e965a3c3524e8e014ef8",
+    "publishedDeployId": "6ae7e9d9863d635b3263628c",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 224,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41373414716,
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "miniBossWaves": [
+      4,
+      7
+    ],
+    "finalBossWave": 10,
+    "legacyRunsPreserved": true,
+    "freshRunRequired": true,
+    "upgradePricesTree": [
+      5000,
+      10000
+    ],
+    "paymentLogicChanged": false,
+    "authenticatedUIAcceptance": "pending holder desktop/mobile review",
+    "regularGamePromoted": false
+  },
+  "visibleUnlockRelease": {
+    "state": "live",
+    "sourceCommit": "7e4589ded17156918ccc6588448706b2ad728e45",
+    "backendDeployId": "6ae7ee72f3a12d5acb787a55",
+    "publishedDeployId": "6ae7eee018d3f212df6696d0",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 224,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41375224197,
+    "canonicalGate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "unlockRequirementsChanged": false,
+    "authenticatedVisualAcceptance": "pending holder desktop/mobile review",
+    "regularGamePromoted": false
+  },
+  "completionNavigationRelease": {
+    "state": "live",
+    "sourceCommit": "26877006c0d746ef7c32afbe3e7bc7cb24363303",
+    "backendDeployId": "6aebf03aca7378b1200ca5d0",
+    "publishedDeployId": "6aebf0c0293cf24b5ac29829",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 226,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41958305428,
+    "gate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousGameSource": 401,
+    "cabinetScene": 200,
+    "cabinetMarkupPreserved": true,
+    "holderVisualAcceptance": "pending desktop/mobile",
+    "holderPaymentAcceptance": "pending",
+    "paymentLogicChanged": false,
+    "combatTimingChanged": false,
+    "regularGamePromoted": false
+  },
+  "storyRelease": {
+    "state": "live",
+    "sourceCommit": "a0b8f23d2b9c0cf6774930cbcc0bce58f1e97696",
+    "backendDeployId": "6aebf672530dce02c3942cb4",
+    "publishedDeployId": "6aebf70ad3b2d01755518023",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 231,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 41961128427,
+    "gate": 200,
+    "anonymousAccess": 401,
+    "anonymousPayments": 401,
+    "anonymousStorySource": 401,
+    "storyArtwork": 200,
+    "illustratedCutscenes": true,
+    "videoOrVoiceover": false,
+    "skipAndReplay": true,
+    "automaticScenePreference": true,
+    "battleHeld": true,
+    "manualNextWaveControl": true,
+    "holderVisualAcceptance": "pending desktop/mobile",
+    "paymentLogicChanged": false,
+    "regularGamePromoted": false,
+    "initialStoryPublication": "6aebf649a6f33f424f7a3285"
+  },
+  "strikeFeedbackRelease": {
+    "state": "live",
+    "sourceCommit": "63d077066a2a34aafb44d5da4f8eaf13e3a856d6",
+    "backendSourceCommit": "036a5a6f9ead3ffa52996c7835da1622dd8b94ad",
+    "backendDeployId": "6aeca2d705b5f9de8a54917f",
+    "publishedDeployId": "6aeca3a49e359f82ebf586db",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "localTests": {
+      "passed": 239,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": "success",
+    "workflowRun": 42054675088,
+    "canonicalChallenge": 200,
+    "anonymousGameSource": 401,
+    "anonymousPayments": 401,
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "balanceScenariosUnchanged": 84,
+    "holderVisualAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "playtestCorrectionsRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
+    "backendDeployId": "6aecaab7cc70d5c4903fa917",
+    "productionRoutingDeployId": "6aecab809924c531a486d91e",
+    "previousProductionRoutingDeployId": "6aeca3a49e359f82ebf586db",
+    "functionDigest": "739cef1958413b1b2f2e79059fd96cec0b0ce100109df94bf353fa13b84506fb",
+    "localTests": {
+      "passed": 244,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": [
+      {
+        "run": 42061903770,
+        "conclusion": "success"
+      },
+      {
+        "run": 42061897543,
+        "conclusion": "success"
+      }
+    ],
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 293,
+    "unchangedStaticFiles": 292,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "canonicalChallenge": 200,
+    "wrongOriginChallenge": 403,
+    "anonymousGameSource": 401,
+    "anonymousStorySource": 401,
+    "anonymousPayments": 401,
+    "indexMatchesBuildExceptUnchangedSiteSnippet": true,
+    "stylesAndGatewayMatch": true,
+    "placement": "Prefer level-one copies; explicitly selected upgrades and verified legacy grants retain purchased levels",
+    "oak": "Fifteen atlas fist sockets, mirrored for all eight directions at three levels; fallback hand corrected",
+    "story": "Twelve-second three-shot animation, separate paused-battle clock, skip/replay/preference and fixed reduced-motion composition",
+    "reference": "Inspected self-extracting DOS game and compiled ACT/BIN/S32 assets; no editable source; original implementation, full DOS scene playback not verified",
+    "holderDesktopAndPhoneAcceptance": "pending",
+    "walletTransactionInitiated": false,
+    "productionDatabaseChanged": false,
+    "regularGamePromoted": false
+  }
+}

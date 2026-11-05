@@ -1,0 +1,20 @@
+{
+  "state": "live",
+  "sourceCommit": "fe07b2779502583b50857b9b88eede0b18acc0a7",
+  "baselineDeploy": "6aebec00ada2550dc6f59eee",
+  "publishedDeploy": "6aebee91299be97ba591f6b8",
+  "url": "https://tree-token.xyz/play/",
+  "changedFiles": [
+    "/play/index.html"
+  ],
+  "staticPathsPreserved": 289,
+  "functionsPreserved": 43,
+  "schedulesPreserved": 5,
+  "cabinetUsesApprovedScene": true,
+  "imageStatus": 200,
+  "imageContentType": "image/webp",
+  "previewLinkPreserved": true,
+  "githubCI": "success",
+  "workflowRun": 41957553510,
+  "browserVisualReview": "not performed; image inspected and existing contain sizing verified"
+}

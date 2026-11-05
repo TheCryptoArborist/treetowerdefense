@@ -4,3 +4,11 @@ test-results/
 *.log
 .env
 .env.*
+
+.netlify/
+dist/
+.openai/hosting.json
+
+# Rebuilt from pinned sources for the gated deployment
+gateway.js
+server/runtime-source.json

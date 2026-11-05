@@ -6,9 +6,17 @@ A playable, mobile-friendly tower-defense prototype for the TREE Arcade.
 
 ## Status
 
-This repository contains the **development preview**, not a mainnet launch. NFTree ownership and TREE purchases are explicitly simulated. It connects no wallet, sends no transactions, transfers no tokens, and awards no money or token rewards. Preview ownership, balances, and scores are editable browser data.
+This repository contains the **development preview**, not a mainnet launch. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. TREE balances and purchases remain simulated; the game sends no transactions, transfers no tokens, and awards no money or token rewards. Saved gameplay remains editable browser data. See [NFTree access](docs/nftree-access.md). The [TREE purchase ledger](docs/tree-payments.md) is implemented and tested separately; checkout and recovery integration are prepared for an isolated preview; hosted migration and real-wallet acceptance remain pending.
 
-## Play locally
+## TREE Arcade home
+
+Canonical game path: https://tree-token.xyz/play/canopy-defense/ (publish only after release verification). Lobby and return links use https://tree-token.xyz/play/. The cabinet is labeled development preview; gameplay requires verified NFTree ownership and TREE purchases remain simulated. See [Arcade integration](docs/arcade-integration.md).
+
+## Current gated development workflow
+
+Use the canonical hosted game for wallet verification. Run `npm ci`, `npm run build:gate`, `npm test` and `npm run check` for local validation. The simple static localhost server below does not provide NFTree authentication; it cannot unlock the gated game. The public introduction/video remains at https://tree-token.xyz/play/canopy-defense/preview/.
+
+## Legacy static preview server
 
 Install Node.js 20 or later, open a terminal in this repository, and run:
 
@@ -26,7 +34,19 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
-## Fantasy forest build · v0.16
+## Individual progression preview
+
+The new collection preview changes growth from species-wide to individual numbered defenders while preserving earlier species purchases. It retains the three current levels; ten-level/HQ/research progression is not yet implemented. Activation and migration details: [Individual defender collection](docs/individual-defenders.md). The regular game remains on its previous release.
+
+## Fantasy forest build · v0.17
+
+- **Strike feedback matches damage timing:** hits now show their target-connected
+  strike and impact immediately, followed by a fading trace. Cannon uses an
+  immediate blast and ballistic afterimage. Damage, balance, prices and saves are
+  unchanged. Available on the isolated checkout-test route.
+  See [strike feedback and release status](docs/strike-feedback.md).
+
+- **November active season: Harvest of the Canopy.** Five authored waves, the Hollow Harvester, copper foliage and earnable Oak, Watchtower and Tree of Life cosmetics. Halloween progress and earned looks are preserved in the archived collection; saved Haunted Grove battles still resume. See [Harvest rules and validation](docs/harvest-canopy.md).
 
 End-of-run battle reports show breaches by pest, actual root damage and shield absorption, earned Sap, simulated TREE spending, continues, new roster/season unlocks, and a next goal. Reports survive reload/continue; older saves have explicitly partial history. See [battle reports](docs/battle-reports.md).
 
@@ -45,7 +65,7 @@ End-of-run battle reports show breaches by pest, actual root damage and shield a
 
 - Per-guardian targeting orders: **First** follows route progress, **Strongest** focuses remaining health, and **Fastest** responds to actual movement speed including slows. The inspector provides touch/keyboard controls; aiming and attacks share the choice. Orders are included, remain with a saved/continued run, and do not change growth prices. See [guardian targeting and playtest notes](docs/guardian-targeting.md).
 - Deliberate opening waves: termites first, armored beetles in wave 2, fast moths in wave 3, blight in wave 4, and combined pressure in wave 5. Named scouting briefs and wave-start notices explain each threat. Spawn spacing gives armor a measured introduction, then narrows through later waves. Beetles have clearer armor plates and blight pests have larger silhouettes. See [wave balance and simulation results](docs/wave-balance.md).
-- Guardians now face targets in eight directions using front, side, and rear poses at all three growth levels. Shots leave calibrated gauntlet, staff, spear, or casting-hand points; Oak sends a shockwave from the roots. Firing poses hold while their projectile finishes, including the final killing shot. See [directional art and verification notes](docs/guardian-aiming.md).
+- Guardians now face targets in eight directions using front, side, and rear poses at all three growth levels. Shots leave calibrated gauntlet, staff, spear, or casting-hand points; Oak sends a shockwave from the roots. Facing holds while the resolved strike fades, including the final killing shot. See [directional art and verification notes](docs/guardian-aiming.md).
 - Clearer combat feedback: brief pest hit reactions, impact rings, collapsing/fading defeat silhouettes, dust, and Tree of Life damage or shield messages.
 - Wave start/clear notices, an advance warning for the final wave, an arrival warning when the Blight King actually spawns, and a persistent boss health display. See [combat feedback and verification notes](docs/combat-feedback.md).
 - Effects hold during pause, dialogs, and hidden tabs. Reduced-motion mode omits impact motion and hit tinting; transient effects never enter saves or change battle rules.
@@ -63,7 +83,7 @@ End-of-run battle reports show breaches by pest, actual root damage and shield a
 - Planting sites, automatic targeting, range previews, three permanent species levels, supplies, victory, and defeat.
 - Grow each defender species from **Sapling → Guardian → Ancient**. A TREE upgrade improves every current and future defender of that species.
 - Chapters unlock in order. Earn 1–3 stars from remaining health, grow the Tree of Life, and add permanent landmarks: an arborist cottage, flower garden, and lily pond.
-- A simulated NFTree gate, rarity selector, six cosmetic themes, cumulative rarity unlocks, and per-tower customization.
+- A signed, server-verified NFTree gate, six cosmetic themes, cumulative rarity unlocks, and per-tower customization.
 - TREE-priced upgrades, Root Shield, Fertilizer, Leaf Storm, and a continue that preserves the current wave and towers.
 - Earned **Sap** for ordinary tower planting; defeating pests and clearing waves earns more Sap.
 - Desktop pointer/keyboard controls and mobile touch controls, including labeled build-site buttons.
@@ -171,7 +191,7 @@ Artwork is generated from the three supplied character references, then used in 
 
 ## Mainnet integration milestone
 
-Before real payments or access enforcement, confirm the NFTree collection/type, rarity metadata, ownership arrangements, TREE decimals, purchase recipient, and final prices. Ownership and transaction results need authoritative validation. Client-side localStorage is not authentication or payment proof, and local scores must not authorize prizes.
+NFTree access now verifies the official collection/type, on-chain rarity metadata and wallet/Kiosk ownership. Before real payments, confirm TREE decimals, purchase recipient and final prices, and validate transaction results authoritatively. Client-side localStorage is not authentication or payment proof, and local scores must not authorize prizes.
 
 For Sui implementation, check the current [MystenLabs/skills README](https://github.com/MystenLabs/skills) every task, then load applicable current skills and references. Reviewed for this prototype boundary:
 

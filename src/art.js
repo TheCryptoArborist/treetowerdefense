@@ -1,5 +1,6 @@
-import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor } from './engine.js';
-import { GUARDIAN_SCALE } from './aiming.js';
+import { WIDTH, HEIGHT, PATH, STYLES, PATH_LENGTH, pointAt, mothDashing, blightHealing, LEGACY_MAP, mapFor, pestAppearance } from './engine.js';
+import { GUARDIAN_SCALE, SHOT_DURATION } from './aiming.js';
+import { paintEnemySprite } from './enemy-art.js';
 const TAU = Math.PI * 2;
 const outline = '#36533c';
 function ellipse(c, x, y, rx, ry, fill, stroke = null, width = 3) {
@@ -242,6 +243,11 @@ export async function loadAimArt() {
 // Hand-calibrated launch points in the unmodified 1619×971 v1 atlases.
 // Growth rows: Sapling, Guardian, Ancient. Views: S, SE, E, NE, N.
 const aimSockets = {
+  oak: [
+    [[54,187],[433,187],[905,187],[1239,176],[1559,172]],
+    [[40,497],[423,491],[917,495],[1254,476],[1578,469]],
+    [[41,815],[436,807],[942,817],[1259,793],[1580,783]]
+  ],
   willow: [
     [[46,91],[620,129],[930,108],[1217,115],[1497,80]],
     [[51,394],[625,454],[927,447],[1226,448],[1496,373]],
@@ -270,11 +276,10 @@ const aimSockets = {
 };
 function fallbackSocket(type,level,facing) {
   const angle=facing.direction*Math.PI/4,growth=1+(level-1)*.12;
-  return type==='oak'?{x:0,y:17}:{x:Math.sin(angle)*38*growth,y:(-30+Math.cos(angle)*18)*growth};
+  return {x:Math.sin(angle)*38*growth,y:(-30+Math.cos(angle)*18)*growth};
 }
 export function getGuardianShotOrigin(shot) {
   if(['watchtower','cannon'].includes(shot.type)){const socket=structureSocket(shot.type,shot.level,shot.facing,true);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
-  if(shot.type==='oak')return{x:shot.x,y:shot.y+17*GUARDIAN_SCALE};
   const art=aimSprites.get(shot.type),f=art?.frames[shot.level-1]?.[shot.facing.view];
   if(!f){const socket=fallbackSocket(shot.type,shot.level,shot.facing);return{x:shot.x+socket.x*GUARDIAN_SCALE,y:shot.y+socket.y*GUARDIAN_SCALE};}
   const [px,py]=aimSockets[shot.type][shot.level-1][shot.facing.view];
@@ -291,7 +296,7 @@ function paintAimingFallback(c,type,style,level,facing) {
   if(facing.view<3){const side=facing.flip?-1:1;ellipse(c,facing.view===2?side*14:-10,-61,5,7,'#10150e');if(facing.view<2)ellipse(c,10,-61,5,7,'#10150e');ellipse(c,facing.view===2?side*16:0,-43,facing.view===2?5:12,7,'#10150e');}
   for(let i=0;i<3;i++)sprout(c,-12+i*12,-78,(i-1)*17,-24,p.canopy);
   if(type==='mushroom')ellipse(c,0,-83,32,12,p.canopy,'#151c13',2);
-  const socket=fallbackSocket(type,1,facing),hand=type==='oak'?fallbackSocket('pine',1,facing):socket;
+  const hand=fallbackSocket(type,1,facing);
   line(c,[[0,-30],[hand.x*.6,hand.y],[hand.x,hand.y]],wood,12);ellipse(c,hand.x,hand.y,7,6,wood,'#151c13',2);
   if(type==='pine'){ellipse(c,hand.x,hand.y,8,6,'#574b2e','#151c13',2);ellipse(c,hand.x,hand.y,3,3,p.canopy);}
   if(type==='palm'||type==='cypress'||type==='willow'){line(c,[[hand.x*.5,-35],[hand.x,hand.y]],'#5d4d31',5);ellipse(c,hand.x,hand.y,5,7,type==='willow'?'#abdace':type==='palm'?p.canopy:'#d4c09b','#151c13',1);}
@@ -422,14 +427,145 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
   }
   c.restore();
 }
-export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true}={}) {
+// Later broods have distinct anatomy at the same drawing scale: new heads,
+// hooked limbs, broken wing contours and layered chitin, not only larger bodies.
+function paintEvolvedPest(c,e,clock,appearance,colors) {
+  const elite=appearance.tier===2,boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight',beetle=e.kind==='beetle';
+  const ink='#10161a',bone=elite?'#bca98b':'#9e947b',edge=blight?'#ba859e':beetle?'#a6ae8b':'#bd9c73';
+  const dark=colors[1],primary=colors[0],eye=appearance.enraged?'#ff754c':blight?'#e0b1d3':elite?'#ed9766':'#dbb97d';
+  if(moth){
+    c.save();c.scale(1,.82+Math.abs(Math.sin(clock*13))*.18);
+    for(const side of [-1,1]){
+      const contour=elite?[[3,-16],[18,-27],[44,-41],[39,-23],[48,-17],[33,-4],[41,4],[25,8],[29,27],[15,18],[10,35],[4,16]]:[[3,-13],[18,-24],[39,-32],[34,-14],[39,-7],[25,3],[30,18],[15,12],[7,23],[3,10]];
+      polygon(c,contour.map(([x,y])=>[x*side,y]),dark,ink,2);
+      polygon(c,[[side*7,-10],[side*33,-26],[side*24,-8],[side*18,0],[side*23,11],[side*9,7]],primary,edge,1);
+      line(c,[[side*9,-6],[side*29,-20],[side*20,-4],[side*29,0]],bone,1.2);
+      ellipse(c,side*23,-13,elite?6:4,5,ink,edge,1.3);ellipse(c,side*23,-13,2.1,3,eye);
+      if(elite){line(c,[[side*11,5],[side*15,13],[side*12,23]],'#b48669',2);}
+    }c.restore();
+  }
+  for(const side of [-1,1])for(let i=0;i<3;i++){
+    const y=-10+i*13,march=Math.sin(clock*14+e.id+i)*2*side,reach=(beetle||boss?31:27)+(elite?4:0);
+    polygon(c,[[side*8,y-3],[side*20,y-9],[side*reach,y-4+march],[side*(reach-3),y+9+march],[side*(reach-8),y+15+march],[side*(reach-6),y+3+march],[side*17,y-1],[side*9,y+3]],dark,ink,1.8);
+    line(c,[[side*11,y-2],[side*20,y-6],[side*(reach-2),y-3+march]],primary,2);
+    polygon(c,[[side*(reach-3),y+8+march],[side*(reach+1),y+15+march],[side*(reach-8),y+17+march]],bone,ink,1);
+  }
+  if(beetle||boss){
+    // Broad shield abdomen and a pointed carapace replace the narrow ribbed oval.
+    ellipse(c,0,7,21,28,dark,ink,2.2);
+    for(const side of [-1,1]){
+      ellipse(c,side*9,6,10,24,primary,dark,1.8);
+      line(c,[[side*5,-10],[side*15,-5],[side*17,8],[side*11,24]],edge,1.1);
+      for(let i=0;i<(elite?3:2);i++)polygon(c,[[side*15,-3+i*10],[side*(elite?29:24),-12+i*10],[side*22,5+i*10],[side*15,10+i*10]],dark,bone,1.1);
+      line(c,[[side*5,-2],[side*13,4],[side*10,18]],'#d2cca460',1.4);
+    }
+    line(c,[[0,-7],[0,30]],ink,3);
+    if(elite)for(const side of [-1,1])for(let i=0;i<3;i++)ellipse(c,side*(9+i%2*3),-4+i*9,1.5,2,dark);
+  }else if(blight){
+    polygon(c,[[-9,-15],[-17,-2],[-12,17],[-3,31],[5,29],[13,18],[18,1],[10,-15]],dark,ink,2);
+    for(let i=0;i<4;i++)polygon(c,[[-10,-8+i*8],[0,-12+i*8],[12,-7+i*8],[8,1+i*8],[-5,4+i*8]],primary,'#503345',1.5);
+    for(const side of [-1,1])for(let i=0;i<(elite?4:2);i++)polygon(c,[[side*9,-6+i*9],[side*(elite?27:21),-19+i*9],[side*17,1+i*9]],'#a37c90',ink,1.5);
+    line(c,[[-3,-5],[3,2],[-2,10],[4,18]],'#dd9f9b',1.8);
+    for(const[x,y]of [[-13,0],[13,12],[-8,20]])ellipse(c,x,y,elite?4:2.5,4,'#a1ae75',ink,1);
+  }else if(moth){
+    polygon(c,[[-6,-15],[-8,2],[-3,23],[0,31],[4,19],[7,0],[5,-16]],dark,ink,1.8);
+    for(let i=0;i<4;i++)line(c,[[-4,1+i*5],[0,4+i*5],[4,1+i*5]],edge,1.5);
+  }else{
+    // Soldier termites gain a wedge abdomen, overlapping dorsal shields and a heavy head.
+    polygon(c,[[-8,-13],[-14,0],[-10,19],[-3,30],[4,29],[13,15],[14,-2],[8,-14]],dark,ink,2);
+    for(let i=0;i<4;i++)polygon(c,[[-10,-6+i*8],[0,-10+i*8],[11,-5+i*8],[7,3+i*8],[0,6+i*8],[-7,2+i*8]],primary,edge,1.3);
+    if(elite)for(const side of [-1,1])for(let i=0;i<3;i++)polygon(c,[[side*10,-1+i*9],[side*20,-7+i*9],[side*14,5+i*9]],bone,ink,1);
+  }
+  const shoulder=beetle||boss?20:elite?16:12,head=moth?7:beetle||boss?13:elite?13:10;
+  ellipse(c,0,-18,moth?7:shoulder,11,primary,ink,2);
+  if(beetle||boss||elite)for(const side of [-1,1])polygon(c,[[side*(shoulder-4),-23],[side*(shoulder+6),-30],[side*(shoulder+1),-15]],dark,edge,1);
+  ellipse(c,0,-34,head+1,10,dark,ink,1.8);
+  ellipse(c,0,-38,head-1,5,primary,null);
+  // Solid curved mandibles read as insect anatomy rather than a helmet frame.
+  for(const side of [-1,1]){
+    c.save();c.scale(side,1);c.beginPath();c.moveTo(head-3,-34);
+    c.bezierCurveTo(head+10,-38,head+14,-49,head+5,-56);
+    c.lineTo(head+6,-48);c.bezierCurveTo(head+6,-43,head+1,-40,head-3,-39);
+    c.closePath();c.fillStyle=bone;c.fill();c.strokeStyle=ink;c.lineWidth=1.5;c.stroke();c.restore();
+  }
+  ellipse(c,0,-30,3,4,ink,null);
+  for(const side of [-1,1]){
+    ellipse(c,side*(head-4),-37,2.5,1.6,eye,ink,.7);
+    line(c,[[side*7,-42],[side*11,-50],[side*(elite?22:17),-55]],primary,1.8);
+    if(elite)line(c,[[side*12,-50],[side*18,-48]],bone,1.4);
+  }
+  if(beetle||boss){
+    // A rhino horn becomes a forked crown at elite stage; the boss has extra outer tusks.
+    polygon(c,elite?[[-5,-40],[-10,-56],[-8,-65],[-2,-51],[0,-65],[3,-52],[10,-64],[9,-51],[4,-40]]:[[-4,-40],[-5,-53],[0,-61],[3,-49],[5,-40]],boss?bone:primary,ink,1.7);
+    if(boss)for(const side of [-1,1])polygon(c,[[side*14,-29],[side*28,-44],[side*27,-61],[side*20,-50],[side*22,-44],[side*10,-31]],primary,bone,1.5);
+  }
+  if(e.veteran&&beetle)line(c,[[-9,-21],[0,-25],[9,-21]],'#f2d390',2);
+}
+
+function pestAngle(e) {
+  const map=mapFor(e.mapId),ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
+  return ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
+}
+export function pestHealthBounds(e) {
+  const appearance=pestAppearance(e),size=appearance.scale,boss=e.kind==='boss',moth=e.kind==='moth';
+  if(e.miniBoss)return {x:e.x-20*size,y:Math.max(7,e.y-(e.miniBoss==='ironroot'?79:57)*size),width:40*size,height:5};
+  const reach=appearance.tier>0?(moth?48:36):(moth?36:26),front=appearance.tier>0?(boss||e.kind==='beetle'?-65:-56):boss?-53:-39,tail=appearance.tier>0?35:24;
+  const angle=pestAngle(e),cos=Math.cos(angle),sin=Math.sin(angle);
+  const top=(-Math.abs(sin)*reach+Math.min(front*cos,tail*cos))*size;
+  const halfWidth=boss?20:16;
+  return {x:e.x-halfWidth*size,y:Math.max(7,e.y+top-9),width:halfWidth*2*size,height:5};
+}
+// Distinct enemy silhouettes, painted in the same map space as ordinary pests.
+function paintMiniBoss(c,e,clock){
+  const shade=(a,b,d)=>{const g=c.createLinearGradient(-22,-20,24,20);g.addColorStop(0,a);g.addColorStop(.4,b);g.addColorStop(1,d);return g;};
+  const metal=shade('#1d3032','#6d7f76','#243637'),edge='#899890',ink='#101b1d',wood=shade('#2d271d','#80633d','#382d20');
+  const stride=Math.sin(clock*9+e.id)*3;
+  for(const side of [-1,1]){
+    polygon(c,[[side*5,10],[side*14,9],[side*15,29+side*stride],[side*5,32+side*stride]],e.miniBoss==='ironroot'?wood:metal,ink,2);
+    ellipse(c,side*11,31+side*stride,7,4,ink,edge,1);
+  }
+  if(e.miniBoss==='ironroot'){
+    polygon(c,[[-20,-16],[-10,-25],[14,-23],[23,-12],[18,16],[-18,18]],wood,ink,3);
+    for(const side of [-1,1]){
+      polygon(c,[[side*12,-15],[side*26,-24],[side*29,-4],[side*17,5]],metal,edge,1.5);
+      line(c,[[side*21,-4],[side*30,14],[side*23,23]],wood,7);
+      line(c,[[side*9,-30],[side*17,-44],[side*22,-39],[side*27,-49]],wood,4);
+    }
+    polygon(c,[[-12,-24],[-14,-40],[-6,-46],[0,-39],[10,-45],[14,-27]],metal,ink,2);
+    line(c,[[-9,-33],[-3,-31],[7,-34]],'#ff643d',3);
+    for(let i=0;i<3;i++)line(c,[[-12,-9+i*8],[13,-12+i*8]],edge,2);
+    ellipse(c,0,-1,6,7,'#df5c2d','#f2bd71',2);
+    for(let i=0;i<5;i++)line(c,[[-10+i*5,7],[-12+i*5,17]],'#241e1790',.8);
+    for(const side of [-1,1])for(const y of [-17,-7])ellipse(c,side*21,y,1.4,1.4,'#d4c7a7',ink,.5);
+  }else{
+    const suit=e.miniBoss==='sprayer'?shade('#4e4e28','#ac9950','#555433'):shade('#332d28','#806046','#352d26');
+    polygon(c,[[-15,-16],[13,-16],[18,16],[-16,16]],suit,ink,2);
+    ellipse(c,0,-28,12,15,suit,ink,2);
+    polygon(c,[[-9,-32],[9,-32],[8,-23],[-8,-23]],'#132e33',edge,1.5);
+    for(const side of [-1,1]){line(c,[[side*14,-11],[side*24,2],[side*18,13]],suit,7);line(c,[[side*16,-9],[side*23,2]],'#b4a48060',1);ellipse(c,side*18,13,4,4,ink,edge,1);}
+    line(c,[[0,-14],[0,13]],ink,1.5);line(c,[[-10,9],[11,9]],'#292e2a',3);
+    polygon(c,[[-7,-29],[3,-30],[-2,-25],[-8,-25]],'#91b9b23b');
+    for(let i=0;i<4;i++)line(c,[[-10,-9+i*5],[-6,-7+i*5]],'#c8b88b50',.7);
+    if(e.miniBoss==='saw'){
+      polygon(c,[[14,-3],[25,-5],[29,9],[16,14]],'#ae5b2d',ink,2);
+      polygon(c,[[23,-2],[25,-38],[30,-46],[34,-38],[32,1]],metal,'#c7c5ab',2);
+      for(let i=0;i<6;i++)line(c,[[26,-7-i*5],[22,-10-i*5]],'#d4c7a7',2);
+      line(c,[[-7,3],[7,3]],'#9b8d71',3);
+    }else{
+      for(const side of [-1,1])ellipse(c,side*9,-2,6,16,'#5c764a',edge,1.5);
+      ellipse(c,0,-20,5,5,ink,edge,2);
+      line(c,[[16,12],[28,3],[30,-20],[24,-25]],'#1d2b25',3);
+      line(c,[[23,-25],[34,-29]],edge,4);
+      for(let i=0;i<3;i++)ellipse(c,31+i*4,-35-i*6,3+i,4,'#a4bc5360');
+    }
+  }
+}
+export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=true,facingAngle=null}={}) {
   const boss=e.kind==='boss',moth=e.kind==='moth',blight=e.kind==='blight';
-  const size=boss?1.85:e.kind==='beetle'?1.12:blight?1.06:moth?.92:.88;
-  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
-  const map=mapFor(e.mapId);
-  const ahead=Number.isFinite(e.progress)?pointAt(Math.min(map.length,e.progress+2),map):null;
-  const angle=ahead?Math.atan2(ahead.y-e.y,ahead.x-e.x)+Math.PI/2:0;
-  c.save();c.translate(e.x,e.y);ellipse(c,0,7,23*size,9*size,'#0a100b65');c.rotate(angle);c.scale(size,size);
+  const appearance=pestAppearance(e),size=appearance.scale;
+  const colors=hit>0&&!reducedMotion?['#c6a777','#65533b']:e.theme==='harvest-canopy'?{termite:['#bb864b','#493323'],beetle:['#ad7639','#493526'],moth:['#d1aa68','#60492e'],blight:['#987048','#493528'],boss:['#b8914c','#433324']}[e.kind]:e.theme==='haunted-grove'?{termite:['#988068','#382e37'],beetle:['#827780','#302937'],moth:['#ad9fbc','#45394d'],blight:['#986c91','#352338'],boss:['#a08565','#332839']}[e.kind]:{termite:['#ad8451','#493426'],beetle:['#657a58','#26372c'],moth:['#a39b80','#47453d'],blight:['#805c77','#302333'],boss:['#705d42','#252b24']}[e.kind];
+  const angle=Number.isFinite(facingAngle)?facingAngle:pestAngle(e);
+  c.save();c.translate(e.x,e.y);ellipse(c,0,e.miniBoss?22*size:7,23*size,9*size,'#0a100b65');if(!e.miniBoss)c.rotate(angle);c.scale(size,size);
   if(!reducedMotion&&hit>0)c.translate(0,hit*3);
   const march=Math.sin(clock*14+e.id)*3;
   if(mothDashing(e,time)) {
@@ -440,6 +576,12 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     c.strokeStyle='#b78dac';c.lineWidth=2;c.beginPath();c.ellipse(0,4,27,32,0,0,TAU);c.stroke();
     line(c,[[16,-35],[16,-27]],'#d6b2cb',2);line(c,[[12,-31],[20,-31]],'#d6b2cb',2);
   }
+  if(e.miniBoss){
+    // Upright actors change view instead of being rotated like top-down insects.
+    if(!paintEnemySprite(c,e,Math.sin(angle),-Math.cos(angle),reducedMotion))paintMiniBoss(c,e,reducedMotion?0:clock);
+  }
+  else if(appearance.tier>0)paintEvolvedPest(c,e,clock,appearance,colors);
+  else {
   for(const side of [-1,1])for(let i=-1;i<=1;i++){
     line(c,[[side*8,i*8],[side*(18+Math.abs(i)*2),i*12+march*side],[side*26,i*16+march*side+5]],'#171e18',3.5);
     line(c,[[side*9,i*8],[side*18,i*12+march*side]],colors[0],1.4);
@@ -460,12 +602,20 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     for(let i=0;i<3;i++)polygon(c,[[-10,-9+i*9],[-8,-14+i*9],[8,-14+i*9],[11,-8+i*9],[7,-2+i*9],[-7,-2+i*9]],shell,'#17241b',1.6);
     line(c,[[-7,-10],[-5,15]],'#c2c99a90',1.8);
   }
+  // Growth details reinforce each silhouette without implying new combat abilities.
+  if(appearance.tier>0 && e.kind==='beetle'){
+    for(const side of [-1,1])for(let i=0;i<appearance.tier+1;i++)polygon(c,[[side*9,-9+i*10],[side*(17+appearance.tier*2),-13+i*10],[side*15,-3+i*10],[side*10,2+i*10]],appearance.tier===2?'#b59766':'#879584','#1b271f',1.5);
+  }
+  if(appearance.tier>0 && moth)for(const side of [-1,1])line(c,[[side*27,-18],[side*31,-6],[side*24,5]],appearance.tier===2?'#d5b775':'#b9ad8d',2);
+  if(appearance.tier>0 && e.kind==='termite')for(let i=0;i<appearance.tier+1;i++)line(c,[[-8,-2+i*7],[0,1+i*7],[8,-2+i*7]],'#c8a274',2);
+  if(appearance.tier>0 && blight)for(const side of [-1,1])ellipse(c,side*13,4,2+appearance.tier,4,'#ae7c9a','#452d46',1);
+  if(e.veteran&&e.kind==='beetle')line(c,[[-7,-13],[0,-18],[7,-13]],'#e1c781',2.5);
   if(e.kind==='beetle'||boss){line(c,[[0,-10],[0,22]],'#111b16',2);line(c,[[-7,-7],[-9,12]],'#b1b79870',1.5);}
   ellipse(c,0,-10,boss?14:8,10,shell,'#1b241c',2);ellipse(c,0,-23,boss?10:7,7,colors[1],'#121a14',2);
   for(const side of [-1,1]){
     line(c,[[side*4,-26],[side*11,-33],[side*14,-39]],colors[0],1.5);
     polygon(c,[[side*3,-28],[side*10,-37],[side*6,-29],[side*2,-27]],'#cfb879','#1c2319',1);
-    ellipse(c,side*5,-25,1.4,1.8,blight?'#d699c6':'#d5aa5e');
+    ellipse(c,side*5,-25,1.4,1.8,appearance.enraged?'#ff694d':blight?'#d699c6':'#d5aa5e');
   }
   if(blight||boss)for(const side of [-1,1])for(let i=0;i<4;i++){
     polygon(c,[[side*8,-8+i*7],[side*(18+(boss?4:0)),-15+i*7],[side*11,1+i*7]],boss?'#877355':'#8a6588','#1e261e',1.5);
@@ -474,10 +624,23 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     for(const side of [-1,1])polygon(c,[[side*6,-20],[side*22,-38],[side*19,-53],[side*12,-43],[side*13,-35],[side*3,-24]],'#b5a073','#272d24',2);
     line(c,[[-6,-9],[-3,16]],'#ba965370',3);
   }
+  }
+  if(appearance.enraged){
+    for(const side of [-1,1])line(c,[[side*13,-35],[side*18,-42],[side*19,-49]],'#f1764f',3);
+    line(c,[[-8,-8],[-5,3],[-6,16]],'#f1764f',2.5);
+  }
   if(e.poisonUntil>time){ellipse(c,-18,0,4,4,'#ae79bf80');ellipse(c,18,-8,3,3,'#ae79bf80');}
   if(e.slowUntil>time){c.strokeStyle='#a3d2c0';c.lineWidth=2;c.beginPath();c.ellipse(0,4,25,30,0,0,TAU);c.stroke();}
   c.restore();
-  if(healthBar&&(e.hp<e.maxHp||boss)){c.fillStyle='#131b16';c.fillRect(e.x-20*size,e.y-45*size,40*size,5);c.fillStyle='#b88762';c.fillRect(e.x-20*size,e.y-45*size,40*size*Math.max(0,e.hp/e.maxHp),5);}
+  if(healthBar)paintPestHealth(c,e);
+}
+// Draw after all enemy bodies and effects so a later sprite cannot erase a bar.
+export function paintPestHealth(c,e) {
+  const boss=e.kind==='boss';if(!(e.hp<e.maxHp||boss))return;
+  const appearance=pestAppearance(e),{x,y,width}=pestHealthBounds(e);
+  c.save();c.fillStyle='#080f13';c.fillRect(x-1,y-1,width+2,7);
+  c.fillStyle='#28382f';c.fillRect(x,y,width,5);c.fillStyle=appearance.enraged?'#ed825f':'#c3a379';
+  c.fillRect(x,y,width*Math.max(0,Math.min(1,e.hp/e.maxHp)),5);c.restore();
 }
 export function paintCombatEffects(c,feedback,reducedMotion=false) {
   for(const defeat of feedback.defeats){
@@ -572,20 +735,69 @@ export function paintBackdrop(c,chapter=0,rank=0,map=LEGACY_MAP) {
   if(rank>=3){c.save();if(map.id==='marsh-v1')c.translate(-462,399);ellipse(c,882,261,55,26,'#455747','#273d32',4);ellipse(c,882,257,48,20,'#4b6e69');line(c,[[850,250],[885,248],[909,253]],'#b3c0a34d',1.5);ellipse(c,865,260,9,4,'#79866b');c.restore();}
   const vignette=c.createRadialGradient(WIDTH/2,HEIGHT/2,230,WIDTH/2,HEIGHT/2,650);vignette.addColorStop(0,'#06120a00');vignette.addColorStop(1,'#06120a60');c.fillStyle=vignette;c.fillRect(0,0,WIDTH,HEIGHT);c.restore();
 }
-export function paintShot(c, shot) {
-  const t=Math.max(0,Math.min(1,1-shot.life/.32)),p=STYLES[shot.style];
-  const origin=shot.origin||(shot.facing?getGuardianShotOrigin(shot):{x:shot.x,y:shot.y-28});
-  const sx=origin.x,sy=origin.y,tx=shot.tx,ty=shot.ty;
-  const x=sx+(tx-sx)*t,y=sy+(ty-sy)*t;
-  c.save();c.globalAlpha=Math.min(1,shot.life/.08);
-  if(t<.24)ellipse(c,sx,sy,4+(1-t/.24)*3,3+(1-t/.24)*2,p.accent+'90');
-  if(shot.type==='willow'){const dx=tx-sx,dy=ty-sy,length=Math.hypot(dx,dy)||1;const points=Array.from({length:7},(_,i)=>{const at=i/6,z=i===0||i===6?0:(i%2?1:-1)*5;return[sx+dx*at-dy/length*z,sy+dy*at+dx/length*z];});line(c,points,'#35665f',6);line(c,points,'#d4f3dd',2);}
-  else if(shot.type==='cannon'){ellipse(c,x,y-Math.sin(t*Math.PI)*22,6,6,'#f4c66d','#6e4928',2);if(t>.7)ellipse(c,tx,ty,10+(t-.7)*95,6+(t-.7)*55,'#d39b4525','#e4b661',2);}
-  else if(shot.type==='cypress'){line(c,[[sx,sy],[tx,ty]],'#785d3d',6);line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);}
-  else if(shot.type==='oak'){c.strokeStyle='#c4aa73';c.lineWidth=4;c.beginPath();c.ellipse(x,y,8+t*28,5+t*16,0,0,TAU);c.stroke();if(t>.65){c.lineWidth=2;c.beginPath();c.ellipse(tx,ty,8+(t-.65)*90,5+(t-.65)*45,0,0,TAU);c.stroke();}}
-  else if(shot.type==='mushroom'){ellipse(c,tx,ty,8+t*47,6+t*33,p.canopy+'40',p.accent+'80',2);for(let i=0;i<4;i++)ellipse(c,x+Math.sin(i)*12,y+Math.cos(i)*8,4,4,p.accent);}
-  else if(shot.type==='palm'){c.strokeStyle='#e1f8cb';c.lineWidth=3;c.beginPath();c.arc(x,y,10+t*11,-1,2);c.stroke();c.beginPath();c.arc(x+5,y+4,6+t*7,2,5);c.stroke();}
-  else {c.translate(x,y);c.rotate(Math.atan2(ty-sy,tx-sx));polygon(c,[[-10,-3],[11,0],[-10,3]],'#fff4a9','#5b843e',1.4);}
+// Combat is instantaneous in the engine. These are traces of a resolved strike,
+// not projectiles still traveling toward a pest that may already be defeated.
+// Every effect reaches its recorded impact point on the first rendered frame.
+export function paintShot(c, shot, { reducedMotion = false } = {}) {
+  if (!(shot.life > 0)) return;
+  const elapsed = Math.max(0, Math.min(1, 1 - shot.life / SHOT_DURATION));
+  const motion = reducedMotion ? 0 : elapsed;
+  const p = STYLES[shot.style];
+  const origin = shot.origin || (shot.facing ? getGuardianShotOrigin(shot) : { x:shot.x, y:shot.y-28 });
+  const sx = origin.x, sy = origin.y, tx = shot.tx, ty = shot.ty;
+  const dx = tx-sx, dy = ty-sy, length = Math.hypot(dx,dy) || 1;
+  const nx = -dy/length, ny = dx/length;
+  c.save();
+  c.globalAlpha = (1-elapsed) ** 2;
+  if (!reducedMotion && elapsed < .24) ellipse(c,sx,sy,5,3,p.accent+'90');
+  if (shot.type === 'willow') {
+    const points = Array.from({length:7},(_,i) => {
+      const at=i/6, z=i===0||i===6 ? 0 : (i%2 ? 1 : -1)*5;
+      return [sx+dx*at+nx*z,sy+dy*at+ny*z];
+    });
+    line(c,points,'#35665f',6); line(c,points,'#d4f3dd',2);
+    ellipse(c,tx,ty,5+motion*13,4+motion*9,'#b4edce50','#d4f3dd',1.5);
+  } else if (shot.type === 'cannon') {
+    // A faint ballistic afterimage and immediate blast communicate the same hit.
+    c.beginPath(); c.moveTo(sx,sy);
+    c.quadraticCurveTo((sx+tx)/2,(sy+ty)/2-44,tx,ty);
+    c.strokeStyle='#bd985c80'; c.lineWidth=2; c.stroke();
+    ellipse(c,tx,ty,12+motion*38,8+motion*24,'#d39b4530','#e4b661',2.5);
+    if (!reducedMotion) for (let i=0;i<5;i++) {
+      const angle=i*TAU/5, reach=8+motion*24;
+      line(c,[[tx+Math.cos(angle)*reach,ty+Math.sin(angle)*reach*.6],
+        [tx+Math.cos(angle)*(reach+6),ty+Math.sin(angle)*(reach+6)*.6]],'#f4cc78',2);
+    }
+  } else if (shot.type === 'cypress') {
+    line(c,[[sx,sy],[tx,ty]],'#785d3d',6);
+    line(c,[[sx,sy],[tx,ty]],'#d8e1a3',2);
+    ellipse(c,tx,ty,6+motion*13,4+motion*8,'#d8e1a330','#d8e1a3',1.5);
+  } else if (shot.type === 'oak') {
+    line(c,[[sx,sy],[sx+dx*.33+nx*5,sy+dy*.33+ny*5],
+      [sx+dx*.66-nx*5,sy+dy*.66-ny*5],[tx,ty]],'#aa8b5d90',3);
+    c.strokeStyle='#c4aa73'; c.lineWidth=3;
+    c.beginPath(); c.ellipse(tx,ty,12+motion*37,7+motion*21,0,0,TAU); c.stroke();
+  } else if (shot.type === 'mushroom') {
+    line(c,[[sx,sy],[tx,ty]],p.accent+'60',2);
+    ellipse(c,tx,ty,12+motion*35,8+motion*25,p.canopy+'40',p.accent+'80',2);
+    for (let i=0;i<4;i++) {
+      const angle=i*TAU/4, reach=6+motion*15;
+      ellipse(c,tx+Math.cos(angle)*reach,ty+Math.sin(angle)*reach*.7,3,3,p.accent);
+    }
+  } else if (shot.type === 'palm') {
+    line(c,[[sx,sy],[sx+dx*.5+nx*9,sy+dy*.5+ny*9],[tx,ty]],'#a3d2c080',2);
+    c.strokeStyle='#e1f8cb'; c.lineWidth=3;
+    c.beginPath(); c.arc(tx,ty,10+motion*11,-1,2); c.stroke();
+    c.beginPath(); c.arc(tx+5,ty+4,6+motion*7,2,5); c.stroke();
+  } else {
+    // Pine needles and Watchtower bolts mark the hit, then fade in place.
+    line(c,[[sx,sy],[tx,ty]],shot.type==='watchtower' ? '#c2a16a90' : '#c1d49f80',2);
+    c.save(); c.translate(tx,ty); c.rotate(Math.atan2(dy,dx));
+    if (shot.type === 'pine') for (const offset of [-4,4])
+      line(c,[[-15,offset],[0,offset*.25]],'#c1d49f',1.5);
+    polygon(c,[[-12,-3],[0,0],[-12,3]],'#fff4a9','#5b843e',1.4);
+    c.restore();
+  }
   c.restore();
 }
 
@@ -615,4 +827,24 @@ export function paintHauntedBackdrop(c) {
   for(let i=0;i<6;i++)line(c,[[0,0],[Math.cos(i*Math.PI/10)*95,Math.sin(i*Math.PI/10)*95]],'#a398b050',1);
   for(const r of [24,48,72]){c.strokeStyle='#a398b050';c.lineWidth=1;c.beginPath();c.arc(0,0,r,0,Math.PI/2);c.stroke();}
   c.restore();
+}
+
+// Harvest ornaments are optional visual layers; combat geometry stays unchanged.
+export function paintHarvestLook(c,type,x,y,scale=1){
+ c.save();c.translate(x,y);c.scale(scale,scale);
+ if(type==='oak'||type==='tree'){
+  const high=type==='tree'?-100:-82,spread=type==='tree'?55:28;
+  for(let i=0;i<9;i++){const angle=i*2.4,px=Math.cos(angle)*spread,py=high+Math.sin(angle)*18;c.save();c.translate(px,py);c.rotate(angle);ellipse(c,0,0,type==='tree'?14:9,4,['#c57932','#e0ad54','#ad5930'][i%3],'#75422a',.8);line(c,[[-7,0],[7,0]],'#f2cc78',.8);c.restore();}
+  if(type==='tree'){const glow=c.createRadialGradient(0,-75,5,0,-75,90);glow.addColorStop(0,'#eeb94825');glow.addColorStop(1,'#eeb94800');ellipse(c,0,-75,90,90,glow);}
+ }else if(type==='watchtower'){
+  line(c,[[-25,-67],[-25,-26]],'#9e8049',2);polygon(c,[[-25,-65],[-5,-62],[-10,-48],[-25,-50]],'#af6334','#efbe66',1.2);line(c,[[-20,-59],[-14,-54]],'#f1ce7c',2);
+ }
+ c.restore();
+}
+export function paintHarvestBackdrop(c){
+ c.save();c.fillStyle='#9d542c22';c.fillRect(0,0,WIDTH,HEIGHT);
+ // Leaves and seed-store ornaments stay at the border, clear of the route and pads.
+ for(let i=0;i<45;i++){const x=18+(i*137)%960,y=i%2?24+(i*11)%30:675+(i*7)%25;c.save();c.translate(x,y);c.rotate(i*1.7);ellipse(c,0,0,6+i%4,3,['#b86b31','#d9a34a','#925132'][i%3],'#70462b',.6);c.restore();}
+ for(const[x,y]of [[36,110],[947,282],[670,40]]){polygon(c,[[x-15,y],[x-13,y-19],[x+13,y-19],[x+15,y]],'#785439','#d4a15c',2);for(let i=0;i<3;i++)ellipse(c,x-8+i*8,y-21,4,5,'#a7753a','#5f442a',1);line(c,[[x-14,y-8],[x+14,y-8]],'#cb9856',2);}
+ c.restore();
 }

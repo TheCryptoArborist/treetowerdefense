@@ -1,0 +1,9 @@
+{
+  "gameUrl": "https://tree-token.xyz/play/canopy-defense/",
+  "lobbyUrl": "https://tree-token.xyz/play/",
+  "baselineLobbySha": "ab395d49d65d550eb08abe6b3a14f72d2e1eff05",
+  "allowedExistingChanges": [
+    "/play/index.html"
+  ],
+  "newPathPrefix": "/play/canopy-defense/"
+}

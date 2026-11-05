@@ -2,7 +2,7 @@
 
 Read README.md for accepted product decisions and current prototype limitations.
 
-- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; Haunted Grove is playable in v0.12; Thanksgiving and Christmas events remain planned.
+- Keep the original fixed-route tower-defense format; multiplayer raids are outside the current plan. Seasonal Halloween, Thanksgiving and Christmas themes should add challenges and earnable cosmetics while preserving permanent roster and growth. See docs/seasons-and-progression.md for the design plan; Haunted Grove is playable in v0.12; Harvest of the Canopy is the November active event; Christmas remains planned.
 
 - Check the live https://github.com/MystenLabs/skills README before every project task. For Sui technical decisions, load the applicable current SKILL.md and supporting files before acting. If access fails, report it and do not claim the live guidance was consulted.
 - The protected tree is named **Tree of Life**.
@@ -16,7 +16,7 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Defenders follow the supplied NFTree references: jagged stump heads, dark eyes, expressive mouths, branch limbs, leaf sprouts, and wooden armor/shields. Keep the protected Tree of Life as a living canopy tree.
 - Art direction is a mature painterly fantasy forest: textured terrain, weathered stone, an ancient face-free Tree of Life, and threatening insect pests. Avoid the earlier pastel lawn, cartoon hedge borders, smiling tree, or human-faced pests. Keep the NFTree warrior reference identity.
 - Original expressive forest characters, visible tower growth, and a prominent battlefield follow the user's preferences for Plants vs. Zombies and Clash of Clans.
-- This is a development preview. Keep simulated NFTree ownership, TREE funds, and purchase prices prominently labeled. Do not silently present fake ownership or payments as mainnet behavior.
+- NFTree access must be verified on Sui Mainnet. TREE funds and purchase prices remain a development simulation and must be prominently labeled. Never present simulated payments as mainnet behavior.
 - Client-side saved state is editable. Never use it as production payment proof, ownership proof, or prize eligibility.
 - Preserve mobile touch access and keyboard alternatives. Use labeled build-site buttons as an alternative to canvas input.
 - Run `npm test` and `npm run check` for game changes; inspect relevant browser flows when possible.
@@ -32,3 +32,19 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Sunpetal new runs use meadow-v1; Moonlit new runs use marsh-v1; Emerald and Haunted Grove use crossing-v1. All geometry consumers must use the active map, including pointer input, pest/defeat orientation and restore. Saves without mapId keep crossing-v1 until a fresh run. Preserve queued enemies, growth, funds and seasonal progress. See docs/sunpetal-map.md.
 
 - Moonlit Marsh uses staggered causeways and all geometry consumers share marsh-v1. Both missing mapId and explicit crossing-v1 Moonlit saves keep the old route through reload/continue. Wet pockets and the relocated permanent pond must remain clear of route and build sites. See docs/moonlit-map.md.
+
+- v0.17 canonical gameplay is NFTree-gated by the isolated canopy-access function. Never restore the simulated rarity/access picker. Public preview/video stay public. Preserve the 40 pre-existing functions and five schedules; only the new Canopy gate may be added/updated. Protected src modules must not be present in the public static inventory. Session/nonce proofs must never be read from localStorage or trusted as payment entitlements. See docs/nftree-access.md.
+
+- November active season is Harvest of the Canopy (`harvest-canopy`, eventVersion 1), a separate five-wave event with Hollow Harvester. Keep Haunted Grove saved runs, progress, reward IDs and equipped Halloween looks. New seasonal entry starts Harvest; legacy engine `startEvent()` still defaults to Haunted Grove for save/test compatibility. Harvest progress and looks are separate (`harvest`, `harvestLooks`), never campaign stars or payment proof. See docs/harvest-canopy.md.
+
+- Updated user decision: individual defender progression replaces species-wide growth in the new collection preview. Twelve numbered copies per species match the twelve-site battlefield limit; each copy can deploy once and retains its own level across removal, runs, chapters and seasons. Existing species purchases remain a grandfathered minimum on all twelve copies. Keep legacy engine compatibility for existing saves/tests, but use collection mode in the new UI. Server inventory is authoritative in paid mode; never trust browser collection levels. Enable only on the isolated checkout preview after its additive migration applies. Ten levels, HQ progression and research remain planned. See docs/individual-defenders.md.
+
+- Updated user decision: gameplay comes before collections and promotional panels. Use one compact level path: 1–3 standard forests and 4–6 existing Veteran variants; show real unlock milestones and preserve separate star sets. Halloween archive UI is removed because it never publicly launched; retain engine/save compatibility. Harvest and other secondary panels are collapsed below the battlefield. Watchtower and Cannon tuning and future-structure constraints are documented in docs/play-first-home.md.
+
+- Updated user direction: use illustrated command buttons near the map for Defenders, Shop, Harvest, Field guide, Unlocks and Scout. Heavy management content belongs in the native command window; the compact portrait deployment dock stays beside/below the map. TREE ecosystem stays near the footer. See docs/battlefield-command-menu.md. Keep battle simulation held while management is open and leave a running battle paused on close, without disabling active-wave supply eligibility inside the shop.
+
+- Clear upgrade direction: label the map command Upgrade defenses; show the individual TREE action above stats/targeting with next-level gains and per-level prices. New campaign runs use encounters:1, adding named mini-bosses on waves 4/7; old saves without the flag preserve prior waves. Seasonal bosses and final wave 10 remain intact. See docs/upgrades-and-mini-bosses.md.
+
+- The Severed Root story uses skippable native-dialog cutscenes between waves. Hold simulation while open, retain manual next-wave control, preserve the separate story preference and replay entry, and never tie narrative progress to TREE purchases or ownership proof. See docs/the-severed-root.md.
+
+- Playtest correction: prefer available level-one copies when planting; never automatically pick the strongest copy. Match deployment art to the selected copy and show its number/level before planting. Preserve explicitly selected individual upgrades and grandfathered verified species purchases, labeling reused/inherited levels. Oak launches from its directional fist, including every growth level and fallback art. Wave scenes now use a separate twelve-second three-shot animation clock with moving guardians/enemies, calibrated strikes, root signals and camera cuts; reduced motion shows one fixed composition. See docs/playtest-corrections.md.

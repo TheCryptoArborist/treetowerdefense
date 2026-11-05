@@ -1,0 +1,374 @@
+[
+  {
+    "chapter": 1,
+    "difficulty": "standard",
+    "level": 1,
+    "profile": "adapted",
+    "wave": 10,
+    "outcome": "victory",
+    "health": 100,
+    "towers": 12,
+    "rows": [
+      {
+        "wave": 1,
+        "health": 100,
+        "towers": 3
+      },
+      {
+        "wave": 2,
+        "health": 100,
+        "towers": 5
+      },
+      {
+        "wave": 3,
+        "health": 100,
+        "towers": 6
+      },
+      {
+        "wave": 4,
+        "health": 100,
+        "towers": 8
+      },
+      {
+        "wave": 5,
+        "health": 100,
+        "towers": 11
+      },
+      {
+        "wave": 6,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 7,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 8,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 9,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 10,
+        "health": 100,
+        "towers": 12
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "difficulty": "standard",
+    "level": 1,
+    "profile": "adapted",
+    "wave": 10,
+    "outcome": "victory",
+    "health": 100,
+    "towers": 12,
+    "rows": [
+      {
+        "wave": 1,
+        "health": 100,
+        "towers": 3
+      },
+      {
+        "wave": 2,
+        "health": 100,
+        "towers": 5
+      },
+      {
+        "wave": 3,
+        "health": 100,
+        "towers": 6
+      },
+      {
+        "wave": 4,
+        "health": 100,
+        "towers": 8
+      },
+      {
+        "wave": 5,
+        "health": 100,
+        "towers": 11
+      },
+      {
+        "wave": 6,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 7,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 8,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 9,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 10,
+        "health": 100,
+        "towers": 12
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "difficulty": "standard",
+    "level": 1,
+    "profile": "adapted",
+    "wave": 10,
+    "outcome": "victory",
+    "health": 100,
+    "towers": 12,
+    "rows": [
+      {
+        "wave": 1,
+        "health": 100,
+        "towers": 3
+      },
+      {
+        "wave": 2,
+        "health": 100,
+        "towers": 5
+      },
+      {
+        "wave": 3,
+        "health": 100,
+        "towers": 6
+      },
+      {
+        "wave": 4,
+        "health": 100,
+        "towers": 8
+      },
+      {
+        "wave": 5,
+        "health": 100,
+        "towers": 11
+      },
+      {
+        "wave": 6,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 7,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 8,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 9,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 10,
+        "health": 100,
+        "towers": 12
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "difficulty": "veteran",
+    "level": 3,
+    "profile": "adapted",
+    "wave": 10,
+    "outcome": "victory",
+    "health": 100,
+    "towers": 12,
+    "rows": [
+      {
+        "wave": 1,
+        "health": 100,
+        "towers": 3
+      },
+      {
+        "wave": 2,
+        "health": 100,
+        "towers": 5
+      },
+      {
+        "wave": 3,
+        "health": 100,
+        "towers": 6
+      },
+      {
+        "wave": 4,
+        "health": 100,
+        "towers": 8
+      },
+      {
+        "wave": 5,
+        "health": 100,
+        "towers": 11
+      },
+      {
+        "wave": 6,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 7,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 8,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 9,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 10,
+        "health": 100,
+        "towers": 12
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "difficulty": "veteran",
+    "level": 3,
+    "profile": "adapted",
+    "wave": 10,
+    "outcome": "victory",
+    "health": 100,
+    "towers": 12,
+    "rows": [
+      {
+        "wave": 1,
+        "health": 100,
+        "towers": 3
+      },
+      {
+        "wave": 2,
+        "health": 100,
+        "towers": 5
+      },
+      {
+        "wave": 3,
+        "health": 100,
+        "towers": 6
+      },
+      {
+        "wave": 4,
+        "health": 100,
+        "towers": 8
+      },
+      {
+        "wave": 5,
+        "health": 100,
+        "towers": 11
+      },
+      {
+        "wave": 6,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 7,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 8,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 9,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 10,
+        "health": 100,
+        "towers": 12
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "difficulty": "veteran",
+    "level": 3,
+    "profile": "adapted",
+    "wave": 10,
+    "outcome": "victory",
+    "health": 46,
+    "towers": 12,
+    "rows": [
+      {
+        "wave": 1,
+        "health": 100,
+        "towers": 3
+      },
+      {
+        "wave": 2,
+        "health": 100,
+        "towers": 5
+      },
+      {
+        "wave": 3,
+        "health": 100,
+        "towers": 6
+      },
+      {
+        "wave": 4,
+        "health": 100,
+        "towers": 8
+      },
+      {
+        "wave": 5,
+        "health": 100,
+        "towers": 11
+      },
+      {
+        "wave": 6,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 7,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 8,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 9,
+        "health": 100,
+        "towers": 12
+      },
+      {
+        "wave": 10,
+        "health": 46,
+        "towers": 12
+      }
+    ]
+  }
+]

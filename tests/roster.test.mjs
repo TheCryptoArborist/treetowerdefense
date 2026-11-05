@@ -102,7 +102,7 @@ test('Watchtower range and armor bypass differ from Cannon splash; both keep nor
     const primary=enemyAt(game,'beetle',220),near=enemyAt(game,'termite',180),outside=enemyAt(game,'termite',10);
     game.events=[];game.step(.05);const hits=game.events.filter(e=>e.type==='hit');
     assert.equal(hits[0].id,primary.id);assert.equal(hits[0].damage,TOWERS[type].damage*1.6*(type==='watchtower'?1:.8));
-    if(type==='cannon'){assert.equal(hits[1].id,near.id);assert.equal(hits[1].damage,66*1.6*.7);assert.equal(outside.hp,500);}else assert.equal(hits.length,1);
+    if(type==='cannon'){assert.equal(hits[1].id,near.id);assert.equal(hits[1].damage,66*1.6*.55);assert.equal(outside.hp,500);}else assert.equal(hits.length,1);
     assert.equal(game.sap,planting);assert.equal(tower.cooldown,TOWERS[type].interval);
     const tree=game.tree;game.newRun();assert.equal(game.place(type,0).level,2);assert.equal(game.tree,tree);
   }
