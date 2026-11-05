@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {Game,TOWERS} from '../src/engine.js';import {storyScene,createStoryDirector} from '../src/story.js';
+import {Game,TOWERS} from '../src/engine.js';import {storyScene,createStoryDirector,storyCheckpoint} from '../src/story.js';
 class Dialog extends EventTarget{open=false;showModal(){this.open=true;}close(){this.open=false;this.dispatchEvent(new Event('close'));}}
 const ready=()=>{const g=new Game();g.allowPreview();g.forest.stars=[3,3,3];return g;};
 test('every campaign, Veteran and seasonal wave has a complete story with real next-wave guidance',()=>{
@@ -27,3 +27,5 @@ test('access, checkout, preference and changed-game guards prevent unintended co
  assert.ok(d.open(0,{after:()=>count++}));g.newRun();d.close();assert.equal(count,0);
  assert.ok(d.open(0,{after:()=>count++}));g=ready();d.close();assert.equal(count,0);
 });
+
+test('mid-wave replay uses only the last completed checkpoint',()=>{const g=ready();g.wave=5;for(const phase of ['running','paused','defeat']){g.phase=phase;assert.equal(storyCheckpoint(g),4);}for(const phase of ['build','victory']){g.phase=phase;assert.equal(storyCheckpoint(g),5);}g.wave=0;g.phase='paused';assert.equal(storyCheckpoint(g),0);});

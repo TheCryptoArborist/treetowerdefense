@@ -7,7 +7,7 @@ import {applyEntitlement} from './paid.js';
 import {checkoutReviewState} from './checkout-review.js';
 import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,completionAction} from './levels.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
-import {createStoryDirector} from './story.js';
+import {createStoryDirector,storyCheckpoint} from './story.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 
 const $ = id => document.getElementById(id);
@@ -83,7 +83,7 @@ const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
 });
 $('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();}else stories.close();};
 $('story-skip').onclick=()=>stories.close();
-$('story-replay').onclick=()=>stories.open(game.wave,{replay:true});
+$('story-replay').onclick=()=>stories.open(storyCheckpoint(game),{replay:true});
 function sendWave(){
  if(storyDialog.open||checkoutBusy)return;
  if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;

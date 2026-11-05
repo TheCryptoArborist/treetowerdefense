@@ -76,3 +76,5 @@ export function createStoryDirector({dialog,getGame,blocked,render,onClose,enabl
   close(){if(dialog.open)dialog.close();}
  };
 }
+
+export function storyCheckpoint(game){return Math.max(0,game.wave-(['running','paused','defeat'].includes(game.phase)?1:0));}
