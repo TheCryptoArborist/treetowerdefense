@@ -50,6 +50,15 @@ test('scene cues follow held presentation time once, and late clock jumps never 
  x.audio.dispose();
 });
 
+test('retro score continues on the scene clock and a held time or mute cannot restart it',async()=>{
+ const x=setup();await x.audio.enable();x.audio.openScene(scene());const first=x.sources.filter(s=>s.type==='square').length;
+ for(let frame=1;frame<=144;frame++)x.audio.tick(frame/12);
+ assert(x.sources.filter(s=>s.type==='square').length>=first+48);
+ const n=x.sources.length;x.audio.tick(12);assert.equal(x.sources.length,n);
+ x.audio.mute();for(let frame=145;frame<=192;frame++)x.audio.tick(frame/12);
+ assert.equal(x.sources.length,n);assert(x.sources.every(s=>s.stopped&&s.disconnected));x.audio.dispose();
+});
+
 test('dialogue and replay replace speech; stale callbacks cannot change the new line or restore music early',async()=>{
  const x=setup(),s=scene();await x.audio.enable();x.audio.openScene(s);
  const first=x.utterances[0];first.onstart();assert.equal(x.targets.at(-1),.36);

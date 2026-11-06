@@ -813,7 +813,7 @@ function frame(now) {
     const sceneReducedMotion=storyMotion.state.reducedMotion;
     storyAnimation.advance(dt);
     gameAudio.tick(storyAnimation.seconds,{reducedMotion:sceneReducedMotion});
-    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion:sceneReducedMotion,beat:storyBeat});
+    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion:sceneReducedMotion,beat:storyBeat,speaking:gameAudio.state.voiceStatus==='speaking'});
     if(frame&&$('story-shot').textContent!==frame.label)$('story-shot').textContent=frame.label;
   }
   if (now - lastUI > 150) { renderUI(); lastUI = now; }

@@ -11,3 +11,13 @@ Skip scene and Escape dismiss the current scene. An independent local preference
 Validation: 232 tests, 231 pass, one platform skip; npm run check and diff whitespace check pass. Added full campaign/Veteran/event checkpoint coverage, correct mini-boss forecasts, legacy-safe text, read-only story lookup, once-per-run latching, skip/intro behavior, battle replay preservation, preference/access/checkout guards and stale-run continuation protection. Authenticated browser desktop/mobile visual acceptance remains pending; no fake holder screenshots are claimed.
 
 Published source `a0b8f23d2b9c0cf6774930cbcc0bce58f1e97696`, CI 41961128427 successful; backend `6aebf672530dce02c3942cb4`, canonical routing `6aebf70ad3b2d01755518023`. Exact preservation verified for 290 static paths, 43 functions/configurations and five schedules; only the checkout rewrite changed. Canonical gate 200, anonymous access/payments/story source 401, story artwork 200. Initial illustrated-story publication `6aebf649a6f33f424f7a3285` was followed by the replay checkpoint correction. Test: https://tree-token.xyz/play/canopy-defense/checkout-test/ .
+
+
+## Dialogue clarity pass
+
+The approved retro animation and score remain unchanged. Revised narration
+names Ironroot and the Blight Sprayer directly, and chapter endings name the
+next forest. Post-attack scenes describe the completed attack without assuming
+a boss was killed or loot was recovered. A wave can finish after an enemy
+breaches the defenses, so a completed checkpoint alone cannot support those
+claims. No new battle outcome state or gameplay changes are introduced.

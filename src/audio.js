@@ -1,6 +1,13 @@
 // Original scene score and optional device narration. No game/payment state lives here.
 const hz=midi=>440*2**((midi-69)/12);
 const keys={crossing:50,meadow:55,marsh:40,harvest:45};
+// Original four-second pulse/triangle phrase for the 16-bit story scenes.
+export function retroScoreNotes(scene){
+ const root=keys[scene.tone]??50,peaceful=scene.cinematic==='renewal';
+ const melody=peaceful?[0,4,7,12,11,7,4,2,0,4,9,7,4,2,7,12]:[0,7,12,10,7,3,5,7,0,7,15,12,10,7,5,3];
+ return [...melody.map((interval,i)=>({at:i*.25,note:root+12+interval,duration:.19,level:.012,type:'square'})),
+  ...[0,0,peaceful?4:3,5].map((interval,i)=>({at:i,note:root-12+interval,duration:.78,level:.032,type:'triangle'}))];
+}
 const voices={narrator:[.94,.94,0],oak:[.96,.82,1],pine:[1.02,1.08,2],palm:[.98,1.02,3],cypress:[.96,.92,1],mushroom:[1.02,1.15,2],willow:[.92,.88,3]};
 // Generic original delivery presets, not impressions of a performer or character.
 export function narrationProfile(speaker,style='heroic'){
@@ -54,7 +61,7 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   write('canopy-narration-voice','');
  }
  let context=null,music=null,noise=null,unlocked=false,hidden=false,disposed=false,error='';
- let scene=null,beat=0,seconds=0,played=new Set(),utterance=null,voiceToken=0,voiceTimer=null;
+ let scene=null,beat=0,seconds=0,musicBar=-1,played=new Set(),utterance=null,voiceToken=0,voiceTimer=null;
  let voiceStatus='idle',voiceError='',spokenKey='',sceneId=0,attempt=0;
  const nodes=new Set();
  const english=()=>{try{const seen=new Set();return (speech?.getVoices()||[]).filter(v=>/^en(?:-|_)?/i.test(v.lang)&&!seen.has(voiceId(v))&&seen.add(voiceId(v))).sort((a,b)=>Number(b.localService)-Number(a.localService)||Number(b.default)-Number(a.default)||a.name.localeCompare(b.name));}catch{return [];}};
@@ -106,9 +113,9 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   }catch{error='Forest ambience is unavailable; music and captions remain available.';notify();}
  }
  function bed(){
-  const root=keys[scene.tone]??50;
-  note(hz(root),3.8,{level:.05,type:'triangle',sustain:true});note(hz(root+7),3.6,{delay:.16,level:.03,type:'sine',sustain:true});
-  rustle(3.9,.022,scene.tone==='marsh'?380:650);
+  musicBar=Math.floor(seconds/4);
+  for(const n of retroScoreNotes(scene))note(hz(n.note),n.duration,{delay:n.at,level:n.level,type:n.type});
+  rustle(3.9,.008,scene.tone==='marsh'?380:650);
  }
  function cue(c){
   if(c.kind==='rustle')rustle();
@@ -165,7 +172,7 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   }catch{error='Audio is unavailable on this device. The story captions still work.';unlocked=false;stopVoice();notify();return Promise.resolve(false);}
  }
  function mute(){enabled=false;attempt++;write('canopy-sound-enabled',false);stopVoice();stopNodes();notify();}
- function closeScene(){scene=null;sceneId++;stopVoice();stopNodes(true);played.clear();seconds=0;spokenKey='';voiceError='';notify();}
+ function closeScene(){scene=null;sceneId++;stopVoice();stopNodes(true);played.clear();seconds=0;musicBar=-1;spokenKey='';voiceError='';notify();}
  const voicesChanged=()=>{if(scene&&voiceStatus==='unavailable')speakCurrent();notify();};
  speech?.addEventListener?.('voiceschanged',voicesChanged);
  return {
@@ -174,10 +181,11 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   setBeat(next){if(!scene||next===beat)return;stopVoice();beat=next;spokenKey='';voiceError='';if(ready())note(hz((keys[scene.tone]??50)+24),.3,{level:.03});speakCurrent();notify();},
   tick(next,{reducedMotion=false}={}){
    if(!scene||!Number.isFinite(next)||next<seconds||hidden)return;
-   seconds=next;
+   const elapsed=next-seconds;seconds=next;
    for(const c of sceneAudioCues(scene))if(!played.has(c.id)&&c.at<=seconds){
     played.add(c.id);if(ready()&&seconds-c.at<.25&&(!c.visual||!reducedMotion))cue(c);
    }
+   const bar=Math.floor(seconds/4);if(bar!==musicBar){musicBar=bar;if(ready()&&seconds%4<.25&&elapsed<.25)bed();}
   },
   setVoice(value){voiceEnabled=!!value;write('canopy-voice-enabled',voiceEnabled);stopVoice();spokenKey='';voiceError='';if(voiceEnabled)speakCurrent();notify();},
   setNarrationStyle(value){if(!['heroic','natural'].includes(value))return false;narrationStyle=value;write('canopy-narration-style',value);stopVoice();spokenKey='';voiceError='';speakCurrent();notify();return true;},

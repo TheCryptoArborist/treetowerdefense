@@ -1,0 +1,142 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-06T03:13:16.816114+00:00",
+  "sourceCommit": "193b9c2a608bb180c580568bfb861ff7e14b041f",
+  "userAcceptance": "Approved the retro preview with revised dialogue for use in the game.",
+  "backendDeployId": "6aed441fb3d3fe7e81454d3d",
+  "productionRoutingDeployId": "6aed44f91a94dbba3157f330",
+  "previousProductionRoutingDeployId": "6aed2875aa8b27d1ef7d53a6",
+  "functionDigest": "d51a1ac01ec2c1085f7cafb824495d71952c1fc2f02ac58a0a27ebdfed17a25a",
+  "functionPackageMatchesLocalSha256": true,
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "databaseBranch": "canopy-checkout-test",
+  "pendingMigrations": [],
+  "localTests": {
+    "passed": 291,
+    "skipped": 1,
+    "failed": 0
+  },
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "changes": [
+    "Original guardian art and faces retained; rejected puppet renderer removed",
+    "320x140 pixel stage, 32-color palette, bitmap font and portrait dialogue",
+    "Whole-sprite pose cuts, stepped parallax and timed projectile impacts",
+    "Opt-in original pulse/triangle score; existing device narration controls retained",
+    "Clear enemy names and chapter destinations; completed waves do not imply boss kills"
+  ],
+  "preview": {
+    "fileName": "Canopy-Defense-Action-Cutscene-Preview.mp4",
+    "libraryFileId": "libfile_c8401625892481919094a1141f6b9162",
+    "libraryVersion": 3,
+    "durationSeconds": 26,
+    "frames": 312,
+    "fps": 12,
+    "width": 960,
+    "height": 420,
+    "codec": "h264",
+    "audio": "Original score and effects; no device narration",
+    "bytes": 1299557,
+    "sha256": "fb17adefa5b70b95f2b6986528d5110fcd6b7679164a11576253d9fbe18a9b8e"
+  },
+  "backendHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "storyPresent": true,
+      "checkoutTestLabeled": true,
+      "motionControlsPresent": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/story-retro.js",
+      "status": 401
+    },
+    {
+      "path": "src/story.js",
+      "status": 401
+    },
+    {
+      "path": "src/audio.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "canonicalHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "storyPresent": true,
+      "checkoutTestLabeled": true,
+      "motionControlsPresent": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/story-retro.js",
+      "status": 401
+    },
+    {
+      "path": "src/story.js",
+      "status": 401
+    },
+    {
+      "path": "src/audio.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "holderPreviewVisualAcceptance": "approved",
+  "holderHostedAcceptance": "pending",
+  "phoneAcceptance": "pending",
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "sourceRepositorySync": "Peter explicitly authorized publishing the approved source and release records to the existing public GitHub feature branch.",
+  "sourceRepository": {
+    "url": "https://github.com/TheCryptoArborist/treetowerdefense",
+    "branch": "feature/canopy-motion-publication-20261105"
+  }
+}

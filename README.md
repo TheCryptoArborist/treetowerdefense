@@ -40,10 +40,11 @@ The new collection preview changes growth from species-wide to individual number
 
 ## Fantasy forest build · v0.17
 
-- **Action cutscenes:** guardians lunge and fire, enemies march and recoil, and
-  root signals and drifting leaves keep moving beyond the initial camera shots.
-  Scene motion controls offer device-default, full action and reduced motion.
-  See [cutscene motion and verification](docs/action-cutscenes.md).
+- **1990s retro cutscenes:** original guardian artwork and faces in a 16-bit
+  story stage with whole-sprite pose cuts, scrolling forest layers, portrait
+  dialogue, pixel typography and an original pulse/triangle score. Scene motion
+  controls retain device-default, action and reduced motion. See
+  [cutscene presentation and verification](docs/action-cutscenes.md).
 
 - **The living frontier:** a scrollable world map includes all 60 campaign waves
   and five Harvest waves, with scouting, bosses, defender milestones and saved

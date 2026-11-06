@@ -237,3 +237,13 @@ dialog.world-map-dialog{width:min(1320px,calc(100% - 24px));max-width:1320px;max
 
 .story-dialog .story-stage{position:sticky;top:0;z-index:2}.story-stage canvas{max-height:44dvh;object-fit:contain}.story-presentation{display:flex;align-items:center;gap:14px;padding:8px 24px 14px;border-top:1px solid #23464f}.story-presentation label{display:grid;gap:5px;min-width:175px;font-size:11px;color:#d4e9df}.story-presentation select{min-height:44px;max-width:100%;font-size:12px}.story-presentation p{font-size:11px;line-height:1.5;color:#bad3cd;margin:0}.story-dialog button,.story-dialog select{scroll-margin-top:min(46dvh,440px)}
 @media(max-width:600px){.story-presentation{padding:10px 16px;align-items:start;flex-direction:column;gap:8px}.story-presentation label{width:100%;min-width:0}.story-presentation p{font-size:10px}}
+
+/* 16-bit story presentation. Toolbar stays outside the pixel-art stage. */
+.story-dialog{border-radius:4px;border:2px solid #278d83;box-shadow:0 0 0 3px #050714,0 0 0 4px #446b53,0 24px 90px #000c}
+.story-stage{display:flex;flex-direction:column;background:#050714}
+.story-stage canvas{display:block;width:100%;image-rendering:pixelated}
+.story-top{position:static;order:-1;padding:8px 14px;background:#050714;border-bottom:1px solid #278d83;font-family:monospace;letter-spacing:1px}
+.story-top button{border-radius:2px;font-family:monospace}
+.story-shot{display:none}
+.story-copy h2{font-family:monospace;font-weight:800;letter-spacing:-1px;text-shadow:none;color:#ffd84b}
+.story-speaker,.story-controls button{font-family:monospace}

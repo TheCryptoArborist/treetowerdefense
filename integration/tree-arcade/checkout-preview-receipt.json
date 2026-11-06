@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aed2875aa8b27d1ef7d53a6",
-    "upstreamDeployId": "6aed2753a92c1230e052b165",
-    "backendSourceCommit": "db3151b61e90288eff903957b7ce59b7572b8cfa",
-    "releaseSourceCommit": "db3151b61e90288eff903957b7ce59b7572b8cfa",
+    "productionDeployId": "6aed44f91a94dbba3157f330",
+    "upstreamDeployId": "6aed441fb3d3fe7e81454d3d",
+    "backendSourceCommit": "193b9c2a608bb180c580568bfb861ff7e14b041f",
+    "releaseSourceCommit": "193b9c2a608bb180c580568bfb861ff7e14b041f",
     "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -1503,5 +1503,10 @@
     "globalEnvironmentChanged": false,
     "walletTransactionInitiated": false,
     "regularGamePromoted": false
+  },
+  "retroCutscenes": {
+    "state": "live-test",
+    "sourceCommit": "193b9c2a608bb180c580568bfb861ff7e14b041f",
+    "receipt": "retro-cutscene-release-receipt.json"
   }
 }

@@ -103,3 +103,13 @@ Distinct-voice fix is live on checkout-test: source `1882f14`, backend
 entry includes the voice-information field; source/payment protections and all
 43 production functions/five schedules are preserved. See
 [release evidence](../integration/tree-arcade/distinct-narration-voices-release-receipt.json).
+
+
+## Retro score revision
+
+The 1990s cutscene revision replaces the sustained forest bed with original
+four-second pulse-wave melody and triangle-bass phrases. Music repeats on normal
+presentation-clock boundaries; a late clock jump does not replay missed bars.
+The existing audio opt-in, narration voice choices, speech ducking and lifecycle
+cancellation remain in effect. The approved retro revision is live on checkout-test; see the retro cutscene
+release receipt.

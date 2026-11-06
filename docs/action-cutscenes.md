@@ -1,50 +1,62 @@
-# Continuous action cutscenes
+# 1990s retro cutscenes
 
-The earlier presentation stopped at 12 seconds, leaving the image frozen while
-players listened to narration or read the dialogue. Device reduced-motion
-settings could also select a still composition without an in-scene explanation.
-The bottom Continue button's autofocus could scroll the visual stage out of view.
+The user rejected the replacement faces and jointed puppet arms. Cutscenes now
+use the original directional guardian atlases, including their original eyes,
+mouths, silhouettes and limb proportions. The rejected puppet sheet and renderer
+are removed. Battlefield artwork is unchanged.
 
-The initial three-shot introduction now leads into a continuous confrontation
-and guardian-close-up loop for as long as the scene stays open. Guardians advance,
-brace and lunge using the existing grounded sprite rig; seed shots cross the
-scene, enemies stride through their real walking poses, and hits produce recoil
-and bark/leaf fragments. Supporting defenders and swarming insects keep the
-battlefield active between strikes. Root signals, depth layers and foreground
-leaves continue moving. Renewal endings keep their peaceful root-reconnection
-composition rather than introducing another attack.
+## Presentation
 
-The canvas stays visible while story controls scroll. Native autofocus starts
-at Skip scene near the stage. **Scene motion** offers **Device setting**,
-**Action animation** and **Reduced motion**, with an explicit status message.
-Device setting remains the default and follows live OS preference changes.
-An explicit choice is remembered separately from game, wallet and audio data.
-Reduced motion is one deterministic still image without camera movement,
-projectiles, recoil, flashes or drifting particles. Narration, captions and
-manual Next/Skip/Story behavior remain available.
+`story-retro.js` paints a 320×140 story stage with a 32-color palette, nearest-
+neighbor scaling and a built-in 5×7 bitmap font. A forest establishing shot cuts
+to a confrontation and then an original-art portrait panel. Discrete existing
+three-quarter/side poses, pixel-step lunges, traveling seed bolts, timed impact
+sparks and stepped enemy gait give the action a 16-bit cadence. Guardians never
+use limb segmentation, newly drawn facial features, bitmap shearing or synthetic
+mouth animation. Forest layers, canopy silhouettes and drifting leaves scroll
+at independent speeds. Dark block wipes mark shot changes.
 
-The presentation never steps Game, applies damage, spends currency, or advances
-story text or waves. Hidden tabs, checkout and access loss hold the scene clock;
-closing clears it and replay starts the introduction again. Existing narration
-voice choices and playback cancellation remain intact.
+Narration and guardian dialogue appear in framed typewriter panels. Long text
+pages without dropping words, and the full original text remains readable in
+the native dialog below the canvas. Manual guardian-dialogue selection holds
+the portrait shot and restarts its typewriter. The presentation clock holds on
+checkout, hidden tabs and access loss; replay resets it. It never advances a
+wave, spends TREE or changes game state.
 
-## Verification
+Original pulse-wave melody and triangle bass use the existing opt-in audio
+controls. Four-second phrases follow the scene clock, with no catch-up burst
+after a clock jump. Mute, hidden state, scene close and teardown cancel scheduled
+notes. Optional device narration and per-delivery voice choices are retained;
+voice completion never advances a wave or changes a guardian face.
 
-286 local tests pass, zero fail, and one existing Windows-only test is skipped
-on Linux. Motion regressions cover post-intro activity, continuing strikes and
-gait, renewal endings, deterministic reduced motion, device-preference changes,
-explicit overrides, storage failures, clock holds, replay and clear. All chapter
-and seasonal scene painters use finite geometry and preserve game snapshots.
-Syntax and protected build checks pass.
+The scene toolbar is outside the pixel canvas, with original touch targets.
+Reduced motion shows a deterministic portrait with complete first-page text,
+no wipes, scrolling or attacks. Scene-motion overrides and accessible full text
+remain available. Other game screens retain their existing artwork and styles.
 
-`node tools/render-cinematic-check.mjs` renders the production painter with the
-real guardian, Tree of Life and Ironroot art. The 20-second silent MP4 includes
-eight seconds after the former freeze point. The contact sheet samples both the
-intro and late action loop. These are offline renderer captures, not an
-authenticated browser/phone playtest. Physical layout and device acceptance
-remain pending.
+## Verification and preview
 
-## Release
+291 local tests pass, zero fail, and one existing Windows-only test is skipped.
+Syntax checks and protected packaging pass. The 26-second MP4 uses the production painter,
+original local guardian/Tree of Life/Ironroot artwork, and an offline rendering
+of the same original chip-score phrases. It shows the Palm confrontation,
+Palm dialogue and Oak chapter-ending portrait. It contains music and effects,
+not device narration. These are offline captures; holder/device acceptance
+remains pending.
+
+## Release status
+
+The approved retro revision is live on checkout-test from source `193b9c2`.
+Backend: `6aed441fb3d3fe7e81454d3d`; routing: `6aed44f91a94dbba3157f330`.
+The package digest matches the validated local ZIP. All 43 production function
+identities/configurations, five schedules and 299 static paths are retained;
+only the existing checkout-test rewrite target changed. Public gate, styles and
+gateway pass HTTP checks; protected source, access and payment endpoints remain
+401 without a session. No database migrations or global environment changes
+were made. See [release evidence](../integration/tree-arcade/retro-cutscene-release-receipt.json).
+Holder hosted/phone acceptance remains pending.
+
+The following receipt records the preceding continuous-motion build.
 
 Live on checkout-test from source `db3151b`. Backend
 `6aed2753a92c1230e052b165`; routing `6aed2875aa8b27d1ef7d53a6`. Canonical
