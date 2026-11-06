@@ -43,3 +43,14 @@ eight seconds after the former freeze point. The contact sheet samples both the
 intro and late action loop. These are offline renderer captures, not an
 authenticated browser/phone playtest. Physical layout and device acceptance
 remain pending.
+
+## Release
+
+Live on checkout-test from source `db3151b`. Backend
+`6aed2753a92c1230e052b165`; routing `6aed2875aa8b27d1ef7d53a6`. Canonical
+entry includes motion controls and stage autofocus, styles/gateway match source,
+and anonymous story/audio source, access and payments remain protected. One
+initial access probe returned 503; the repeated full check passed with the
+expected 401. All 43 production function identities/configurations, five schedules
+and 299 static paths are retained; only the checkout rewrite changed.
+See [release evidence](../integration/tree-arcade/continuous-cutscene-release-receipt.json).

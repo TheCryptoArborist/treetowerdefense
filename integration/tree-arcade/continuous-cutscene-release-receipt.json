@@ -1,0 +1,149 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "sourceCommit": "db3151b61e90288eff903957b7ce59b7572b8cfa",
+  "backendDeployId": "6aed2753a92c1230e052b165",
+  "productionRoutingDeployId": "6aed2875aa8b27d1ef7d53a6",
+  "previousProductionRoutingDeployId": "6aed214310030737ba14c461",
+  "functionDigest": "79a374aef9771632a28fba7e8d2fc560b701e3ac9ef5fc0652e61b0a7d36cd2a",
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "databaseBranch": "canopy-checkout-test",
+  "localTests": {
+    "passed": 286,
+    "skipped": 1,
+    "failed": 0
+  },
+  "ci": {
+    "run": 42140733703,
+    "conclusion": "success",
+    "jobs": [
+      "Linux",
+      "Windows",
+      "PostgreSQL 16"
+    ]
+  },
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "problem": "The presentation froze at 12 seconds; reduced-motion preference could make it static, and autofocus could hide the stage.",
+  "changes": [
+    "Initial three-shot introduction leads into an ongoing action loop",
+    "Grounded guardian lunges, moving seed shots and supporting defenders",
+    "Real enemy gait, hit recoil and bark/leaf fragments",
+    "Moving root signals and foreground leaves; peaceful renewal endings retained",
+    "Visible Device setting / Action animation / Reduced motion controls",
+    "Default OS motion preference and independent remembered user override",
+    "Sticky stage and initial Skip focus keep the animation visible",
+    "Presentation holds on hidden tabs, checkout and access loss; replay resets and close clears"
+  ],
+  "preview": {
+    "fileName": "Canopy-Defense-Action-Cutscene-Preview.mp4",
+    "durationSeconds": 20,
+    "frames": 480,
+    "width": 960,
+    "height": 420,
+    "codec": "h264",
+    "silent": true,
+    "bytes": 2603361,
+    "source": "Offline production painter and original local artwork; not authenticated browser acceptance"
+  },
+  "backendHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "motionControlsPresent": true,
+      "stageAutofocus": true,
+      "motionStatusPresent": true,
+      "mapAndVoiceInfoRetained": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/story-art.js",
+      "status": 401
+    },
+    {
+      "path": "src/audio.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "canonicalHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "motionControlsPresent": true,
+      "stageAutofocus": true,
+      "motionStatusPresent": true,
+      "mapAndVoiceInfoRetained": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/story-art.js",
+      "status": 401
+    },
+    {
+      "path": "src/audio.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "transientProbeFailures": [
+    {
+      "path": "api/access",
+      "status": 503,
+      "resolvedOnRetry": true,
+      "finalStatus": 401
+    }
+  ],
+  "packageAudit": {
+    "entries": 676,
+    "privateConfigFiles": [],
+    "credentialPatternMatches": 0
+  },
+  "holderMotionAcceptance": "pending",
+  "phoneLayoutAcceptance": "pending",
+  "existingNarrationControlsRetained": true,
+  "mapRetained": true,
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false
+}
