@@ -4,6 +4,8 @@ import {Game,TOWERS} from '../src/engine.js';
 import {storyScene} from '../src/story.js';
 const app=fs.readFileSync('src/app.js','utf8'),index=fs.readFileSync('index.html','utf8');
 const audio=fs.readFileSync('src/audio.js','utf8').replaceAll('export function','function');
+const storyArt=fs.readFileSync('src/story-art.js','utf8');
+const motionSettings=storyArt.slice(storyArt.indexOf('export function createStoryMotionSettings')).replace('export function','function');
 const controller=app.slice(app.indexOf('let audioStorage;'),app.indexOf('let storyEnabled='))
  .replace('AudioContext:window.AudioContext||window.webkitAudioContext','AudioContext:MeteredContext')
  .split('\n').filter(line=>!line.startsWith('window.canopyAccess.subscribe(')).join('\n');
@@ -14,6 +16,7 @@ const html=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="
 <style>${fs.readFileSync('styles.css','utf8')}</style><main style="padding:20px"><h1>Cutscene audio check</h1><p>Isolated component · no game, wallet or payments.</p><button id="sound-button" aria-pressed="false">Enable sound</button> <button id="qa-open">Open cutscene</button></main>${dialog}
 <script type="module">
 ${audio}
+${motionSettings}
 const $=id=>document.getElementById(id),observed=[];
 const NativeContext=window.AudioContext||window.webkitAudioContext;
 class MeteredContext{

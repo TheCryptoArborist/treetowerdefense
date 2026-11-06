@@ -12,6 +12,9 @@ Oak had two explicit ground-level launch overrides, bypassing its loaded directi
 
 ## Animated wave scenes
 
+The later [continuous action update](action-cutscenes.md) supersedes the original
+12-second freeze and adds explicit scene-motion controls and a persistent stage.
+
 `story-art.js` replaces the static landscape/portrait composition with a twelve-second in-engine sequence. Three camera shots establish the Tree of Life, bring in guardians and the approaching enemy, then frame the speaking guardian. Independent forest layers, moving enemy poses, hand-connected strikes, drifting leaves and traveling root signals provide visible action. Mini-boss warnings match actual encounter flags; final approaches use the relevant chapter/season boss. Endings show reconnection instead of another attack. Chapter lighting and guardian identity follow the existing story.
 
 The animation clock is separate from the paused battle. It resets on replay, clears on skip and stops at its final composition. Text remains manually advanced; players can skip immediately, use Escape, disable automatic story or replay from Story. Closing a between-wave scene does not send the next wave. Reduced motion draws one deterministic final composition with no movement or flashing. Canvas descriptions and readable HTML text remain available to assistive technology. No session, ownership or payment behavior changes.

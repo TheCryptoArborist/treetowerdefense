@@ -40,6 +40,11 @@ The new collection preview changes growth from species-wide to individual number
 
 ## Fantasy forest build · v0.17
 
+- **Action cutscenes:** guardians lunge and fire, enemies march and recoil, and
+  root signals and drifting leaves keep moving beyond the initial camera shots.
+  Scene motion controls offer device-default, full action and reduced motion.
+  See [cutscene motion and verification](docs/action-cutscenes.md).
+
 - **The living frontier:** a scrollable world map includes all 60 campaign waves
   and five Harvest waves, with scouting, bosses, defender milestones and saved
   progress, styled with the TREE website's colors and original ecosystem art.

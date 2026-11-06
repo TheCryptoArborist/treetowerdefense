@@ -9,7 +9,7 @@ import {checkoutReviewState} from './checkout-review.js';
 import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,completionAction} from './levels.js';
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 import {createStoryDirector,storyCheckpoint} from './story.js';
-import {createStoryAnimation} from './story-art.js';
+import {createStoryAnimation,createStoryMotionSettings} from './story-art.js';
 import {createGameAudio,narrationVoiceInfo} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createWorldMap} from './world-map-view.js';
@@ -74,6 +74,16 @@ const worldMapDialog=$('world-map-dialog');
 let worldMap=null;
 const storyAnimation=createStoryAnimation();
 let audioStorage;try{audioStorage=localStorage;}catch{}
+const storyMotion=createStoryMotionSettings({media:matchMedia('(prefers-reduced-motion: reduce)'),storage:audioStorage,onChange:renderStoryMotionState});
+function renderStoryMotionState(){
+ const s=storyMotion.state;
+ $('story-motion').value=s.mode;
+ $('story-motion').querySelector('option[value="system"]').textContent=s.systemReducedMotion?'Device setting · reduced motion':'Device setting · action animation';
+ $('story-motion-status').textContent=s.reducedMotion?'Reduced motion: a still scene. Choose Action animation for moving guardians and effects.':'Action animation continues while this scene is open. Battle remains paused.';
+}
+$('story-motion').onchange=()=>storyMotion.set($('story-motion').value);
+renderStoryMotionState();
+window.addEventListener('pagehide',()=>storyMotion.dispose());
 let narrationVoiceSignature='';
 const gameAudio=createGameAudio({AudioContext:window.AudioContext||window.webkitAudioContext,
  speech:window.speechSynthesis,Utterance:window.SpeechSynthesisUtterance,storage:audioStorage,onChange:renderAudioState});
@@ -799,10 +809,11 @@ function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
   if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !worldMapDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
-  if(storyDialog.open&&!document.hidden){
+  if(storyDialog.open&&!document.hidden&&game.access&&!accessDialog.open&&!checkoutBusy){
+    const sceneReducedMotion=storyMotion.state.reducedMotion;
     storyAnimation.advance(dt);
-    gameAudio.tick(storyAnimation.seconds,{reducedMotion});
-    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion,beat:storyBeat});
+    gameAudio.tick(storyAnimation.seconds,{reducedMotion:sceneReducedMotion});
+    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion:sceneReducedMotion,beat:storyBeat});
     if(frame&&$('story-shot').textContent!==frame.label)$('story-shot').textContent=frame.label;
   }
   if (now - lastUI > 150) { renderUI(); lastUI = now; }
