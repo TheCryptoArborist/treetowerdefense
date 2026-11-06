@@ -32,3 +32,16 @@ The dialogue remains visible until the player returns. Original sprite faces,
 Six new regressions cover the fixed voice defaults, mute/fallback, resumed
 speech, automatic beat pacing, silent/stalled speech, and the dialog's two
 controls. Existing story and audio lifecycle tests remain in place.
+
+## Release
+
+Live on checkout-test from source `234962801363e334c9bd26657ee775deab1b3dc1`. Backend: `6aed630d633573778e46f39b`;
+routing: `6aed63aa82fdd1d950dcb5ed`. All 311 local tests pass, one Windows-only
+check is skipped, and syntax/protected packaging pass. GitHub validation run
+`42167552365` passed Linux, Windows and PostgreSQL 16. All 43 production
+function identities/configurations, five schedules and 299 static paths are
+retained; only the checkout rewrite changed. Live HTML has two cutscene buttons
+and no input/select fields; private source and payment routes return 401
+without a holder session. Browser gate and hidden-dialog DOM were inspected;
+authenticated scene playback and device listening remain holder acceptance.
+See [release evidence](../integration/tree-arcade/simple-cutscene-release-receipt.json).
