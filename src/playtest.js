@@ -93,7 +93,7 @@ export function purchaseQuote(game, kind, towerId = null) {
   } else if (Object.hasOwn(PRICES, kind)) {
     cost = PRICES[kind];
     const descriptions = {
-      shield: ['Root Shield', 'Set your current run’s root shield to 50 extra protection. It does not carry into a fresh run.'],
+      shield: ['Root Shield', 'Protect the Tree of Life: absorb up to 50 damage from pests that reach it before it loses health. Refills your shield to 50; it does not stack above 50, restore lost health, or carry into a new run.'],
       fertilizer: ['Fertilizer', '+50% guardian damage for 20 battle seconds. The timer waits while battle is paused.'],
       storm: ['Leaf Storm', 'Deal 180 damage to every pest currently on the path. This is one immediate use.'],
       continue: ['Continue this run', 'Restore the Tree of Life to 100 health and keep your wave, enemies, towers, and permanent growth. The root shield resets to zero.'],

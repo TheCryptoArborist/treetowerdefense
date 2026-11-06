@@ -13,6 +13,7 @@ import {createStoryAnimation} from './story-art.js';
 import {createStoryPlayback} from './story-playback.js';
 import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
+import {createShopView} from './shop.js';
 import {createWorldMap} from './world-map-view.js';
 import {waitForForestArt} from './asset-loading.js';
 
@@ -110,11 +111,12 @@ function sendWave(){
  if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;
  act(()=>game.startWave());
 }
+const shopView=createShopView({root:document.querySelector('[data-command-panel="shop"]'),getGame:()=>game,paidMode});
 const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open,
  render:section=>{renderCommandWindow(section);renderUI();},save,
  returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
-function openCommand(section,trigger=document.activeElement){commandMenu.open(section,trigger);}
+function openCommand(section,trigger=document.activeElement){if(commandMenu.open(section,trigger)){if(section==='shop')shopView.reset();helpDialog.scrollTop=0;}}
 document.querySelectorAll('[data-open-command]').forEach(button=>button.addEventListener('click',()=>openCommand(button.dataset.openCommand,button)));
 document.querySelectorAll('[data-command-tab]').forEach(button=>button.addEventListener('click',()=>openCommand(button.dataset.commandTab)));
 $('deploy-selected').addEventListener('click',()=>{if(selectedType&&game.isUnlocked(selectedType))commandMenu.close(canvas);});
@@ -548,11 +550,7 @@ function renderUI() {
     button.setAttribute('aria-label', t ? `Select ${TOWERS[t.type].name} at site ${pad + 1}` : `Plant selected defender at site ${pad + 1}`);
     button.disabled = !active;
   });
-  document.querySelectorAll('[data-supply]').forEach(button => {
-    const kind = button.dataset.supply;
-    button.disabled = !active || game.tree < PRICES[kind] || (kind === 'storm' && (!game.enemies.length || game.phase !== 'running')) || (kind === 'shield' && game.shield >= 50) || (kind === 'fertilizer' && game.boostUntil > game.time);
-  });
-    $('storm-availability').textContent=game.phase!=='running'?'Resume a wave, then open Shop to use':!game.enemies.length?'Available once pests enter the path':'Ready · 180 damage to all pests';
+  shopView.update();
   const nextInspector = tower ? `${tower.id}:${tower.level}:${tower.style}:${tower.targetMode}:${JSON.stringify([game.seasonLooks,game.harvestLooks])}:${active}:${game.tree >= game.upgradeCost(tower)}` : 'none';
   if (nextInspector !== inspectorSignature) {
   if (tower) {

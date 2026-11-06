@@ -19,3 +19,23 @@ The live HTML contains the new label; private source and payment/access routes
 remain protected. Only the checkout rewrite target changed on the main site.
 
 [Release evidence](../integration/tree-arcade/mobile-shop-label-release-receipt.json).
+
+## Supply clarity revision
+
+The shop command is a full-width highlighted banner above the five smaller
+commands on phones. Its subtitle and Open shop prompt stay visible. Opening
+the shop resets to Field supplies at the top, with a separate keyboard-accessible
+Defender upgrades tab. Normal UI refreshes retain the chosen category.
+
+Root Shield now explains that it buffers up to 50 damage from pests reaching
+the Tree of Life, before health is lost. A current-shield readout makes partial
+refills explicit. It does not heal, stack past 50 or survive a new run. The
+confirmation repeats those rules. Fertilizer and Leaf Storm explain their
+damage, timing and duration; disabled actions show why they are unavailable.
+Each card has a named Buy action and its existing TREE price. The existing
+server invoice and wallet confirmation still precede payment.
+
+Four additional tests cover category navigation/reset, readable eligibility,
+unchanged state on rendering, active-wave supply eligibility, and actual
+shield absorption/refill behavior. This revision has no balance, price,
+payment-authority or access changes.
