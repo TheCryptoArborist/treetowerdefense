@@ -43,5 +43,15 @@ function identities/configurations, five schedules and 299 static paths are
 retained; only the checkout rewrite changed. Live HTML has two cutscene buttons
 and no input/select fields; private source and payment routes return 401
 without a holder session. Browser gate and hidden-dialog DOM were inspected;
-authenticated scene playback and device listening remain holder acceptance.
+the subsequent holder acceptance is recorded below.
 See [release evidence](../integration/tree-arcade/simple-cutscene-release-receipt.json).
+
+## Holder acceptance
+
+Peter accepted the simplified scene on November 6, 2026: “That looks and
+functions a lot better.” Preserve this layout and playback. The device was
+not specified, and the voice was not separately identified. Follow-up live
+checks confirm the two-button dialog with no settings, a working entrance,
+and 401 protection for private playback source, access and payment endpoints.
+Real TREE purchase/recovery and phone-wallet round-trip acceptance remain
+pending; this approval is not a report of a successful payment.

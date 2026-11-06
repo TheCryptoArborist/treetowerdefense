@@ -128,10 +128,30 @@
     "authenticatedSceneOpened": false,
     "limitation": "No connected holder wallet; hidden dialog DOM inspected, not authenticated playback or device listening"
   },
-  "holderVisualAcceptance": "pending for this simplification",
-  "deviceListeningAcceptance": "pending; device voices vary",
+  "holderVisualAcceptance": "accepted by Peter",
+  "deviceListeningAcceptance": "not separately described in holder acceptance; device voices vary",
   "productionDatabaseChanged": false,
   "globalEnvironmentChanged": false,
   "walletTransactionInitiated": false,
-  "regularGamePromoted": false
+  "regularGamePromoted": false,
+  "holderFunctionalAcceptance": "accepted by Peter",
+  "holderAcceptance": {
+    "reportedOn": "2026-11-06",
+    "statement": "That looks and functions a lot better.",
+    "scope": "Simplified cutscene appearance and function",
+    "device": "unspecified"
+  },
+  "realPurchaseAndRecoveryAcceptance": "pending",
+  "followupLiveChecks": {
+    "checkedOn": "2026-11-06",
+    "gateStatus": 200,
+    "cutsceneConfigurationFields": 0,
+    "cutsceneButtons": [
+      "story-skip",
+      "story-next"
+    ],
+    "unauthenticatedAccessStatus": 401,
+    "unauthenticatedPaymentsStatus": 401,
+    "unauthenticatedPlaybackSourceStatus": 401
+  }
 }
