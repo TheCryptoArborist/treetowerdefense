@@ -69,3 +69,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Hold the holder entrance on Preparing the forest until all core artwork has downloaded and been prepared. Paint the first finished battlefield while hidden before revealing the game or starting its frame loop. Preserve wallet/session guards during loading; missing or stalled graphics offer a reload instead of exposing temporary fallback art. See docs/forest-loading.md.
 
 - Finished-art loading is live on checkout-test; the latest release baseline and checks are in integration/tree-arcade/forest-loading-release-receipt.json. Preserve periodic ownership checks while the loading entrance is visible.
+
+- Peter accepted the latest loading playtest; the device was not specified. Five complete checkout interruption rehearsals now run with the SQL ledger, real signatures and simulated chain transport, including PostgreSQL 16 CI. See docs/checkout-recovery-rehearsal.md. Do not label these as real-wallet purchases. Real TREE purchase/recovery and phone-wallet acceptance remain pending before regular-game promotion.

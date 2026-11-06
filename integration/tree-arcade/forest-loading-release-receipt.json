@@ -149,7 +149,14 @@
       "status": 401
     }
   ],
-  "holderDeviceLoadingAcceptance": "pending",
+  "holderDeviceLoadingAcceptance": "accepted for Peter's reported playtest; device unspecified",
+  "holderAcceptance": {
+    "reportedOn": "2026-11-06",
+    "statement": "The test turned out well. You can keep working on the next step.",
+    "scope": "Latest loading playtest",
+    "phoneAcceptance": "not separately confirmed",
+    "realPurchaseAndRecoveryAcceptance": "pending"
+  },
   "productionDatabaseChanged": false,
   "globalEnvironmentChanged": false,
   "walletTransactionInitiated": false,

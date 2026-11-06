@@ -24,8 +24,9 @@ delay. No run progress is reset, and access verification, TREE purchases and
 the approved retro cutscene presentation retain their existing rules.
 
 Nine regressions cover delayed preparation, cached loads, partial failures,
-stalled images, repeated entry clicks, access changes, expiry and reload. Holder
-device acceptance remains a live test after release.
+stalled images, repeated entry clicks, access changes, expiry and reload. Peter
+accepted the subsequent live playtest. Its device was not specified; phone
+acceptance remains separate.
 
 
 ## Release
@@ -38,5 +39,6 @@ sheets were decoded and prepared successfully using the production installers.
 All 43 production function identities/configurations, five schedules and 299
 static paths were retained; only the existing checkout rewrite target changed.
 Live gate, gateway and styles pass HTTP checks; private modules, access and
-payment endpoints remain protected. Holder device acceptance remains pending.
+payment endpoints remain protected. Peter accepted the subsequent live
+playtest; phone acceptance was not separately confirmed.
 See [release evidence](../integration/tree-arcade/forest-loading-release-receipt.json).
