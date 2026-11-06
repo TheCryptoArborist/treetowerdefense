@@ -65,3 +65,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - The user approved the retro animation style. Preserve it during wording revisions. Use clear enemy names, concrete stakes and explicit next destinations. A completed wave does not prove a boss was killed; narration must not assume a kill or invent recovered loot from that outcome.
 
 - The approved retro cutscenes and clarified dialogue are live on checkout-test. Preserve the release baseline and verification in integration/tree-arcade/retro-cutscene-release-receipt.json. Regular-game promotion and holder hosted/phone acceptance remain pending.
+
+- Hold the holder entrance on Preparing the forest until all core artwork has downloaded and been prepared. Paint the first finished battlefield while hidden before revealing the game or starting its frame loop. Preserve wallet/session guards during loading; missing or stalled graphics offer a reload instead of exposing temporary fallback art. See docs/forest-loading.md.

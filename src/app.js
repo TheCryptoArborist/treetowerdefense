@@ -13,6 +13,7 @@ import {createStoryAnimation,createStoryMotionSettings} from './story-art.js';
 import {createGameAudio,narrationVoiceInfo} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createWorldMap} from './world-map-view.js';
+import {waitForForestArt} from './asset-loading.js';
 
 const $ = id => document.getElementById(id);
 const holder=window.canopyAccess?.account;
@@ -474,18 +475,9 @@ function renderSeason(){
 let lastTone=0;
 function tone(frequency,duration=.08){gameAudio.tone(frequency,duration);}
 let cardSignature = '';
-loadEnvironmentArt();
-loadEnemyArt().then(() => { scoutSignature = ''; renderUI(); });
-loadStructureArt().then(() => { cardSignature = ''; inspectorSignature = null; renderUI(); });
-loadAimArt().then(status=>{cardSignature = ''; inspectorSignature = null; renderUI(); if(status.failed.length)console.warn('Some directional guardian sprites were unavailable; aiming canvas artwork is active.');});
-loadDefenderArt().then(status => {
-  cardSignature = ''; inspectorSignature = null;
-  document.querySelectorAll('[data-style]').forEach(button => {
-    const icon = button.querySelector('canvas'), c = icon.getContext('2d');
-    c.clearRect(0,0,icon.width,icon.height); shapeTree(c,'oak',64,100,1,Number(button.dataset.style));
-  });
-  renderUI();
-  if (status.failed.length) console.warn('Some guardian sprites were unavailable; matching canvas artwork is active.');
+const forestArtReady=waitForForestArt({
+ environment:loadEnvironmentArt(),enemies:loadEnemyArt(),structures:loadStructureArt(),
+ aim:loadAimArt(),defenders:loadDefenderArt()
 });
 
 let commandRosterSignature='';
@@ -820,7 +812,16 @@ function frame(now) {
   if (now - lastSave > 2000 && game.access) { save(); lastSave = now; }
   requestAnimationFrame(frame);
 }
+// Dynamic import must remain pending: the holder gateway is the loading cover.
+// Paint the completed scene while hidden before the gateway reveals the shell.
+await forestArtReady;
+cardSignature='';inspectorSignature=null;scoutSignature='';backdropKey='';
+document.querySelectorAll('[data-style]').forEach(button=>{
+ const icon=button.querySelector('canvas'),c=icon.getContext('2d');
+ c.clearRect(0,0,icon.width,icon.height);shapeTree(c,'oak',64,100,1,Number(button.dataset.style));
+});
 renderUI();
 if (!storageAvailable) $('save-status').textContent = 'Save unavailable · keep this tab open';
 if (!game.access) accessDialog.showModal();
+lastTime=performance.now();draw(lastTime/1000,0);
 requestAnimationFrame(frame);

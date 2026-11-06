@@ -247,3 +247,9 @@ dialog.world-map-dialog{width:min(1320px,calc(100% - 24px));max-width:1320px;max
 .story-shot{display:none}
 .story-copy h2{font-family:monospace;font-weight:800;letter-spacing:-1px;text-shadow:none;color:#ffd84b}
 .story-speaker,.story-controls button{font-family:monospace}
+
+/* Keep the holder entrance visible until the finished battlefield is painted. */
+.forest-gateway[data-loading="true"] #gate-status::before{content:"";display:inline-block;width:13px;height:13px;margin-right:9px;vertical-align:-2px;border:2px solid #278d83;border-top-color:#ffd84b;border-radius:50%;animation:forest-loading 1s linear infinite}
+.forest-gateway[data-loading="true"] #enter-holder-game{cursor:wait;opacity:.8}
+@keyframes forest-loading{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.forest-gateway[data-loading="true"] #gate-status::before{animation:none}}
