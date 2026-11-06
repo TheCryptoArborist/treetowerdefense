@@ -97,3 +97,9 @@ missing or single-voice engines have an explicit fallback message. Choosing
 voices still cancels the old utterance and auditions only the current line
 without unmuting, advancing the story or affecting gameplay/payments. Actual
 device listening remains a user acceptance check.
+
+Distinct-voice fix is live on checkout-test: source `1882f14`, backend
+`6aed20aa0bad8c2073a200fd`, routing `6aed214310030737ba14c461`. Canonical
+entry includes the voice-information field; source/payment protections and all
+43 production functions/five schedules are preserved. See
+[release evidence](../integration/tree-arcade/distinct-narration-voices-release-receipt.json).
