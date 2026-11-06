@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGameAudio,sceneAudioCues,narrationProfile} from '../src/audio.js';
+import {createGameAudio,sceneAudioCues,narrationProfile,narrationVoiceInfo} from '../src/audio.js';
 import {Game} from '../src/engine.js';
 import {storyScene} from '../src/story.js';
 const scene=()=>storyScene(new Game(),0);
@@ -146,4 +146,62 @@ test('voice selection uses only available English voices and remains selected ac
  const restored=setup({preferences:saved});restored.speech.voices=[low,other];restored.audio.openScene(scene());assert.equal(restored.contexts.length,0);
  await restored.audio.enable();assert.equal(restored.utterances[0].voice,low);assert.equal(restored.audio.state.narrationVoice,'voice-low');
  restored.speech.voices=[];restored.speech.dispatchEvent(new Event('voiceschanged'));assert.equal(restored.audio.state.narrationVoice,'');assert.equal(restored.audio.state.canNarrate,false);restored.audio.dispose();
+});
+
+test('automatic deliveries select different actual speech voices for narrator and every guardian',async()=>{
+ const x=setup();x.speech.voices=[
+  {voiceURI:'voice-a',name:'Voice A',lang:'en-US',localService:true,default:true},
+  {voiceURI:'voice-b',name:'Voice B',lang:'en-GB',localService:true},
+  {voiceURI:'voice-c',name:'Voice C',lang:'en-AU',localService:true}
+ ];
+ await x.audio.enable();
+ for(const speaker of ['narrator','oak','pine','palm','cypress','mushroom','willow']){
+  x.audio.setNarrationStyle('heroic');x.audio.openScene({...scene(),speaker},{beat:speaker==='narrator'?0:1});
+  const heroic=x.utterances.at(-1);assert.equal(x.audio.state.effectiveNarrationVoice.id,heroic.voice.voiceURI);
+  x.audio.setNarrationStyle('natural');const natural=x.utterances.at(-1);
+  assert.equal(natural.text,heroic.text);assert.notEqual(natural.voice.voiceURI,heroic.voice.voiceURI,'different engine voice, not only pitch/rate');
+  assert.equal(x.audio.state.effectiveNarrationVoice.id,natural.voice.voiceURI);assert.equal(x.audio.state.distinctDeliveryVoices,true);
+  assert.match(narrationVoiceInfo(x.audio.state),/Heroic announcer: Voice/);
+  heroic.onend();assert.equal(x.audio.state.voiceStatus,'starting','old voice callbacks cannot end the replacement');
+ }
+ x.audio.dispose();
+});
+
+test('each delivery remembers its own voice, and the former global override migrates into only its original delivery',async()=>{
+ const a={voiceURI:'a',name:'A',lang:'en-US'},b={voiceURI:'b',name:'B',lang:'en-GB'};
+ const x=setup({preferences:{'canopy-narration-style':'heroic','canopy-narration-voice':'a'}});x.speech.voices=[a,b];
+ assert.equal(x.contexts.length,0);assert.equal(x.prefs.get('canopy-narration-voice-heroic'),'a');
+ assert.equal(x.prefs.get('canopy-narration-voice-natural'),'');assert.equal(x.prefs.get('canopy-narration-voice'),'');
+ await x.audio.enable();x.audio.openScene(scene());assert.equal(x.utterances.at(-1).voice,a);
+ x.audio.setNarrationStyle('natural');assert.equal(x.utterances.at(-1).voice,b);assert.equal(x.audio.state.narrationVoice,'');
+ x.audio.setNarrationVoice('b');x.audio.setNarrationStyle('heroic');assert.equal(x.utterances.at(-1).voice,a);
+ x.audio.mute();const count=x.utterances.length;x.audio.setNarrationStyle('natural');assert.equal(x.utterances.length,count);
+ const saved=Object.fromEntries(x.prefs);x.audio.dispose();
+ const restored=setup({preferences:saved});restored.speech.voices=[a,b];restored.audio.openScene(scene());assert.equal(restored.contexts.length,0);
+ await restored.audio.enable();assert.equal(restored.utterances.at(-1).voice,b);restored.audio.setNarrationStyle('heroic');assert.equal(restored.utterances.at(-1).voice,a);
+ restored.audio.dispose();
+});
+
+test('an automatic delivery avoids the other custom voice and identical manual selections are disclosed',async()=>{
+ const a={voiceURI:'a',name:'A',lang:'en-US'},b={voiceURI:'b',name:'B',lang:'en-US'};
+ const x=setup();x.speech.voices=[a,b];await x.audio.enable();x.audio.openScene(scene());
+ x.audio.setNarrationStyle('natural');x.audio.setNarrationVoice('a');
+ x.audio.setNarrationStyle('heroic');assert.equal(x.utterances.at(-1).voice,b);
+ x.audio.setNarrationVoice('a');assert.equal(x.audio.state.distinctDeliveryVoices,false);
+ assert.match(narrationVoiceInfo(x.audio.state),/Both deliveries currently use A/);
+ x.audio.setNarrationStyle('natural');x.audio.setNarrationVoice('');assert.equal(x.utterances.at(-1).voice,b);
+ assert.equal(x.audio.state.distinctDeliveryVoices,true);x.audio.dispose();
+});
+
+test('one English voice, duplicate records, and a removed voice have a truthful fallback',async()=>{
+ const a={voiceURI:'a',name:'A',lang:'en-US'},b={voiceURI:'b',name:'B',lang:'en-GB'};
+ const x=setup();x.speech.voices=[a,{...a},{voiceURI:'fr',name:'French',lang:'fr-FR'}];
+ await x.audio.enable();x.audio.openScene(scene());x.audio.setNarrationStyle('natural');
+ assert.equal(x.audio.state.voiceChoices.length,1);assert.equal(x.audio.state.distinctDeliveryVoices,false);
+ assert.match(narrationVoiceInfo(x.audio.state),/one English voice.*Both deliveries use it/);
+ x.speech.voices=[a,b];x.speech.dispatchEvent(new Event('voiceschanged'));x.audio.setNarrationVoice('b');
+ x.speech.voices=[a];x.speech.dispatchEvent(new Event('voiceschanged'));x.audio.replay();
+ assert.equal(x.audio.state.narrationVoice,'');assert.equal(x.utterances.at(-1).voice,a);
+ assert.match(narrationVoiceInfo(x.audio.state),/one English voice/);
+ x.speech.voices=[];assert.match(narrationVoiceInfo(x.audio.state),/No English device voice/);x.audio.dispose();
 });

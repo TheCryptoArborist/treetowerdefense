@@ -23,6 +23,11 @@ dialogue** so it remains truthful when narration is unavailable or muted.
   Automatic as a fallback. Changing delivery or voice auditions the current line
   when audio/narration are enabled; it never unmutes or advances the scene.
   Delivery and voice choice are remembered independently of wallet/game data.
+  Each delivery has its own saved device voice. Automatic selects different
+  English device voices for Heroic and Natural when more than one is available;
+  the actual voice names appear in the scene. A former shared voice preference
+  migrates into only the delivery that owned it. A one-voice device, or two
+  manually identical choices, is disclosed rather than implying two narrators.
 - Sound stays opt-in. Preferences persist, while each new page requires a click
   to unlock playback. A rejected/suspended audio context does not falsely show
   playback as enabled. The status explains unavailable or blocked narration.
@@ -36,8 +41,8 @@ dialogue** so it remains truthful when narration is unavailable or muted.
 
 ## Verification
 
-267 local tests pass, zero failures, one existing Windows-only skip on Linux.
-Thirteen audio regressions cover opt-in, persisted preferences, cancellation, stale
+283 local tests pass, zero failures, one existing Windows-only skip on Linux.
+Seventeen audio regressions cover opt-in, persisted preferences, cancellation, stale
 callbacks, missing/delayed voices, silent speech startup, autoplay rejection,
 hidden/ownership holds, reduced motion and manual progression. Syntax checks and
 the protected function build pass.
@@ -79,3 +84,16 @@ new original delivery and phone layout remain pending. All 279 local tests and
 Linux/Windows/PostgreSQL CI passed. Canonical entry includes both narration
 selectors inside the story dialog, and protected audio source remains 401.
 See [release evidence](../integration/tree-arcade/atlas-narration-release-receipt.json).
+
+## Distinct delivery voices
+
+The previous Heroic and Natural controls only changed rate and pitch while
+sharing the same underlying device voice. That did not provide two distinct
+narrators, especially on engines where pitch changes are subtle or ignored.
+They now resolve to different real speech voices by default when available,
+including guardian dialogue, and expose both selected names. Manual selections
+are stored separately for each delivery. Duplicate device records are removed;
+missing or single-voice engines have an explicit fallback message. Choosing
+voices still cancels the old utterance and auditions only the current line
+without unmuting, advancing the story or affecting gameplay/payments. Actual
+device listening remains a user acceptance check.

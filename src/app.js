@@ -10,7 +10,7 @@ import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,co
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 import {createStoryDirector,storyCheckpoint} from './story.js';
 import {createStoryAnimation} from './story-art.js';
-import {createGameAudio} from './audio.js';
+import {createGameAudio,narrationVoiceInfo} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createWorldMap} from './world-map-view.js';
 
@@ -94,7 +94,10 @@ function renderAudioState(){
   }
  }
  voiceSelect.value=s.narrationVoice;voiceSelect.disabled=!s.canNarrate;
- voiceSelect.title=s.voiceChoices.find(v=>v.id===s.narrationVoice)?.name||'Automatic device voice';
+ const actual=s.effectiveNarrationVoice;
+ voiceSelect.querySelector('option[value=""]').textContent=actual?`Automatic · ${actual.name}`:'Automatic';
+ voiceSelect.title=actual?`${actual.name} (${actual.lang})`:'No device voice available';
+ $('story-voice-info').textContent=narrationVoiceInfo(s);
  $('story-replay-audio').disabled=!s.ready||!s.canNarrate||!s.voiceEnabled||!s.sceneActive||s.hidden;
  $('story-audio-status').textContent=s.error||(!s.available?'Audio is unavailable on this device. Story captions still work.':!s.ready?'Enable audio for music, forest sounds and narration.':
   !s.voiceEnabled?'Music and forest sounds on · narration off.':!s.canNarrate?'Music on. No narration voice is available on this device.':
