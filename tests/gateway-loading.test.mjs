@@ -7,7 +7,7 @@ function setup(){
  const context=vm.createContext({document,window,location:{origin:'https://tree-token.xyz',reload(){reloads++;}},setInterval(){},Date,TextEncoder,
   createDAppKit:()=>({stores:{$connection:{subscribe(){}}}}),SuiGrpcClient:class{},createPayments:()=>({}),fetch:()=>{throw Error('Unexpected request');},
   loadGame:()=>{calls++;return loading;}});
- const source=fs.readFileSync('client/gateway.mjs','utf8').replace(/^import .*;\n/gm,'').replace("import('./src/app.js')",'loadGame()');
+ const source=fs.readFileSync('client/gateway.mjs','utf8').replace(/^import .*;\r?\n/gm,'').replace("import('./src/app.js')",'loadGame()');
  vm.runInContext(source,context);vm.runInContext("address='wallet-a';principal={address,expiresAt:Date.now()+60000,count:1,rarity:0};enter.hidden=false;",context);
  return{document,dialog,context,resolve,reject,get calls(){return calls;},get reloads(){return reloads;},enter:document.getElementById('enter-holder-game'),shell:document.getElementById('game-shell')};
 }
