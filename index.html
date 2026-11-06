@@ -162,13 +162,27 @@
     <div class="atlas-layout"><div class="atlas-scroll" tabindex="0" role="region" aria-label="Scrollable campaign world"><div data-map-regions></div></div><aside class="atlas-selection" data-map-briefing aria-label="Selected wave briefing"></aside></div>
   </dialog>
   <dialog id="mode-dialog" class="mode-dialog" aria-labelledby="mode-title" aria-describedby="mode-intro">
-    <header class="mode-header"><div><a class="mode-arcade-link" href="https://tree-token.xyz/play/">← TREE Arcade</a><h2 id="mode-title">Choose your game mode</h2><p id="mode-intro">Play the main campaign or the seasonal challenge. Your earned defenders and permanent upgrades are shared.</p></div><button type="button" id="mode-close" class="secondary" hidden>Back to battle ×</button></header>
-    <section id="mode-saved" class="mode-saved" hidden aria-labelledby="mode-saved-title"><div><h3 id="mode-saved-title">Continue your saved battle</h3><p id="mode-saved-detail"></p><small>Return to this exact battlefield. Running battles stay paused until you press Resume.</small></div><button type="button" id="mode-continue" class="primary">Continue saved battle →</button></section>
+    <header class="mode-header">
+      <div class="mode-heading"><a class="mode-arcade-link" href="https://tree-token.xyz/play/">← TREE Arcade</a><p class="mode-brand">Canopy <span>Defense</span></p><h2 id="mode-title">Choose your game mode</h2><p id="mode-intro">Your forest awaits. Continue your battle or choose a new adventure.</p></div>
+      <button type="button" id="mode-close" class="secondary" hidden>Back to battle ×</button>
+    </header>
+    <section id="mode-saved" class="mode-saved" hidden aria-labelledby="mode-saved-title">
+      <img class="mode-saved-guardian" src="assets/brand/oak-home.png" width="64" height="76" alt="">
+      <div class="mode-saved-copy"><span class="mode-kicker">YOUR PLACE IN THE FOREST</span><h3 id="mode-saved-title">Continue your saved battle</h3><p id="mode-saved-detail"></p><small>Your battle stays paused until you press Resume.</small></div>
+      <button type="button" id="mode-continue" class="primary">Continue saved battle →</button>
+    </section>
     <div class="mode-options">
-      <article class="mode-card"><span class="eyebrow">MAIN ADVENTURE</span><h3>Campaign</h3><p>Defend three forests across ten waves each. Earn stars, unlock defenders and take on Veteran levels.</p><p id="mode-campaign-progress"></p><button type="button" id="mode-campaign" class="primary" autofocus>Choose a campaign forest →</button><small>Opens the map. Your current battle stays until you choose to start another.</small></article>
-      <article class="mode-card mode-seasonal"><span class="eyebrow">OPTIONAL SEASONAL CHALLENGE</span><h3>Harvest of the Canopy</h3><p>A separate five-wave autumn challenge with the Hollow Harvester and cosmetic rewards.</p><p>Seasonal progress is tracked separately from campaign stars. Included with NFTree access.</p><p id="mode-harvest-status"></p><button type="button" id="mode-harvest" class="secondary">Start a new Harvest run →</button></article>
+      <article class="mode-card">
+        <div class="mode-card-art mode-campaign-art" aria-hidden="true"><img src="assets/brand/oak-home.png" width="155" height="182" alt=""><span>THE SEVERED ROOT</span></div>
+        <div class="mode-card-copy"><span class="eyebrow">MAIN ADVENTURE</span><h3>Campaign</h3><p>Defend three forests across ten waves each. Earn stars, unlock defenders and take on Veteran levels.</p><p id="mode-campaign-progress"></p><button type="button" id="mode-campaign" class="primary" autofocus>Choose a campaign forest →</button><small>Opens the map. Your battle stays saved until you start another.</small></div>
+      </article>
+      <article class="mode-card mode-seasonal">
+        <div class="mode-card-art mode-harvest-art" aria-hidden="true"><img src="assets/environment/tree-life-v1.png" width="165" height="218" alt=""><span>HARVEST OF THE CANOPY</span></div>
+        <div class="mode-card-copy"><span class="eyebrow">OPTIONAL SEASONAL CHALLENGE</span><h3>Harvest of the Canopy</h3><p>A separate five-wave autumn challenge. Face the Hollow Harvester and earn cosmetic rewards.</p><p id="mode-harvest-status"></p><button type="button" id="mode-harvest" class="secondary">Start a new Harvest run →</button><small>Seasonal progress is separate from campaign stars. Included with NFTree access.</small></div>
+      </article>
     </div>
-    <p class="mode-switch-note">Starting another battle replaces the current battlefield and its run-only supplies. Campaign progress, unlocked defenders and permanent upgrades stay saved. Unfinished battles require confirmation before replacement.</p><p id="mode-error" role="alert"></p>
+    <p class="mode-shared-note">One collection, two adventures. Earned defenders and permanent upgrades are shared.</p>
+    <p class="mode-switch-note">Starting another battle replaces the current battlefield and its run-only supplies. Your permanent progress stays saved. Unfinished battles require confirmation before replacement.</p><p id="mode-error" role="alert"></p>
   </dialog>
   <dialog id="story-dialog" class="story-dialog" aria-labelledby="story-title" aria-describedby="story-text">
     <div class="story-stage"><canvas id="story-cinema" width="960" height="420" role="img" aria-label="The guardians defend the Tree of Life"></canvas><div class="story-top"><span>THE SEVERED ROOT</span><button id="story-skip" class="secondary" autofocus>Skip scene ×</button></div><span id="story-shot" class="story-shot" aria-hidden="true">THE FOREST</span></div>
