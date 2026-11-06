@@ -7,6 +7,7 @@ import {createModePicker,hasBattleToReplace,modeName} from '../src/modes.js';
 
 async function setup(){
  const {document}=parseHTML(await readFile('index.html','utf8')),dialog=document.querySelector('#mode-dialog');
+ assert.equal(document.querySelector('[data-open-modes]').getAttribute('aria-controls'),'mode-dialog');
  dialog.showModal=()=>dialog.open=true;dialog.close=()=>dialog.open=false;
  let game=new Game(),blocked=false,result=true,saves=0;game.allowPreview();
  const choices=[],selected=[];
