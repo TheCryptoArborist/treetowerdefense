@@ -67,3 +67,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - The approved retro cutscenes and clarified dialogue are live on checkout-test. Preserve the release baseline and verification in integration/tree-arcade/retro-cutscene-release-receipt.json. Regular-game promotion and holder hosted/phone acceptance remain pending.
 
 - Hold the holder entrance on Preparing the forest until all core artwork has downloaded and been prepared. Paint the first finished battlefield while hidden before revealing the game or starting its frame loop. Preserve wallet/session guards during loading; missing or stalled graphics offer a reload instead of exposing temporary fallback art. See docs/forest-loading.md.
+
+- Finished-art loading is live on checkout-test; the latest release baseline and checks are in integration/tree-arcade/forest-loading-release-receipt.json. Preserve periodic ownership checks while the loading entrance is visible.

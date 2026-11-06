@@ -26,3 +26,17 @@ the approved retro cutscene presentation retain their existing rules.
 Nine regressions cover delayed preparation, cached loads, partial failures,
 stalled images, repeated entry clicks, access changes, expiry and reload. Holder
 device acceptance remains a live test after release.
+
+
+## Release
+
+Live on checkout-test from source `38fae28`. Backend:
+`6aed4f691bb40119f21ffe4d`; routing: `6aed50085e7465e17b0df3a2`.
+300 local tests pass, one Windows-only check is skipped, and syntax/protected
+packaging pass. GitHub validation run `42159273436` passed. All real artwork
+sheets were decoded and prepared successfully using the production installers.
+All 43 production function identities/configurations, five schedules and 299
+static paths were retained; only the existing checkout rewrite target changed.
+Live gate, gateway and styles pass HTTP checks; private modules, access and
+payment endpoints remain protected. Holder device acceptance remains pending.
+See [release evidence](../integration/tree-arcade/forest-loading-release-receipt.json).

@@ -1,0 +1,157 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-06T04:00:50.551110+00:00",
+  "sourceCommit": "38fae2809f48302ea8adb7ef96976d490f03163c",
+  "repository": "https://github.com/TheCryptoArborist/treetowerdefense",
+  "branch": "feature/canopy-motion-publication-20261105",
+  "backendDeployId": "6aed4f691bb40119f21ffe4d",
+  "productionRoutingDeployId": "6aed50085e7465e17b0df3a2",
+  "previousProductionRoutingDeployId": "6aed44f91a94dbba3157f330",
+  "functionDigest": "6ec4457e30906149189dbd5f45c22e480df95495959307bcf655f93e2f322eb8",
+  "packageMatchesLiveDigest": true,
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "databaseBranch": "canopy-checkout-test",
+  "pendingMigrations": [],
+  "localTests": {
+    "passed": 300,
+    "skipped": 1,
+    "failed": 0
+  },
+  "focusedLoadingRegressions": 9,
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "ci": {
+    "run": 42159273436,
+    "conclusion": "success",
+    "sourceCommit": "38fae2809f48302ea8adb7ef96976d490f03163c"
+  },
+  "actualArtworkPreparation": {
+    "environment": {
+      "loaded": [
+        "terrain",
+        "tree",
+        "road"
+      ],
+      "revision": 3
+    },
+    "defenders": {
+      "loaded": [
+        "oak",
+        "pine",
+        "palm",
+        "cypress",
+        "mushroom"
+      ],
+      "failed": []
+    },
+    "aim": {
+      "loaded": [
+        "oak",
+        "pine",
+        "palm",
+        "cypress",
+        "mushroom",
+        "willow"
+      ],
+      "failed": []
+    },
+    "structures": {
+      "loaded": [
+        "watchtower",
+        "cannon"
+      ],
+      "failed": []
+    },
+    "enemies": true
+  },
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "behavior": [
+    "Holder entrance remains visible while all core artwork downloads and finishes preparation",
+    "First completed battlefield and controls are rendered while hidden",
+    "No battle frame loop starts until graphics are ready; its clock starts fresh",
+    "Single entry operation; wallet changes, expiry and lost ownership cannot reveal the prior forest",
+    "Periodic ownership checks continue without replacing the loading message",
+    "Failed or stalled graphics offer Reload graphics instead of showing fallback artwork",
+    "Warm-cache loads have no artificial delay; reduced-motion preferences are retained"
+  ],
+  "backendHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "loadingRetryPresent": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/asset-loading.js",
+      "status": 401
+    },
+    {
+      "path": "src/app.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "canonicalHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "loadingRetryPresent": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/asset-loading.js",
+      "status": 401
+    },
+    {
+      "path": "src/app.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "holderDeviceLoadingAcceptance": "pending",
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false
+}
