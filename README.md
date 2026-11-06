@@ -36,7 +36,7 @@ The server binds to localhost by default and serves only game assets. Do not dou
 
 ## Game modes
 
-Verified entry offers Campaign, Harvest seasonal challenge, and the existing
+Verified entry on checkout-test offers Campaign, Harvest seasonal challenge, and the existing
 saved battle. Choosing Campaign opens the map; continuing keeps the exact
 run. Harvest retains its unlock and replacement warning. The current mode is
 shown while playing. See [mode navigation](docs/game-mode-entry.md).

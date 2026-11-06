@@ -29,3 +29,17 @@ window as Harvest info. The approved simple cutscenes and clearer shop remain.
 Six navigation tests cover preserved saves, read-only campaign choice, locked
 Harvest, cancellation/network failure, single-flight navigation and changed
 owner/access guards, plus pre-wave replacement warnings.
+
+## Release
+
+Live on checkout-test from source `e0e5856bedeaa4817e070719a7e3951740b075c2`. Backend:
+`6aee636099aebf4ac3ca74ca`; routing: `6aee644e07529c5e9edbbb8d`. All 321 local tests pass
+with one Windows-only skip. Syntax, protected packaging and CI run
+42312454823 pass. The clearer mobile shop is included in the same release.
+All 43 production function identities/configurations, five schedules and 299
+static paths are preserved; only the checkout rewrite changed. Public hosted
+checks confirm both mode descriptions, saved-battle option and shop details.
+Private source/access/payment routes remain protected. Authenticated holder
+mode-flow and real-purchase acceptance remain separate live checks.
+
+[Release evidence](../integration/tree-arcade/game-mode-entry-release-receipt.json).

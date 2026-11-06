@@ -1,0 +1,161 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-06T23:45:50.513115+00:00",
+  "sourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
+  "backendDeployId": "6aee636099aebf4ac3ca74ca",
+  "productionRoutingDeployId": "6aee644e07529c5e9edbbb8d",
+  "previousProductionRoutingDeployId": "6aee5647a4159f1459b094f8",
+  "functionDigest": "70bc05d59a69d2ba97096b9ba599d414a45231add0d4ead348a7056b49987805",
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "functionConfigurationPreserved": true,
+  "packageMatchesDeployedDigest": true,
+  "databaseBranch": "canopy-checkout-test",
+  "pendingMigrations": [],
+  "localTests": {
+    "passed": 321,
+    "skipped": 1,
+    "failed": 0
+  },
+  "ci": {
+    "run": 42312454823,
+    "sourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
+    "conclusion": "success"
+  },
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "protectedSourceModules": 22,
+  "modeEntry": [
+    "After holder verification and finished-art reveal, offer Campaign, Harvest and saved battle",
+    "Saved battlefield is offered first; viewing only pauses and saves it",
+    "Campaign opens the map without replacing a run",
+    "Harvest remains locked until Emerald Crossing victory",
+    "Changing to another battlefield confirms before discarding unfinished/defeated runs or planted/pre-wave purchased supplies",
+    "Stage new server run IDs until a destination starts successfully",
+    "Current mode is visible and Modes reopens the chooser"
+  ],
+  "shopClarity": [
+    "Full-width highlighted shop command on mobile",
+    "Shop opens on Field supplies with a separate Defender upgrades tab",
+    "Each supply has target, effect, duration, existing price and a named Buy action",
+    "Root Shield explains 50 damage absorption, refill cap, current shield and current-run scope",
+    "Existing wallet review, server invoice and receipt rules retained"
+  ],
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "backendHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "liveHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "holderAcceptanceOfNewModeEntryAndShop": "pending",
+  "authenticatedHostedModeFlowAcceptance": "pending; local DOM/state tests passed, anonymous hosted checks only",
+  "mobileWalletConnectionAndNftreeVerification": "Previously confirmed by Peter",
+  "realPurchaseAndRecoveryAcceptance": "pending",
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "previousVerificationFailure": "CLI getSite returned TextHTTPError: Forbidden before promotion. Subsequent authorized recheck and verify/publish/verify-live succeeded."
+}

@@ -39,3 +39,7 @@ Four additional tests cover category navigation/reset, readable eligibility,
 unchanged state on rendering, active-wave supply eligibility, and actual
 shield absorption/refill behavior. This revision has no balance, price,
 payment-authority or access changes.
+
+The supply clarity revision is now live with the mode-entry release from
+source `e0e5856bedeaa4817e070719a7e3951740b075c2`. See
+[combined release evidence](../integration/tree-arcade/game-mode-entry-release-receipt.json).
