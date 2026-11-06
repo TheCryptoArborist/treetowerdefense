@@ -15,11 +15,11 @@ export function narrationProfile(speaker,style='heroic'){
  return style==='natural'?{rate,pitch,index}:{rate:Math.max(.82,Math.min(.98,rate*.92)),pitch:Math.max(.72,Math.min(.95,pitch*.82)),index};
 }
 const voiceId=v=>v.voiceURI||`${v.name}::${v.lang}`;
-function deliveryVoices(list,speaker,choices){
+function deliveryVoices(list,speaker,choices,simple=false){
  if(!list.length)return {heroic:null,natural:null};
  const explicit=style=>list.find(v=>voiceId(v)===choices[style]);
  const next=voice=>list.find(v=>v.name!==voice.name&&voiceId(v)!==voiceId(voice))||list.find(v=>voiceId(v)!==voiceId(voice))||voice;
- let heroic=explicit('heroic')||list[narrationProfile(speaker,'heroic').index%list.length];
+ let heroic=simple?(list.find(v=>/^Microsoft Mark\b/i.test(v.name)&&/^en-US$/i.test(v.lang))||list.find(v=>v.default&&/^en-US$/i.test(v.lang))||list.find(v=>/^en-US$/i.test(v.lang))||list[0]):explicit('heroic')||list[narrationProfile(speaker,'heroic').index%list.length];
  const natural=explicit('natural')||next(heroic);
  if(!explicit('heroic')&&voiceId(heroic)===voiceId(natural)&&explicit('natural'))heroic=next(natural);
  return {heroic,natural};
@@ -45,17 +45,17 @@ export function sceneAudioCues(scene){
  ];
 }
 
-export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=()=>{},
+export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=()=>{},simpleCutscenes=false,
  setTimer=setTimeout,clearTimer=clearTimeout}={}){
  const read=(key,fallback)=>{try{const v=storage?.getItem(key);return v===null||v===undefined?fallback:v==='true';}catch{return fallback;}};
  const write=(key,v)=>{try{storage?.setItem(key,String(v));}catch{}};
  const readText=key=>{try{return storage?.getItem(key)||'';}catch{return '';}};
- let enabled=read('canopy-sound-enabled',false),voiceEnabled=read('canopy-voice-enabled',true);
- let narrationStyle=readText('canopy-narration-style')==='natural'?'natural':'heroic';
- const voiceChoicesByStyle={heroic:readText('canopy-narration-voice-heroic'),natural:readText('canopy-narration-voice-natural')};
+ let enabled=read('canopy-sound-enabled',simpleCutscenes),voiceEnabled=simpleCutscenes||read('canopy-voice-enabled',true);
+ let narrationStyle=!simpleCutscenes&&readText('canopy-narration-style')==='natural'?'natural':'heroic';
+ const voiceChoicesByStyle=simpleCutscenes?{heroic:'',natural:''}:{heroic:readText('canopy-narration-voice-heroic'),natural:readText('canopy-narration-voice-natural')};
  // Migrate the former global override into only the delivery it belonged to.
  const legacyChoice=readText('canopy-narration-voice');
- if(legacyChoice){
+ if(legacyChoice&&!simpleCutscenes){
   if(!voiceChoicesByStyle[narrationStyle])voiceChoicesByStyle[narrationStyle]=legacyChoice;
   for(const style of ['heroic','natural'])write('canopy-narration-voice-'+style,voiceChoicesByStyle[style]);
   write('canopy-narration-voice','');
@@ -66,7 +66,7 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
  const nodes=new Set();
  const english=()=>{try{const seen=new Set();return (speech?.getVoices()||[]).filter(v=>/^en(?:-|_)?/i.test(v.lang)&&!seen.has(voiceId(v))&&seen.add(voiceId(v))).sort((a,b)=>Number(b.localService)-Number(a.localService)||Number(b.default)-Number(a.default)||a.name.localeCompare(b.name));}catch{return [];}};
  const ready=()=>!disposed&&enabled&&unlocked&&!hidden&&context?.state==='running';
- function state(){const list=english(),pair=deliveryVoices(list,beat&&scene?scene.speaker:'narrator',voiceChoicesByStyle),describe=v=>v?{id:voiceId(v),name:v.name,lang:v.lang}:null;return {enabled,ready:ready(),available:!!AudioContext&&!disposed,voiceEnabled,narrationStyle,
+ function state(){const list=english(),pair=deliveryVoices(list,beat&&scene?scene.speaker:'narrator',voiceChoicesByStyle,simpleCutscenes),describe=v=>v?{id:voiceId(v),name:v.name,lang:v.lang}:null;return {enabled,ready:ready(),available:!!AudioContext&&!disposed,voiceEnabled,narrationStyle,
   voiceChoices:list.map(describe),narrationVoice:list.some(v=>voiceId(v)===voiceChoicesByStyle[narrationStyle])?voiceChoicesByStyle[narrationStyle]:'',
   effectiveNarrationVoice:describe(pair[narrationStyle]),deliveryVoices:{heroic:describe(pair.heroic),natural:describe(pair.natural)},
   distinctDeliveryVoices:!!pair.heroic&&!!pair.natural&&voiceId(pair.heroic)!==voiceId(pair.natural),
@@ -134,7 +134,7 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   const profile=narrationProfile(beat?scene.speaker:'narrator',narrationStyle),token=++voiceToken;
   const u=new Utterance(beat?scene.dialogue:scene.narration);utterance=u;spokenKey=key;voiceError='';voiceStatus='starting';
   u.rate=profile.rate;u.pitch=profile.pitch;u.volume=.9;
-  u.voice=deliveryVoices(list,beat?scene.speaker:'narrator',voiceChoicesByStyle)[narrationStyle];u.lang=u.voice.lang||'en-US';
+  u.voice=deliveryVoices(list,beat?scene.speaker:'narrator',voiceChoicesByStyle,simpleCutscenes)[narrationStyle];u.lang=u.voice.lang||'en-US';
   const current=()=>utterance===u&&voiceToken===token&&!!scene&&enabled&&!hidden&&!disposed;
   u.onstart=()=>{if(!current())return;clearVoiceTimer();voiceStatus='speaking';duck(true);notify();};
   u.onend=()=>{if(!current())return;clearVoiceTimer();utterance=null;voiceStatus='finished';duck(false);notify();};
@@ -191,7 +191,7 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   setNarrationStyle(value){if(!['heroic','natural'].includes(value))return false;narrationStyle=value;write('canopy-narration-style',value);stopVoice();spokenKey='';voiceError='';speakCurrent();notify();return true;},
   setNarrationVoice(value){if(value!==''&&!english().some(v=>voiceId(v)===value))return false;voiceChoicesByStyle[narrationStyle]=value;write('canopy-narration-voice-'+narrationStyle,value);stopVoice();spokenKey='';voiceError='';speakCurrent();notify();return true;},
   replay(){stopVoice();spokenKey='';voiceError='';speakCurrent();},closeScene,
-  setHidden(value){if(hidden===!!value)return;hidden=!!value;if(hidden){stopVoice(scene?'interrupted':'idle');stopNodes();}else if(scene&&ready())bed();notify();},
+  setHidden(value){if(hidden===!!value)return;hidden=!!value;if(hidden){stopVoice(scene?'interrupted':'idle');stopNodes();}else if(scene&&ready()){bed();if(simpleCutscenes&&voiceStatus==='interrupted'){spokenKey='';speakCurrent();}}notify();},
   tone(frequency,duration=.08){if(!scene)note(frequency,duration,{end:frequency*.6,forScene:false,level:.035});},
   silence(){stopVoice(scene?'interrupted':'idle');stopNodes();notify();},
   dispose(){closeScene();disposed=true;attempt++;stopNodes();speech?.removeEventListener?.('voiceschanged',voicesChanged);if(context){context.onstatechange=null;try{context.close()?.catch(()=>{});}catch{}}}

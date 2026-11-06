@@ -1,5 +1,9 @@
 # Cutscene audio
 
+Current presentation: [simple cutscenes](simple-cutscenes.md) supersedes the
+visible audio/voice settings below. The dialog has only Skip and Return;
+Heroic delivery and Microsoft Mark en-US (when available) are defaults.
+
 The previous story scenes were silent. The header toggle played battle tones,
 but it was outside the native modal and could not be reached during a scene.
 The new in-scene **Enable audio** button controls the same audio state as the

@@ -43,7 +43,8 @@ The new collection preview changes growth from species-wide to individual number
 - **1990s retro cutscenes:** original guardian artwork and faces in a 16-bit
   story stage with whole-sprite pose cuts, scrolling forest layers, portrait
   dialogue, pixel typography and an original pulse/triangle score. Scene motion
-  controls retain device-default, action and reduced motion. See
+  presentation follows device reduced motion automatically, with no settings
+  panel. Narration and dialogue play in sequence; Skip and Return remain. See
   [cutscene presentation and verification](docs/action-cutscenes.md).
 
 - **The living frontier:** a scrollable world map includes all 60 campaign waves
@@ -52,10 +53,10 @@ The new collection preview changes growth from species-wide to individual number
   Wave markers inspect battles; region entry starts at wave 1. See
   [world map behavior and release status](docs/world-map.md).
 
-- **Cutscene audio:** enable original music and forest effects inside the scene;
-  optional voice narration and replay use available device voices. Mute/skip and
-  tab/access changes stop playback; story pacing remains manual. See
-  [audio behavior and verification](docs/cutscene-audio.md).
+- **Cutscene audio:** original music, forest effects and Heroic narration play
+  with fixed defaults, preferring Microsoft Mark en-US when available. Global
+  mute, skip and tab/access changes stop playback; leaving the scene stays
+  manual. See [simple cutscene behavior](docs/simple-cutscenes.md).
 
 - **Combat motion pass:** distinct grounded guardian follow-through, Watchtower
   draw/reload, Cannon barrel recoil, directional human mini-bosses and

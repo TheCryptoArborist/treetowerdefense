@@ -4,7 +4,7 @@ import {createGameAudio,sceneAudioCues,narrationProfile,narrationVoiceInfo} from
 import {Game} from '../src/engine.js';
 import {storyScene} from '../src/story.js';
 const scene=()=>storyScene(new Game(),0);
-function setup({voices=true,preferences={},failResume=false}={}){
+function setup({voices=true,preferences={},failResume=false,simpleCutscenes=false}={}){
  const contexts=[],sources=[],targets=[],utterances=[],timers=new Map(),prefs=new Map(Object.entries(preferences));
  let cancelCount=0,clockId=0;
  const param=()=>({setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){},setTargetAtTime(n){targets.push(n);}});
@@ -23,12 +23,35 @@ function setup({voices=true,preferences={},failResume=false}={}){
  const speech=new EventTarget();speech.voices=voices?[{name:'English Local',lang:'en-US',localService:true,default:true}]:[];
  speech.getVoices=()=>speech.voices;speech.resume=()=>{};speech.speak=u=>utterances.push(u);
  speech.cancel=()=>{cancelCount++;utterances.at(-1)?.onerror?.({error:'interrupted'});};
- const audio=createGameAudio({AudioContext:Context,speech,Utterance,
+ const audio=createGameAudio({AudioContext:Context,speech,Utterance,simpleCutscenes,
   storage:{getItem:k=>prefs.get(k)??null,setItem:(k,v)=>prefs.set(k,v)},
   setTimer:fn=>{timers.set(++clockId,fn);return clockId;},clearTimer:id=>timers.delete(id)});
  return {audio,contexts,sources,targets,utterances,speech,prefs,timers,
   get cancels(){return cancelCount;},allowResume(){failResume=false;},flush(){for(const fn of [...timers.values()])fn();timers.clear();}};
 }
+
+test('simple cutscenes default to heroic Mark for narration and dialogue without opening settings',async()=>{
+ const mark={voiceURI:'mark',name:'Microsoft Mark - English (United States)',lang:'en-US',localService:true};
+ const x=setup({simpleCutscenes:true,preferences:{'canopy-voice-enabled':'false','canopy-narration-style':'natural','canopy-narration-voice-natural':'other','canopy-narration-voice-heroic':'other'}});
+ x.speech.voices=[{voiceURI:'other',name:'Other English',lang:'en-US',default:true},mark];
+ assert.equal(x.audio.state.enabled,true);assert.equal(x.audio.state.voiceEnabled,true);assert.equal(x.audio.state.narrationStyle,'heroic');
+ x.audio.openScene(scene());assert.equal(x.contexts.length,0);assert.equal(x.utterances.length,0,'Fresh gesture still unlocks playback');
+ await x.audio.enable();assert.equal(x.utterances.at(-1).voice,mark);
+ x.audio.setBeat(1);assert.equal(x.utterances.at(-1).voice,mark);assert.equal(x.utterances.at(-1).text,scene().dialogue);x.audio.dispose();
+});
+test('simple cutscene defaults keep an explicit global mute and fall back when Mark is absent',async()=>{
+ const x=setup({simpleCutscenes:true,preferences:{'canopy-sound-enabled':'false'}});
+ x.audio.openScene(scene());assert.equal(x.audio.state.enabled,false);assert.equal(x.utterances.length,0);
+ await x.audio.enable();assert.equal(x.utterances[0].voice.name,'English Local');
+ x.audio.mute();assert.equal(x.audio.state.enabled,false);assert.equal(x.prefs.get('canopy-sound-enabled'),'false');x.audio.dispose();
+});
+test('simple cutscene resumes interrupted speech on return and ignores stale completion',async()=>{
+ const x=setup({simpleCutscenes:true});await x.audio.enable();x.audio.openScene(scene());
+ const old=x.utterances[0];old.onstart();x.audio.setHidden(true);x.audio.setHidden(false);
+ assert.equal(x.utterances.length,2);assert.equal(x.utterances[1].text,old.text);
+ old.onend();assert.equal(x.audio.state.voiceStatus,'starting');
+ x.audio.closeScene();assert.equal(x.audio.state.sceneActive,false);x.audio.dispose();
+});
 
 test('audio is opt-in and reload preferences never create a context or speak before a fresh gesture',async()=>{
  for(const enabled of [false,true]){
