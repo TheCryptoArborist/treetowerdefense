@@ -21,6 +21,17 @@ access block conflicting actions. Travel is single-flight.
 
 ## Expansion and saved progress
 
+The atlas follows the main TREE project's live website styling. Its scoped
+palette comes from the `--ecosystem-*` values on https://tree-token.xyz/:
+navy `#050714`, teal `#22e7d7`, green `#33f78f`, gold `#ffd84b`, amber
+`#ffad32`, purple `#7041c3`, text `#f4fbff` and muted text `#aeb7cc`.
+NFTree.net's related navy/teal/mint palette was also checked. Native sans-serif
+type, teal route lines, green clears, amber bosses and gold selection highlights
+carry the main website identity into the map. The header uses the existing
+Thickquidity TREE logo and links to the project website. Original guardian,
+Cannon, Watchtower and Tree of Life images appear as subdued regional artwork;
+all are local assets, with no runtime requests to the project website.
+
 `src/world-map.js` contains the region registry and derives wave nodes, routes,
 briefings and progress. Layout height grows with the registry; existing battle
 geometry is unchanged. The frontier explicitly marks additional territory as

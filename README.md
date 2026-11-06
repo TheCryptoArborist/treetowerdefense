@@ -42,7 +42,8 @@ The new collection preview changes growth from species-wide to individual number
 
 - **The living frontier:** a scrollable world map includes all 60 campaign waves
   and five Harvest waves, with scouting, bosses, defender milestones and saved
-  progress. Wave markers inspect battles; region entry starts at wave 1. See
+  progress, styled with the TREE website's colors and original ecosystem art.
+  Wave markers inspect battles; region entry starts at wave 1. See
   [world map behavior and release status](docs/world-map.md).
 
 - **Cutscene audio:** enable original music and forest effects inside the scene;

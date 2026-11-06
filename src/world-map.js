@@ -2,6 +2,16 @@ import {TOWERS, UNLOCKS, HARVEST_CANOPY} from './engine.js';
 import {CAMPAIGN_LEVELS, campaignLevelState} from './levels.js';
 import {scoutWave} from './playtest.js';
 
+// TREE's live ecosystem palette; scoped to the atlas rather than battle art.
+export const WORLD_MAP_BRAND=Object.freeze({background:'#050714',panel:'#09121a',
+ cyan:'#22e7d7',green:'#33f78f',gold:'#ffd84b',amber:'#ffad32',purple:'#7041c3',
+ text:'#f4fbff',muted:'#aeb7cc',danger:'#ff6b7c'});
+export function mapNodeColors(wave){
+ const b=WORLD_MAP_BRAND;
+ return {fill:wave.current?'#06343b':wave.cleared?'#0b352b':wave.boss?'#32251b':b.panel,
+  stroke:wave.current?b.cyan:wave.cleared?b.green:wave.boss?b.amber:'#58657e'};
+}
+
 // Stable region/wave IDs keep the atlas expandable without renumbering saves.
 // These are views of existing battles, never selectable wave checkpoints.
 export const WORLD_REGIONS=Object.freeze([
@@ -61,14 +71,19 @@ export function nodePosition(index){
  return {x:12+column*19,y:145+row*136+(column%2?18:0)};
 }
 const routePath=count=>Array.from({length:count},(_,i)=>{const p=nodePosition(i);return `${i?'L':'M'}${p.x*10},${p.y}`;}).join(' ');
+export function regionMapArtwork(region){
+ return {emerald:'assets/brand/oak-home.png',sunpetal:'assets/towers/sap-cannon-v1.png',moonlit:'assets/environment/tree-life-v1.png',harvest:'assets/towers/archer-watchtower-v1.png'}[region.biome]||'assets/brand/oak-home.png';
+}
 export function regionScenery(region){
- const colors={emerald:['#173d32','#204d36','#3f7650'],sunpetal:['#324332','#4c5940','#9b8c52'],moonlit:['#132f3e','#204657','#4e7880'],harvest:['#3c342a','#635033','#a58148']}[region.biome]||['#173d32','#204d36','#3f7650'];
+ const b=WORLD_MAP_BRAND;
+ const colors={emerald:['#071520','#0b2631',b.green],sunpetal:['#101522','#192b34',b.gold],moonlit:['#091024','#11253d',b.cyan],harvest:['#141322','#2a2434',b.amber]}[region.biome]||['#071520','#0b2631',b.green];
+ const artwork=regionMapArtwork(region);
  const trees=Array.from({length:32},(_,i)=>{
   const x=(i*197+47)%1000,y=(i*83+42)%370,s=.65+(i%4)*.17;
-  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 16V-16" stroke="#22392b" stroke-width="7"/><path d="M-25 0L0-50 25 0 16-5 31 12H-31L-16-5Z" fill="${colors[2]}" opacity=".43"/></g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 16V-16" stroke="#233a45" stroke-width="7"/><path d="M-25 0L0-50 25 0 16-5 31 12H-31L-16-5Z" fill="${colors[2]}" opacity=".12"/></g>`;
  }).join('');
  const last=nodePosition(region.waves.length-1),connectors=region.mode==='campaign'?`M50 0V98Q50 125 120 145 M${last.x*10} ${last.y}Q50 310 50 344V370`:'';
- return `<svg class="atlas-terrain" viewBox="0 0 1000 370" preserveAspectRatio="none" overflow="hidden" aria-hidden="true"><rect width="1000" height="370" fill="${colors[0]}"/><path d="M0 60Q200-10 440 90T1000 45V370H0Z" fill="${colors[1]}"/><path d="M760-20Q500 70 740 170T650 390" fill="none" stroke="#6fbab9" opacity=".16" stroke-width="62"/><path d="M760-20Q500 70 740 170T650 390" fill="none" stroke="#98d4c6" opacity=".1" stroke-width="2"/>${trees}<path d="${connectors}" fill="none" stroke="#081c20" stroke-width="18"/><path d="${connectors}" fill="none" stroke="#9c9673" stroke-width="9"/><path d="${routePath(region.waves.length)}" fill="none" stroke="#081c20" stroke-width="24" stroke-linejoin="round"/><path d="${routePath(region.waves.length)}" fill="none" stroke="#b3a57b" stroke-width="12" stroke-linejoin="round"/><path d="${routePath(region.waves.length)}" fill="none" stroke="#e3d0a0" stroke-opacity=".5" stroke-width="2" stroke-dasharray="4 10"/></svg>`;
+ return `<svg class="atlas-terrain" viewBox="0 0 1000 370" preserveAspectRatio="none" overflow="hidden" aria-hidden="true"><rect width="1000" height="370" fill="${colors[0]}"/><path d="M0 60Q200-10 440 90T1000 45V370H0Z" fill="${colors[1]}"/><path d="M760-20Q500 70 740 170T650 390" fill="none" stroke="${b.cyan}" opacity=".07" stroke-width="62"/><path d="M760-20Q500 70 740 170T650 390" fill="none" stroke="${b.cyan}" opacity=".12" stroke-width="2"/>${trees}<image href="${artwork}" x="715" y="55" width="270" height="280" opacity=".24" preserveAspectRatio="xMidYMid meet"/><path d="${connectors}" fill="none" stroke="${b.background}" stroke-width="18"/><path d="${connectors}" fill="none" stroke="${b.cyan}" stroke-opacity=".35" stroke-width="5"/><path d="${routePath(region.waves.length)}" fill="none" stroke="${b.background}" stroke-width="24" stroke-linejoin="round"/><path d="${routePath(region.waves.length)}" fill="none" stroke="${b.cyan}" stroke-opacity=".35" stroke-width="12" stroke-linejoin="round"/><path d="${routePath(region.waves.length)}" fill="none" stroke="${b.cyan}" stroke-opacity=".8" stroke-width="2" stroke-dasharray="4 10"/></svg>`;
 }
 const stateLabel=wave=>({current:'Battle paused here',next:'Next wave',defeated:'Defeat · recovery available',cleared:'Cleared',ahead:'Ahead · fight in order',locked:'Locked region'}[wave.status]);
 export function renderWorldRegions(state){
