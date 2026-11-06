@@ -34,6 +34,13 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
+## Game modes
+
+Verified entry offers Campaign, Harvest seasonal challenge, and the existing
+saved battle. Choosing Campaign opens the map; continuing keeps the exact
+run. Harvest retains its unlock and replacement warning. The current mode is
+shown while playing. See [mode navigation](docs/game-mode-entry.md).
+
 ## Individual progression preview
 
 The new collection preview changes growth from species-wide to individual numbered defenders while preserving earlier species purchases. It retains the three current levels; ten-level/HQ/research progression is not yet implemented. Activation and migration details: [Individual defender collection](docs/individual-defenders.md). The regular game remains on its previous release.

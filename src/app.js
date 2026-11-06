@@ -14,6 +14,7 @@ import {createStoryPlayback} from './story-playback.js';
 import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createShopView} from './shop.js';
+import {createModePicker,hasBattleToReplace,modeName} from './modes.js';
 import {createWorldMap} from './world-map-view.js';
 import {waitForForestArt} from './asset-loading.js';
 
@@ -27,6 +28,7 @@ const paidSavePrefix=location.pathname==='/play/canopy-defense/checkout-test/'?'
 const STORAGE_KEY = (paidMode?paidSavePrefix:'canopy-defense-wallet-v1:')+holder.address;
 let paidRunId=null,appliedPayments=new Set(),checkoutBusy=false,paidInvoice=null;
 let paidReview=null;
+let modePicker=null,modeEntryShown=false,restoredBattle=false;
 let game = new Game();
 const feedback = new CombatFeedback();
 const aiming = new GuardianAiming();
@@ -44,11 +46,11 @@ try {
     const parsed=JSON.parse(saved);
     if(paidMode){paidRunId=parsed.runId;appliedPayments=new Set(Array.isArray(parsed.applied)?parsed.applied:[]);}
     const restored = Game.restore(paidMode?parsed.game:parsed);
-    if (restored) game = restored;
+    if (restored) {game = restored;restoredBattle=true;}
     else game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.';
   }
 } catch { game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.'; }
-if(paidMode&&!saved){try{const legacy=localStorage.getItem('canopy-defense-wallet-v1:'+holder.address);if(legacy){const restored=Game.restore(JSON.parse(legacy));if(restored)game=restored;}}catch{}}
+if(paidMode&&!saved){try{const legacy=localStorage.getItem('canopy-defense-wallet-v1:'+holder.address);if(legacy){const restored=Game.restore(JSON.parse(legacy));if(restored){game=restored;restoredBattle=true;}}}catch{}}
 game.access=false;game.allowPreview(holder.rarity);
 if(paidMode){if(!paidRunId)paidRunId=(await payments.newRun()).id;loadPurchasedGrowth(initialPayments);game.tree=Number((await payments.balance())/1000000n);}
 
@@ -58,7 +60,7 @@ function loadPurchasedGrowth(status){
  if(!ok)throw Error('Defender collection could not be loaded. Reconnect before purchasing.');
 }
 let deploymentChoice={type:null,slot:null};
-window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;}else{game.allowPreview(account.rarity);}renderUI();});
+window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;if($('mode-dialog').open){modeEntryShown=false;$('mode-dialog').close();}}else{game.allowPreview(account.rarity);}renderUI();if(account?.address===holder.address&&!$('game-shell').hidden&&!modeEntryShown&&modePicker){modeEntryShown=modePicker.open(null,{initial:true,saved:restoredBattle});}});
 let selectedType = 'pine';
 let selectedTower = null;
 let hoveredPad = null;
@@ -74,6 +76,7 @@ const helpDialog = $('help-dialog');
 const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
 const worldMapDialog=$('world-map-dialog');
+const modeDialog=$('mode-dialog');
 let worldMap=null;
 const storyAnimation=createStoryAnimation();
 let audioStorage;try{audioStorage=localStorage;}catch{}
@@ -98,7 +101,7 @@ function renderStoryBeat(){
  gameAudio.setBeat(storyBeat);
 }
 const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
- blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open||worldMapDialog.open,
+ blocked:()=>!modeEntryShown||checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open||worldMapDialog.open||modeDialog.open,
  render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);storyPlayback.reset(scene);gameAudio.openScene(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
  onClose:()=>{gameAudio.closeScene();storyAnimation.clear();storyPlayback.clear();save();renderUI();focusControl($('wave-button'));}
 });
@@ -106,13 +109,13 @@ $('story-next').onclick=()=>stories.close();
 $('story-skip').onclick=()=>stories.close();
 $('story-replay').onclick=()=>{if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();stories.open(storyCheckpoint(game),{replay:true});};
 function sendWave(){
- if(storyDialog.open||worldMapDialog.open||checkoutBusy)return;
+ if(!modeEntryShown||storyDialog.open||worldMapDialog.open||modeDialog.open||checkoutBusy)return;
  if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();
  if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;
  act(()=>game.startWave());
 }
 const shopView=createShopView({root:document.querySelector('[data-command-panel="shop"]'),getGame:()=>game,paidMode});
-const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open,
+const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open||modeDialog.open,
  render:section=>{renderCommandWindow(section);renderUI();},save,
  returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
@@ -212,7 +215,7 @@ $('preview-button').addEventListener('click', () => { if(game.phase==='running')
 $('help-button').addEventListener('click',()=>openCommand('guide',$('help-button')));
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
-  if(storyDialog.open)return;
+  if(storyDialog.open||modeDialog.open)return;
   if(paidMode)return reviewPaidPurchase(kind,towerId);
   if (purchaseDialog.open) return;
   pendingPurchase = new PurchaseReview(game, kind, towerId);
@@ -357,7 +360,7 @@ if(paidMode){
 
 async function newRun() {
   if(checkoutBusy)return false;
-  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent defender growth and chapter progress are kept.')) return false;
+  if (hasBattleToReplace(game) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent defender growth and chapter progress are kept.')) return false;
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   game.newRun(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
@@ -377,7 +380,7 @@ $('reset-button').addEventListener('click', async() => {
   game = new Game();game.enableCollection();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
-  if (storyDialog.open || worldMapDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
+  if (storyDialog.open || worldMapDialog.open || modeDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
   const index = Number(event.key) - 1;
   if (index >= 0 && index < Object.keys(TOWERS).length && Number.isInteger(index)) {
     selectDefender(Object.keys(TOWERS)[index]);
@@ -396,10 +399,10 @@ for(const level of CAMPAIGN_LEVELS){
 }
 async function selectLevel(number){
  const level=CAMPAIGN_LEVELS.find(l=>l.number===number);if(!level||checkoutBusy||!campaignLevelState(game,level).unlocked)return false;
- if(game.wave>0&&!['defeat','victory'].includes(game.phase)&&!confirm('Travel to level '+number+'? Your current battle resets. Permanent growth and forest progress are kept.'))return false;
+ if(hasBattleToReplace(game)&&!confirm('Start level '+number+'? This replaces your current battlefield and run-only supplies. Permanent upgrades and campaign progress stay saved.'))return false;
  try{
-  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if(beginCampaignLevel(game,number)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);return true;}
+  const nextRun=paidMode?await payments.newRun():null;
+  if(beginCampaignLevel(game,number)){if(nextRun){paidRunId=nextRun.id;appliedPayments=new Set();}feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);return true;}
  }catch(error){game.message=error.message;renderUI();}
  return false;
 }
@@ -407,10 +410,10 @@ $('next-chapter').addEventListener('click',()=>{const action=completionAction(ga
 $('enter-event').addEventListener('click',()=>{void enterHarvest();});
 async function enterHarvest(){
   if(checkoutBusy||!game.access||!game.forest.stars[0])return false;
-  if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Harvest of the Canopy? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return false;
+  if(hasBattleToReplace(game) && !confirm('Start a new Harvest run? This replaces your current battlefield and run-only supplies. Campaign progress, permanent upgrades and earned rewards stay saved.'))return false;
   try{
-  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if(game.startEvent(HARVEST_CANOPY.id)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();commandMenu.close(canvas);focusControl(canvas);return true;}
+  const nextRun=paidMode?await payments.newRun():null;
+  if(game.startEvent(HARVEST_CANOPY.id)){if(nextRun){paidRunId=nextRun.id;appliedPayments=new Set();}feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();commandMenu.close(canvas);focusControl(canvas);return true;}
   }catch(error){game.message=error.message;renderUI();}
   return false;
 }
@@ -420,6 +423,13 @@ worldMap=createWorldMap({dialog:worldMapDialog,getGame:()=>game,
  returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
 document.querySelectorAll('[data-open-world-map]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();worldMap.open(button);}));
+modePicker=createModePicker({dialog:modeDialog,getGame:()=>game,
+ blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||helpDialog.open||worldMapDialog.open||accessDialog.open,
+ onSelect:kind=>kind==='harvest'?enterHarvest():true,
+ onSelected:(kind,trigger)=>{modeEntryShown=true;renderUI();if(kind==='campaign'){const level=game.chapter+(game.isVeteran?4:1);if(worldMap.open(trigger))worldMap.selectRegion('level-'+level);}else focusControl(game.phase==='paused'?$('pause-button'):game.phase==='defeat'?$('continue-button'):canvas);},save
+});
+document.querySelectorAll('[data-open-modes]').forEach(button=>button.addEventListener('click',()=>modePicker.open(button)));
+
 for(const[id,type]of [['copper-look','oak'],['harvest-tower-look','watchtower'],['amber-look','tree']])$(id).addEventListener('change',event=>act(()=>game.setHarvestLook(type,event.target.checked)));
 let seasonArtSignature='';
 function renderSeason(){
@@ -508,6 +518,8 @@ function renderUI() {
   if (!tower) selectedTower = null;
   const active = game.access && ['build', 'running', 'paused'].includes(game.phase);
   $('health-value').innerHTML = `${game.health}<span> / 100</span>`;
+  if($('current-mode').textContent!==modeName(game))$('current-mode').textContent=modeName(game);
+  if(modeDialog.open)modePicker?.refresh();
   $('health-bar').style.width = game.health + '%'; $('health-bar').style.background = game.health < 30 ? '#ff6b7c' : '#7ef3a0';
   $('shield-value').textContent = `Root shield: ${game.shield}`;
   $('wave-value').innerHTML = `${String(game.wave).padStart(2, '0')}<span> / ${game.waveCount}</span>`;
@@ -692,7 +704,7 @@ let backdropKey = '', floaters = [];
 let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
-  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || worldMapDialog.open || document.hidden || checkoutBusy;
+  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || worldMapDialog.open || modeDialog.open || !modeEntryShown || document.hidden || checkoutBusy;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
   aiming.advance(effectDt);
@@ -761,7 +773,7 @@ function draw(clock, dt) {
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
-  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !worldMapDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
+  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !worldMapDialog.open && !modeDialog.open && modeEntryShown && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
   if(storyDialog.open&&!document.hidden&&game.access&&!accessDialog.open&&!checkoutBusy){
     const sceneReducedMotion=storyMotion.matches;
