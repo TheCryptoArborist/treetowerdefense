@@ -55,7 +55,8 @@ not accepted by this check. It never bypasses holder access or loads gameplay.
 
 ## Published checkout test
 
-Live at https://tree-token.xyz/play/canopy-defense/checkout-test/. Backend
+The initial audio release was published at
+https://tree-token.xyz/play/canopy-defense/checkout-test/. Backend
 `6aed02cdccaac36672b4b658`, routing `6aed035fb385f2f7869ac7f8`, source
 `bc3d240`. Uploaded function digest matches the validated package. Linux,
 Windows and PostgreSQL CI passed. The live entry includes all audio controls
@@ -67,3 +68,14 @@ jobs and 299 static paths are preserved; only the checkout rewrite changed.
 No wallet transaction or production database migration was initiated. Device
 listening, narration and physical phone layout acceptance remain pending.
 See [release evidence](../integration/tree-arcade/cutscene-audio-release-receipt.json).
+
+## Announcer delivery and atlas release
+
+Heroic announcer, Natural storyteller and the device voice picker are live with
+the branded world map on checkout-test. Source `3014033`, backend
+`6aed1d41b9984721f41c8991`, routing `6aed1db0660a20a39814c4fe`. The user
+confirmed playback of the earlier audio release; listening acceptance of the
+new original delivery and phone layout remain pending. All 279 local tests and
+Linux/Windows/PostgreSQL CI passed. Canonical entry includes both narration
+selectors inside the story dialog, and protected audio source remains 401.
+See [release evidence](../integration/tree-arcade/atlas-narration-release-receipt.json).

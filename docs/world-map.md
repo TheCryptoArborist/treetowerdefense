@@ -60,6 +60,12 @@ map and detail image under `.netlify/world-map-check`. These are component
 illustrations, not browser screenshots or holder gameplay verification. Phone
 layout, touch and authenticated gameplay acceptance remain pending.
 
-This update is saved for review and is not published. Netlify CLI authorization
-is still pending because the provider's grant permits team-wide project
-management. The existing checkout-test backend and routing remain unchanged.
+The map and narration delivery are live on the canonical checkout-test URL.
+Source `3014033`, backend `6aed1d41b9984721f41c8991`, routing
+`6aed1db0660a20a39814c4fe`. All 43 function identities/configurations,
+five schedules and 299 static paths are retained; only the checkout rewrite
+changed. Canonical entry, styles and branding assets match the approved build;
+anonymous game-source, access and payment requests remain 401. The user approved
+the sample map design and explicitly authorized Netlify CLI access/publication.
+No wallet transaction or production database migration was initiated.
+See [release evidence](../integration/tree-arcade/atlas-narration-release-receipt.json).

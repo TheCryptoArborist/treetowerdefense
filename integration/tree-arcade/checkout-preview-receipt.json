@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aed035fb385f2f7869ac7f8",
-    "upstreamDeployId": "6aed02cdccaac36672b4b658",
-    "backendSourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
-    "releaseSourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
+    "productionDeployId": "6aed1db0660a20a39814c4fe",
+    "upstreamDeployId": "6aed1d41b9984721f41c8991",
+    "backendSourceCommit": "3014033f5b27de204e4f551755c97ed594de7a09",
+    "releaseSourceCommit": "3014033f5b27de204e4f551755c97ed594de7a09",
     "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
+    "gameplaySourceCommit": "3014033f5b27de204e4f551755c97ed594de7a09",
     "existingStaticEntriesRetained": 299
   },
   "gatewayRedesign": {
@@ -1058,5 +1058,176 @@
         "status": 401
       }
     ]
+  },
+  "atlasNarrationRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "3014033f5b27de204e4f551755c97ed594de7a09",
+    "backendDeployId": "6aed1d41b9984721f41c8991",
+    "productionRoutingDeployId": "6aed1db0660a20a39814c4fe",
+    "previousProductionRoutingDeployId": "6aed035fb385f2f7869ac7f8",
+    "functionDigest": "8d5ae0e36e4d09bbea86bdfc31c47540bf81a5054e02c9969ccc146ddc9275bd",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 279,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42135354619,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "map": {
+      "campaignWaves": 60,
+      "harvestWaves": 5,
+      "regions": 7,
+      "paletteSource": "https://tree-token.xyz/",
+      "features": [
+        "Every authored wave, boss and defense milestone",
+        "Inspectable wave briefings without checkpoint skips",
+        "Separate campaign, Veteran and Harvest progress",
+        "Pause and manual Resume; confirmed travel starts at wave 1",
+        "Original TREE logo and local guardian/structure art",
+        "Scoped TREE website colors and project link"
+      ],
+      "sampleMapVisualApprovedByUser": true,
+      "holderGameplayAcceptance": "pending",
+      "phoneLayoutAcceptance": "pending"
+    },
+    "narration": {
+      "features": [
+        "Original Heroic announcer delivery",
+        "Natural storyteller alternative",
+        "English device voice picker",
+        "Audition current line and persist choices",
+        "Mute, lifecycle cancellation and manual story pacing retained"
+      ],
+      "previousAudioPlaybackConfirmedByUser": true,
+      "newDeliveryListeningAcceptance": "pending; available device voices vary"
+    },
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "mapDialogPresent": true,
+        "mapBrandPresent": true,
+        "narrationControlsPresent": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/tree-logo.jpg",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/oak-home.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/world-map.js",
+        "status": 401
+      },
+      {
+        "path": "src/world-map-view.js",
+        "status": 401
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "mapDialogPresent": true,
+        "mapBrandPresent": true,
+        "narrationControlsPresent": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/tree-logo.jpg",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/oak-home.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/world-map.js",
+        "status": 401
+      },
+      {
+        "path": "src/world-map-view.js",
+        "status": 401
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "packageAudit": {
+      "entries": 676,
+      "privateConfigFiles": [],
+      "credentialPatternMatches": 0
+    },
+    "userApprovedPublication": true,
+    "userExplicitlyApprovedNetlifyCliTeamAccess": true,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
   }
 }
