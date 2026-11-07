@@ -27,3 +27,7 @@ holder check; the local browser runner could not launch under its socket
 restrictions. No real wallet transaction was performed. This UI revision
 supersedes the earlier un-published production candidate; rebuild and verify
 that candidate from the current game before publishing it.
+
+The revision is live on the existing checkout-test URL. See
+[integrity and release receipt](../integration/tree-arcade/lobby-management-release-receipt.json).
+Ubuntu, Windows and PostgreSQL CI passed on the recorded source commit.

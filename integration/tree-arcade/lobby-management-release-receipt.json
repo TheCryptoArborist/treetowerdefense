@@ -1,0 +1,74 @@
+{
+  "state": "live-on-checkout-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "sourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
+  "upstreamDeployId": "6aee8f954de7e6b1748cf5ff",
+  "productionDeployId": "6aee900be7f4cbafae9c333d",
+  "baselineDeployId": "6aee769eb270ae5a44d02d78",
+  "functionZipSha256": "f5f5662d8e743828a762ebccf71988ba29a76c733a1e3f9d8cd8b284c060daae",
+  "privateModules": 23,
+  "validation": {
+    "tests": 335,
+    "passed": 334,
+    "windowsOnlySkippedOnLinux": 1,
+    "syntax": "passed",
+    "protectedBuild": "passed",
+    "ci": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42330363740",
+    "ciResult": "success: Ubuntu, Windows and PostgreSQL",
+    "candidateSmoke": [
+      {
+        "path": "index.html",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "src/app.js",
+        "origin": null,
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "origin": null,
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400
+      },
+      {
+        "path": "api/access",
+        "origin": "https://evil.example",
+        "status": 403
+      }
+    ],
+    "liveSmoke": [
+      {
+        "path": "index.html",
+        "status": 200
+      },
+      {
+        "path": "styles.css",
+        "status": 200
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      }
+    ],
+    "nativeBrowser": "Local runner blocked by socket restrictions; holder desktop/phone acceptance pending"
+  },
+  "preservation": {
+    "staticPathsRetained": 302,
+    "functionPackagesUnchanged": 43,
+    "schedulesUnchanged": 5,
+    "onlyChangedStaticFile": "/_redirects"
+  },
+  "walletPurchasePerformed": false,
+  "productionGamePromotion": "pending real-wallet acceptance and rebuilt current candidate",
+  "christmas": "teaser only; winter draft excluded"
+}

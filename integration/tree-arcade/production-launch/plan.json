@@ -7,7 +7,7 @@
   "ledgerReuse": "Retain the existing real-TREE ledger branch and wallet-owned defender levels; no reset or copy of paid records.",
   "requiresLiveAcceptance": true,
   "christmasEntry": "Teaser until November 27, 2026",
-  "basePublishedDeployId": "6aee769eb270ae5a44d02d78",
+  "basePublishedDeployId": "6aee900be7f4cbafae9c333d",
   "unchangedLobbyNormalizedSha1": "24c0062c0d170ceb1a007cab43334fc649458b50",
   "baseGameSourceCommit": "4e072604c65a2ea148896b5772d7d0fa7874ff17"
 }
