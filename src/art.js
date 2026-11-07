@@ -21,7 +21,7 @@ export function flower(c, x, y, color, scale = 1) {
   for (let i = 0; i < 5; i++) ellipse(c, Math.cos(i * TAU / 5) * 4, Math.sin(i * TAU / 5) * 4, 3.4, 3.4, color);
   ellipse(c, 0, 0, 2.3, 2.3, '#ffe397'); c.restore();
 }
-const autumnSprites=new WeakMap();let makeArtCanvas=null;
+const winterSprites=new WeakMap();const autumnSprites=new WeakMap();let makeArtCanvas=null;
 // Runtime foliage palette, cached per prepared sprite. Faces, alpha and geometry stay intact.
 function autumnArt(image){
  if(!makeArtCanvas)return image;if(autumnSprites.has(image))return autumnSprites.get(image);
@@ -29,12 +29,19 @@ function autumnArt(image){
  for(let i=0;i<pixels.data.length;i+=4){const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];if(g>45&&g>r*1.12&&g>b*1.1){const l=(r+g+b)/3;pixels.data[i]=Math.min(255,70+l*.95);pixels.data[i+1]=25+l*.55;pixels.data[i+2]=8+l*.2;}}
  c.putImageData(pixels,0,0);autumnSprites.set(image,out);return out;
 }
+function winterArt(image){
+ if(!makeArtCanvas)return image;if(winterSprites.has(image))return winterSprites.get(image);
+ const w=image.naturalWidth||image.width,h=image.naturalHeight||image.height,out=makeArtCanvas(w,h),c=out.getContext('2d');c.drawImage(image,0,0);const pixels=c.getImageData(0,0,w,h);
+ for(let i=0;i<pixels.data.length;i+=4){const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];if(g>45&&g>r*1.12&&g>b*1.1){const l=(r+g+b)/3;pixels.data[i]=155+l*.35;pixels.data[i+1]=180+l*.32;pixels.data[i+2]=195+l*.3;}}
+ c.putImageData(pixels,0,0);winterSprites.set(image,out);return out;
+}
+function seasonalArt(image,autumn,winter){return winter?winterArt(image):autumn?autumnArt(image):image;}
 const environment = new Map();
 let environmentRevision = 0;
 export function getEnvironmentArtStatus() { return { loaded: [...environment.keys()], revision: environmentRevision }; }
 export function installEnvironmentAsset(kind, image, makeCanvas) {
   makeArtCanvas=makeCanvas;
-  if (!['terrain','tree','road','harvestTerrain','harvestPests'].includes(kind)) throw new Error('Unknown environment asset');
+  if (!['terrain','tree','road','harvestTerrain','harvestPests','winterTerrain','winterPests'].includes(kind)) throw new Error('Unknown environment asset');
   const width = image.naturalWidth || image.width, height = image.naturalHeight || image.height;
   let bounds = { x:0, y:0, width, height };
   if (kind === 'tree') {
@@ -44,17 +51,17 @@ export function installEnvironmentAsset(kind, image, makeCanvas) {
     if(x1<=x0||y1<=y0)throw new Error('Empty Tree of Life silhouette');
     bounds={x:x0,y:y0,width:x1-x0+1,height:y1-y0+1};
   }
-  let texture = null;
-  if(kind === 'road'){texture=makeCanvas(384,384);texture.getContext('2d').drawImage(image,0,0,384,384);}
+  let texture = null,winterTexture=null;
+  if(kind === 'road'){texture=makeCanvas(384,384);texture.getContext('2d').drawImage(image,0,0,384,384);winterTexture=makeCanvas(384,384);const icy=winterTexture.getContext('2d');icy.drawImage(texture,0,0);icy.fillStyle='#b0dfebac';icy.fillRect(0,0,384,384);}
   let cells=null;
-  if(kind==='harvestPests'){
+  if(['harvestPests','winterPests'].includes(kind)){
     const source=makeCanvas(width,height),ctx=source.getContext('2d');ctx.drawImage(image,0,0);const data=ctx.getImageData(0,0,width,height).data;
     cells=[];for(let n=0;n<6;n++){const left=Math.floor(n%3*width/3),right=Math.floor((n%3+1)*width/3),top=Math.floor(Math.floor(n/3)*height/2),bottom=Math.floor((Math.floor(n/3)+1)*height/2);let x0=right,y0=bottom,x1=left,y1=top;
       for(let y=top;y<bottom;y++)for(let x=left;x<right;x++)if(data[(y*width+x)*4+3]>120){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
-      if(x1<=x0||y1<=y0)throw new Error('Empty Harvest invader cell');cells.push({x:x0,y:y0,width:x1-x0+1,height:y1-y0+1});
+      if(x1<=x0||y1<=y0)throw new Error('Empty seasonal invader cell');cells.push({x:x0,y:y0,width:x1-x0+1,height:y1-y0+1});
     }
   }
-  environment.set(kind,{image,bounds,texture,cells});environmentRevision++;return bounds;
+  environment.set(kind,{image,bounds,texture,winterTexture,cells});environmentRevision++;return bounds;
 }
 export async function loadEnvironmentArt() {
   const files={terrain:'terrain-forest-v1.png',tree:'tree-life-v1.png',road:'road-stone-v1.png',harvestTerrain:'terrain-harvest-v2.webp',harvestPests:'../enemies/harvest-invaders-v2.webp'};
@@ -65,13 +72,13 @@ export async function loadEnvironmentArt() {
   })));
   return getEnvironmentArtStatus();
 }
-export function paintLifeTree(c,type,x,y,scale=1,style=0,level=1,clock=0,autumn=false) {
+export function paintLifeTree(c,type,x,y,scale=1,style=0,level=1,clock=0,autumn=false,winter=false) {
   c.save();c.translate(x,y);c.scale(scale*(1+(level-1)*.06),scale*(1+(level-1)*.06));
   ellipse(c,0,12,58,13,'#080f0c90');
   const art=environment.get('tree');
   if(art){
     const f=art.bounds,ratio=Math.min(176/f.height,146/f.width),w=f.width*ratio,h=f.height*ratio;
-    c.drawImage(autumn?autumnArt(art.image):art.image,f.x,f.y,f.width,f.height,-w/2,20-h,w,h);
+    c.drawImage(seasonalArt(art.image,autumn,winter),f.x,f.y,f.width,f.height,-w/2,20-h,w,h);
   }else{
     // A face-free ancient oak remains available while local artwork loads.
     for(const side of [-1,1]){line(c,[[0,-32],[side*16,2],[side*47,16]],'#292a1d',13);line(c,[[0,-32],[side*16,2],[side*47,16]],'#685d42',7);}
@@ -399,11 +406,11 @@ function structureSocket(type,level,facing,attack=false) {
   const length=(type==='watchtower'?30:36)-(attack?2:0);
   return {x:Math.sin(angle)*length,y:mount.y+Math.cos(angle)*length};
 }
-function paintStructure(c,type,x,y,scale,style,level,attack,facing,motion,autumn=false) {
+function paintStructure(c,type,x,y,scale,style,level,attack,facing,motion,autumn=false,winter=false) {
   const p=STYLES[style],mount=structureMount(type,level),art=structureSprites.get(type);
   c.save();c.translate(x,y);c.scale(scale,scale);
   ellipse(c,0,17,type==='watchtower'?31:44,10,'#0a100b70');
-  if(art){c.drawImage(autumn?autumnArt(art.variants[level-1][style]):art.variants[level-1][style],-80,-144);
+  if(art){c.drawImage(seasonalArt(art.variants[level-1][style],autumn,winter),-80,-144);
   }else{polygon(c,[[-27,16],[-23,16-mount.h],[24,16-mount.h],[29,16]],'#554c39','#171d15',3);for(let i=0;i<6;i++)line(c,[[-22,10-i*14],[22,10-i*14]],'#948064',2);}
   if(level>=2){line(c,[[-18,10],[18,10]],'#bb9b5f',3);ellipse(c,0,10,5,3,p.accent);}
   if(level===3)ellipse(c,0,17,32,9,p.accent+'18',p.accent+'70',2);
@@ -440,8 +447,8 @@ function paintRiggedSprite(c,image,motion) {
     c.drawImage(image,0,sy,160,sh,-64,y0,128,sh*.8+.15);c.restore();
   }
 }
-export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false,facing=null,motion=null,autumn=false) {
-  if(['watchtower','cannon'].includes(type)){paintStructure(c,type,x,y,scale,style,level,attack,facing,motion,autumn);return;}
+export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=false,facing=null,motion=null,autumn=false,winter=false) {
+  if(['watchtower','cannon'].includes(type)){paintStructure(c,type,x,y,scale,style,level,attack,facing,motion,autumn,winter);return;}
   const p=STYLES[style];c.save();c.translate(x,y);c.scale(scale,scale);
   ellipse(c,0,17,36+(level-1)*4,10,'#26372a30');
   if(style>=2)ellipse(c,0,17,37,10,p.accent+'35',p.accent+'90',2);
@@ -451,9 +458,9 @@ export function paintTree(c,type,x,y,scale=1,style=0,level=1,clock=0,attack=fals
   const sprite=defenderSprites.get(type);
   if(type==='willow'&&!facing)facing={direction:0,view:0,flip:false};
   const aimed=facing&&aimSprites.get(type);
-  if(aimed){c.save();if(facing.flip)c.scale(-1,1);const rig=motion&&facing.flip?{...motion,x:-motion.x,twist:-motion.twist}:motion;paintRiggedSprite(c,autumn?autumnArt(aimed.variants[level-1][facing.view][style]):aimed.variants[level-1][facing.view][style],rig);c.restore();}
+  if(aimed){c.save();if(facing.flip)c.scale(-1,1);const rig=motion&&facing.flip?{...motion,x:-motion.x,twist:-motion.twist}:motion;paintRiggedSprite(c,seasonalArt(aimed.variants[level-1][facing.view][style],autumn,winter),rig);c.restore();}
   else if(facing){c.save();const p=defenderMotionPoint(0,-60,motion||defenderMotion(type));c.transform(1,0,p.x/-76,(p.y-16)/-76,-16*p.x/-76,16-16*(p.y-16)/-76);paintAimingFallback(c,type,style,level,facing);c.restore();}
-  else if(sprite)c.drawImage(autumn?autumnArt(sprite.variants[level-1][style]):sprite.variants[level-1][style],-64,-112,128,144);
+  else if(sprite)c.drawImage(seasonalArt(sprite.variants[level-1][style],autumn,winter),-64,-112,128,144);
   else paintReferenceGuardian(c,type,style,level,clock,attack);
   if(style===1){flower(c,-20,-58,'#ffdbe9',.85);flower(c,20,-67,'#fff1bc',.75);}
   if(style>=2)for(let i=0;i<(style>=4?4:2);i++){
@@ -548,8 +555,9 @@ export function pestWalkPhase(e,reducedMotion=false) {
 }
 export function pestHealthBounds(e) {
   const appearance=pestAppearance(e),size=appearance.scale,boss=e.kind==='boss',moth=e.kind==='moth';
-  if(e.theme==='harvest-canopy'&&environment.has('harvestPests')){
-    const f=environment.get('harvestPests').cells[{termite:e.seedStolen?5:0,beetle:1,moth:2,blight:3,boss:4}[e.kind]],h=boss?60:moth?75:68,w=f.width/f.height*h,angle=pestAngle(e);
+  const seasonalAtlas=e.theme==='christmas-chaos'?'winterPests':e.theme==='harvest-canopy'?'harvestPests':null;
+  if(seasonalAtlas&&environment.has(seasonalAtlas)){
+    const f=environment.get(seasonalAtlas).cells[{termite:e.seedStolen?5:0,beetle:seasonalAtlas==='winterPests'&&!(e.frostArmor>0)?5:1,moth:2,blight:3,boss:4}[e.kind]],h=boss?(e.theme==='christmas-chaos'?64:60):moth?75:68,w=f.width/f.height*h,angle=pestAngle(e);
     const top=Math.min(...[[-w/2,-h*.57],[w/2,-h*.57],[-w/2,h*.43],[w/2,h*.43]].map(([x,y])=>x*Math.sin(angle)+y*Math.cos(angle)));
     return{x:e.x-20*size,y:Math.max(7,e.y+top*size-9),width:40*size,height:5};
   }
@@ -625,6 +633,7 @@ export function paintPest(c,e,clock,time=0,{hit=0,reducedMotion=false,healthBar=
     // Upright actors change view instead of being rotated like top-down insects.
     if(!paintEnemySprite(c,e,Math.sin(angle),-Math.cos(angle),reducedMotion))paintMiniBoss(c,e,reducedMotion?0:clock);
   }
+  else if(e.theme==='christmas-chaos'&&paintWinterInvader(c,e,walkPhase,reducedMotion)){}
   else if(e.theme==='harvest-canopy'&&paintHarvestInvader(c,e,walkPhase,reducedMotion)){}
   else if(appearance.tier>0)paintEvolvedPest(c,e,reducedMotion?0:clock,appearance,colors,walkPhase);
   else {
@@ -733,15 +742,15 @@ export function paintBackdrop(c,chapter=0,rank=0,map=LEGACY_MAP) {
   const PATH=map.path,PATH_LENGTH=map.length;
   let seed=89+chapter*100;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
   c.save();c.clearRect(0,0,WIDTH,HEIGHT);
-  const terrain=environment.get(map.id==='harvest-v2'?'harvestTerrain':'terrain');
+  const terrain=environment.get(map.id==='winter-v1'?'winterTerrain':map.id==='harvest-v2'?'harvestTerrain':'terrain');
   if(terrain)c.drawImage(terrain.image,0,0,WIDTH,HEIGHT);
   else{const gradient=c.createLinearGradient(0,0,0,HEIGHT);gradient.addColorStop(0,'#48513a');gradient.addColorStop(1,'#293d2c');c.fillStyle=gradient;c.fillRect(0,0,WIDTH,HEIGHT);
     for(let i=0;i<500;i++)ellipse(c,rand()*WIDTH,rand()*HEIGHT,2+rand()*9,1+rand()*4,i%2?'#a19c6525':'#152c2540');}
-  if(chapter&&map.id!=='harvest-v2'){c.fillStyle=chapter===1?'#b6954124':'#365c8155';c.fillRect(0,0,WIDTH,HEIGHT);}
+  if(chapter&&!['harvest-v2','winter-v1'].includes(map.id)){c.fillStyle=chapter===1?'#b6954124':'#365c8155';c.fillRect(0,0,WIDTH,HEIGHT);}
   const road=environment.get('road');
   c.lineJoin='round';c.lineCap='butt';c.beginPath();PATH.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));
   c.strokeStyle='#242c2070';c.lineWidth=70;c.stroke();
-  c.strokeStyle=road?c.createPattern(road.texture,'repeat'):'#8a7d63b0';c.lineWidth=58;c.stroke();
+  c.strokeStyle=map.id==='winter-v1'&&road?c.createPattern(road.winterTexture,'repeat'):road?c.createPattern(road.texture,'repeat'):'#8a7d63b0';c.lineWidth=58;c.stroke();
   for(let i=0;i<(road?0:850);i++){
     const d=rand()*(PATH_LENGTH-3),p=pointAt(d,map),ahead=pointAt(d+2,map),angle=Math.atan2(ahead.y-p.y,ahead.x-p.x),offset=(rand()-.5)*50;
     const x=p.x-Math.sin(angle)*offset,y=p.y+Math.cos(angle)*offset,w=1+rand()*5,h=1+rand()*2;
@@ -914,5 +923,44 @@ export function paintHarvestBackdrop(c,map=LEGACY_MAP){
  const locations=map.id==='harvest-v2'?[[145,310],[945,475],[670,40]]:[[36,110],[947,282],[670,40]];
  for(const[x,y]of locations){polygon(c,[[x-15,y],[x-13,y-19],[x+13,y-19],[x+15,y]],'#785439','#e0b36d',2);for(let i=0;i<3;i++)ellipse(c,x-8+i*8,y-21,4,5,'#bc8139','#5f442a',1);line(c,[[x-14,y-8],[x+14,y-8]],'#cb9856',2);}
  if(map.id==='harvest-v2'){c.font='bold 10px Arial';c.fillStyle='#ffe1a0';c.textAlign='center';c.strokeStyle='#301b12';c.lineWidth=3;c.strokeText('SEED CACHE',145,269);c.fillText('SEED CACHE',145,269);}
+ c.restore();
+}
+
+// Optional assets: the public game's ordinary loading entrance does not request winter art early.
+export async function loadWinterArt(){
+ const files={winterTerrain:'assets/environment/terrain-winter-v1.webp',winterPests:'assets/enemies/christmas-invaders-v1.webp'};
+ const results=await Promise.all(Object.entries(files).map(([kind,path])=>new Promise(resolve=>{
+   const image=new Image();image.onload=()=>{try{installEnvironmentAsset(kind,image,(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;});resolve(true);}catch{resolve(false);}};image.onerror=()=>resolve(false);image.src=path;
+ })));return results.every(Boolean);
+}
+function paintWinterInvader(c,e,phase,reducedMotion){
+ const art=environment.get('winterPests');if(!art)return false;
+ const f=art.cells[{termite:0,beetle:e.frostArmor>0?1:5,moth:2,blight:3,boss:4}[e.kind]],h=e.kind==='boss'?64:e.kind==='moth'?75:68,w=f.width/f.height*h;
+ c.save();if(!reducedMotion){c.translate(Math.sin(phase)*1.2,0);c.rotate(Math.sin(phase)*.025);}c.drawImage(art.image,f.x,f.y,f.width,f.height,-w/2,-h*.57,w,h);c.restore();
+ if(e.frostArmor>0){c.strokeStyle='#bcf4ffb0';c.lineWidth=2;c.beginPath();c.ellipse(0,0,w*.48,h*.5,0,0,TAU);c.stroke();}
+ return true;
+}
+export function paintWinterLook(c,type,x,y,scale=1,level=1){
+ c.save();c.translate(x,y);c.scale(scale,scale);
+ const tree=type==='tree',structure=['watchtower','cannon'].includes(type),high=tree?-130:structure?-72:type==='mushroom'?-69:-82-(level-1)*8;
+ if(!tree&&!structure){
+   // Lower-torso ribbon and a gift at the feet; faces and moving head silhouettes stay clear.
+   polygon(c,[[-16,-9],[15,-9],[15,-4],[-16,-4]],'#b52434','#641b26',.8);
+   polygon(c,[[11,-7],[21,-5],[18,8],[12,6]],'#c12a37','#641b26',.8);
+   polygon(c,[[-34,2],[-23,2],[-23,13],[-34,13]],'#255847','#a9c7aa',.8);line(c,[[-29,2],[-29,13]],'#e9c975',2);line(c,[[-34,6],[-23,6]],'#e9c975',2);
+ }
+ const rows=tree?3:1;
+ for(let row=0;row<rows;row++){const yy=tree?high+row*28:structure?-55:14,spread=tree?42+row*6:structure?25:22;
+   line(c,[[-spread,yy],[-spread*.5,yy+7],[0,yy+9],[spread*.5,yy+7],[spread,yy]],'#355447',1.6);
+   for(let i=0;i<7;i++){const xx=-spread+i*spread/3,py=yy+9*(1-(xx/spread)**2);ellipse(c,xx,py+2,2.5,3.5,['#ef5b48','#ffdc77','#74d6c7'][i%3],'#f6ecc788',.5);}
+ }
+ if(tree){polygon(c,[[0,-160],[3,-151],[13,-151],[5,-144],[8,-135],[0,-141],[-8,-135],[-5,-144],[-13,-151],[-3,-151]],'#ffe085','#b69b55',1);}
+ c.restore();
+}
+export function paintWinterBackdrop(c,map){
+ c.save();
+ // Ice seams and snowy lane edges follow the actual route, not a second visual path.
+ for(let d=60;d<map.length;d+=108){const p=pointAt(d,map),next=pointAt(d+2,map),a=Math.atan2(next.y-p.y,next.x-p.x);c.save();c.translate(p.x,p.y);c.rotate(a);line(c,[[-9,-23],[0,-8],[-4,4],[8,23]],'#d6f5f47a',1.4);c.restore();}
+ for(let i=0;i<55;i++)ellipse(c,15+(i*137)%970,i%2?20+i%24:680+i%19,2,1.2,'#f2fbffb0');
  c.restore();
 }

@@ -1,0 +1,19 @@
+{
+  "kind": "offline engine playback",
+  "bossAt": 18.05000000000012,
+  "blizzardAt": 39.89999999999987,
+  "bellAt": 41.1999999999998,
+  "seconds": 12,
+  "health": 100,
+  "treeSpent": 0,
+  "rewards": [
+    "christmas-badge",
+    "festive-oak",
+    "bellkeeper-banner",
+    "starry-life-tree"
+  ],
+  "alphaUnchanged": true,
+  "neutralFacePixelsUnchanged": 131,
+  "recoloredPixels": 555,
+  "videoBytes": 651868
+}
