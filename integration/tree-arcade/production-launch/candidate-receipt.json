@@ -21,7 +21,8 @@
       "/_redirects",
       "/play/index.html"
     ],
-    "legacyCanopyRoutesParked": "/play/canopy-defense/legacy-disabled/*"
+    "legacyCanopyRoutesParked": "/play/canopy-defense/legacy-disabled/*",
+    "verification": "passed; published baseline remains locked and unchanged"
   },
   "upstreamSmoke": [
     {
@@ -124,7 +125,17 @@
     "skippedWindowsOnly": 1,
     "syntax": "passed",
     "protectedBuild": "passed",
-    "windowsCabinetHash": "normalized LF; CI rerun pending"
+    "windowsCabinetHash": "normalized LF; Windows CI passed",
+    "ci": {
+      "sourceCommit": "bc6146019fee4de9536a319e7c2edbdfe63854f8",
+      "run": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42328801258",
+      "result": "success",
+      "jobs": [
+        "Ubuntu game/build/syntax",
+        "Windows game/build/syntax",
+        "PostgreSQL ledger"
+      ]
+    }
   },
   "ledger": {
     "branch": "canopy-checkout-test",

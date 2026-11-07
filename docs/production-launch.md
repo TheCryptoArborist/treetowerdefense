@@ -11,7 +11,8 @@ Hosted candidate verified; **not published**. The immutable backend is
 `6aee89c32b81ee06b1ec6532`; the site candidate is
 `6aee8ab4aa9a7130941746f3`. See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json). Automated validation:
 333 tests, 332 passed, one Windows-only test skipped; syntax checks and the
-protected production-profile build pass. A real-wallet purchase/recovery
+protected production-profile build pass. Linux, Windows and PostgreSQL CI
+also passed on `bc6146019fee4de9536a319e7c2edbdfe63854f8`. A real-wallet purchase/recovery
 acceptance is still required before promotion.
 
 ## Release behavior
