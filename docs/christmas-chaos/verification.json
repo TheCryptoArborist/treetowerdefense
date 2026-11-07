@@ -1,0 +1,42 @@
+{
+  "kind": "offline engine playback",
+  "bossAt": 18.05000000000012,
+  "blizzardAt": 39.89999999999987,
+  "bellAt": 41.1999999999998,
+  "seconds": 12,
+  "health": 100,
+  "treeSpent": 0,
+  "rewards": [
+    "christmas-badge",
+    "festive-oak",
+    "bellkeeper-banner",
+    "starry-life-tree"
+  ],
+  "alphaUnchanged": true,
+  "neutralFacePixelsUnchanged": 131,
+  "recoloredPixels": 555,
+  "videoBytes": 651868,
+  "sourceCommit": "84053e9e35321fce68593f4878e65fd9fde1288d",
+  "draftPullRequest": "https://github.com/TheCryptoArborist/treetowerdefense/pull/3",
+  "localTests": {
+    "passed": 333,
+    "skipped": 1,
+    "failed": 0
+  },
+  "ciRuns": [
+    42326365877,
+    42326360459
+  ],
+  "ciConclusion": "success",
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "videoVerified": {
+    "codec": "h264",
+    "width": 800,
+    "height": 632,
+    "seconds": 12
+  },
+  "hostedDeployment": false,
+  "publicChristmasEntryEnabled": false,
+  "targetLaunchDate": "2026-11-27"
+}

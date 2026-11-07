@@ -14,13 +14,16 @@ export class CombatFeedback {
         this.reactions.delete(event.id);
         this.defeats.push({ ...event, life: event.kind === 'boss' ? .9 : .5, max: event.kind === 'boss' ? .9 : .5 });
         if (event.kind === 'boss') this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} FALLS`, 'Your guardians have broken the advance.', 'success', 4);
+      } else if(event.type==='winter-bell'){this.announce('CANOPY BELL · FROST SHATTERED','Invaders stunned for 2.5 seconds. Defenders rally for 6 seconds.','success',4);
+      } else if(event.type==='winter-blizzard'){this.announce('TINSEL TYRANT BLIZZARD','Fresh frost armor! Ring the free bell or use piercing attacks and poison.','danger',5);
+      } else if(event.type==='frost-hit'){this.reactions.set(event.id,.12);
       } else if(event.type==='boss-enrage'){this.announce('BOSS ENRAGED','Below half health: 30% faster movement. Keep slows and rear coverage ready.','danger',5);
       } else if (event.type === 'boss-arrival') {
         this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} HAS ARRIVED`, 'Focus your guardians. Watch the boss health bar.', 'danger', 4);
       } else if (event.type === 'wave-start') {
         const briefing = scoutWave(event.chapter ?? 0, event.wave, event.enemyRules ?? 1,event.mode,event.difficulty,event.encounters??0,event.eventVersion);
         const final=event.wave===(event.waveCount??10);
-        this.announce(final ? `FINAL WAVE · ${event.mode==='harvest-canopy'?'HOLLOW HARVESTER':event.mode==='haunted-grove'?'HOLLOW KING':'BLIGHT KING'} INCOMING` : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, final ? 'danger' : 'normal', 4);
+        this.announce(final ? `FINAL WAVE · ${event.mode==='christmas-chaos'?'TINSEL TYRANT':event.mode==='harvest-canopy'?'HOLLOW HARVESTER':event.mode==='haunted-grove'?'HOLLOW KING':'BLIGHT KING'} INCOMING` : `WAVE ${event.wave} · ${briefing.title.toUpperCase()}`, briefing.tip, final ? 'danger' : 'normal', 4);
       } else if (event.type === 'wave-clear' && event.wave < (event.waveCount??10)) {
         this.announce(`WAVE ${event.wave} CLEARED`, `+${event.sap} Sap earned. Prepare your next defense.`, 'success', 3.5);
       } else if (event.type === 'roster-unlock') {

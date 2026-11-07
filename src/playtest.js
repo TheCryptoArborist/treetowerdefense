@@ -40,7 +40,7 @@ function pestDetails(kind, veteran) {
   return info;
 }
 export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', difficulty = 'standard', encounters=enemyRules===1?1:0,eventVersion=2) {
-  const harvest=mode==='harvest-canopy',event = harvest||mode==='haunted-grove';
+  const christmas=mode==='christmas-chaos',harvest=mode==='harvest-canopy',event=christmas||harvest||mode==='haunted-grove';
   const veteran = difficulty === 'veteran' && !event;
   const lineup = event ? eventLineup(wave,mode) : waveLineup(chapter, wave, encounters);
   const groups = Object.entries(PEST_GUIDE).flatMap(([kind, info]) => {
@@ -49,7 +49,8 @@ export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', diff
     let details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : pestDetails(kind, veteran);
     if(harvest)details={...details,name:{termite:'Leaf borers',beetle:'Bark beetles',moth:'Autumn moths',blight:'Harvest blight',boss:'Hollow Harvester'}[kind]};
     if(harvest&&eventVersion===2){const names={termite:'Seed thieves',beetle:'Gourdback beetles',moth:'Maple-wing moths',blight:'Rot gourds',boss:'Hollow Harvester'};details={...details,name:names[kind]};if(kind==='termite')Object.assign(details,{trait:'Steals 8 Sap once at the middle seed cache',counter:'Defeat it on the early bends before it raids your cache.'});if(kind==='boss')Object.assign(details,{trait:'Releases two seed thieves at 65% and 30% health',counter:'Four extra thieves may appear on its route. Keep later bends covered.'});}
-    if(!harvest&&event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
+    if(!christmas&&!harvest&&event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
+    if(christmas){details={...details,name:{termite:'Ribbon mites',beetle:'Frost Bauble beetles',moth:'Frostwing moths',blight:'Holly blight',boss:'Tinsel Tyrant'}[kind]};if(['beetle','boss'].includes(kind))Object.assign(details,{trait:kind==='boss'?'150 frost armor; casts one blizzard at half health':'40 frost armor before ordinary hits reach health',counter:'Ring the free bell to shatter frost. Watchtower, Cypress, poison and Leaf Storm bypass it.'});}
     const miniBoss=kind==='boss'?miniBossFor(chapter,wave,mode,encounters):null;
     if(miniBoss)details={...MINI_BOSSES[miniBoss],trait:MINI_BOSSES[miniBoss].trait+(veteran?' · Enrages below half health':''),miniBoss};
     const appearanceTier=pestTier(chapter,wave,mode);
@@ -57,8 +58,10 @@ export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', diff
   });
   const eventBriefings=[['Lantern watch','Dusk termites and two moths test the entrance. Start with Pine and Oak, then reinforce a later bend.'],['Hollow armor','Four armored beetles approach. The earned Watchtower ignores their armor; sustained fire also works.'],['Dusk swarm','Dense termites and six dashing moths approach. Oak splash and Palm slows help cover the rush.'],['Webbed escort','Blight regenerates between hits. Mushroom poison suppresses recovery; keep several bends covered.'],['Hollow King','The Hollow King follows twenty escorts. Spread damage and slows along the route. Finish with 80 health for Lantern Oak; use three defender types for the web-carved Watchtower.']];
   const harvestBriefings=[['Seed watch','Leaf borers and two armored bark beetles approach. Start with Pine and Oak.'],['Bark armor','Five beetles test your sustained damage. Watchtower armor-piercing bolts help break the escort.'],['Autumn flight','Seven dashing moths surge between beetles. Use Palm slows and overlapping coverage.'],['Blighted harvest','Five blight pests regenerate between hits. Mushroom poison suppresses recovery.'],['Hollow Harvester','The Harvester follows twenty escorts. Spread damage along the route. Finish at 80 health for Copperleaf Oak, use three defender types for Harvest banners, or finish at 100 for the amber Tree of Life.']];
-  let [title, tip] = lineup.length ? (harvest?harvestBriefings:event?eventBriefings:veteran?VETERAN_BRIEFINGS:WAVE_BRIEFINGS)[wave-1] : ['', ''];
+  const christmasBriefings=[['Gifts under siege','Ribbon mites escort the first frost-armored beetles. Plant early coverage; use your free bell when several pests are on the ice.'],['Bauble brigade','Six Bauble beetles bring frost armor. Piercing defenders or a well-timed bell keep their shells from soaking your damage.'],['Frostwing flight','Frostwing moths dash across the frozen switchback. Palm slows and the bell stun buy time.'],['Holly trouble','Holly blight recovers between hits. Poison suppresses healing and bypasses frost armor.'],['Tinsel Tyrant','The Tyrant brings 150 frost armor and casts one blizzard at half health, adding 40 armor to every living invader. Save the bell for that moment, or rely on piercing and poison.']];
+  let [title, tip] = lineup.length ? (christmas?christmasBriefings:harvest?harvestBriefings:event?eventBriefings:veteran?VETERAN_BRIEFINGS:WAVE_BRIEFINGS)[wave-1] : ['', ''];
   if(harvest&&eventVersion===2&&lineup.length)tip='AUTUMN ORCHARD · Seed thieves steal 8 Sap at the marked cache. A four-second tailwind follows each ten calm seconds (+25% enemy speed); Palm slows help. '+(wave===5?'The Hollow Harvester releases two extra seed thieves at 65% and 30% health.':'Guard early bends to protect your Sap; build a second line for wind rushes.');
+  if(christmas&&lineup.length)tip='Free Canopy Bell once per wave: shatter frost, stun pests for 2.5 seconds and rally defenders for 6 seconds. '+tip;
   const mini=miniBossFor(chapter,wave,mode,encounters);
   return { wave, title:mini?MINI_BOSSES[mini].name+' incoming':title, total: lineup.length, groups, tip: mini?MINI_BOSSES[mini].counter+' Defeat it for 150 Sap; a breach costs 25 health. '+(veteran?'':tip+' ')+(veteran?'VETERAN · 2.4× health · 18% faster; enrages below half health.':''):enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : veteran && lineup.length ? `VETERAN · 2.4× health · 18% faster movement · 30% shorter spawn gaps. ${tip}` : tip };
 }
@@ -135,7 +138,7 @@ export class PurchaseReview {
 }
 
 
-const REWARD_NAMES = { 'harvest-badge':'Harvest Defender badge','copperleaf-oak':'Copperleaf Oak look','harvest-watchtower':'Harvest Watchtower banners','amber-life-tree':'Amber Tree of Life look', 'grove-badge': 'Grove Defender badge', 'lantern-oak': 'Lantern Oak look', 'web-watchtower': 'Web-carved Watchtower look' };
+const REWARD_NAMES = { 'christmas-badge':'Christmas Defender badge','festive-oak':'Festive Oak look','bellkeeper-banner':'Bellkeeper banner','starry-life-tree':'Starlit Tree of Life look', 'harvest-badge':'Harvest Defender badge','copperleaf-oak':'Copperleaf Oak look','harvest-watchtower':'Harvest Watchtower banners','amber-life-tree':'Amber Tree of Life look', 'grove-badge': 'Grove Defender badge', 'lantern-oak': 'Lantern Oak look', 'web-watchtower': 'Web-carved Watchtower look' };
 export function battleReport(game) {
   const r = game.runReport;
   const leaks = Object.entries(r.leaks).filter(([,count]) => count > 0).map(([kind,count]) => ({ kind, count, name: kind === 'boss' && game.isEvent ? game.bossName : PEST_GUIDE[kind].name, counter: pestDetails(kind, game.isVeteran).counter }));
@@ -144,6 +147,7 @@ export function battleReport(game) {
   let goal = next ? `${TOWERS[next].name}: ${game.unlockStatus(next).label} (${game.unlockStatus(next).current}/${game.unlockStatus(next).goal}).` : 'Full roster earned. Improve chapter stars or try another defender combination.';
   if (game.isEvent) goal = !game.seasonRewards.includes('grove-badge') ? 'Clear all five Haunted Grove waves to earn the Grove Defender badge.' : !game.seasonRewards.includes('lantern-oak') ? 'Finish Haunted Grove with at least 80 health to earn Lantern Oak.' : !game.seasonRewards.includes('web-watchtower') ? 'Win Haunted Grove after planting three defender types to earn the Web-carved Watchtower.' : 'All Haunted Grove rewards earned. Equip your looks in the event panel.';
   if(game.isHarvest)goal=game.harvestRewards.length===4?'All Harvest rewards earned. Equip your looks in the event panel.':'Protect five Harvest waves; finish at 80 health for Copperleaf Oak, plant three defender types for Harvest banners, and finish at 100 health for the amber Tree of Life.';
+  if(game.isChristmas)goal=game.winterRewards.length===4?'All Christmas rewards earned.':'Clear five Christmas waves. Finish at 80 health for Festive Oak; ring the free bell in at least three waves of a completed run for the Bellkeeper banner; finish at 100 health for Starlit Tree of Life.';
   if(game.isVeteran){
     const stars=game.veteranStars.reduce((a,b)=>a+b,0);
     goal=stars===9?'All nine Veteran stars earned. Try a different formation or return for seasonal challenges.':`Earn all nine Veteran stars (${stars}/9). Finish each chapter with at least 80 health for three stars. Counter shells with piercing and poison; reserve slow coverage for enraging bosses.`;

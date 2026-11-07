@@ -11,7 +11,7 @@ export const HEIGHT = 720;
 // Visual stages follow existing wave/chapter health progression; never combat multipliers.
 export function pestTier(chapter, wave, mode='campaign') {
   if(!Number.isInteger(wave)||wave<1)return 0;
-  const event=['harvest-canopy','haunted-grove'].includes(mode);
+  const event=['harvest-canopy','haunted-grove','christmas-chaos'].includes(mode);
   const progress=event?wave*2:wave+Math.max(0,Math.min(2,Number.isInteger(chapter)?chapter:0))*2;
   return progress>=8?2:progress>=4?1:0;
 }
@@ -85,7 +85,11 @@ export const HARVEST_MAP=makeMap('harvest-v2',
   [[150,195],[350,195],[550,195],[900,205],[110,355],[320,355],[520,355],[800,380],[280,495],[470,495],[800,560],[935,460]],
   'Harvest orchard: stop seed thieves before the middle cache. Every 14 seconds a four-second tailwind speeds the invaders; Palm slows counter the rush.');
 export function harvestWind(time,epoch=0){return Math.max(0,time-epoch)%14>=10;}
-export const MAPS=Object.freeze({[HARVEST_MAP.id]:HARVEST_MAP,[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP,[MARSH_MAP.id]:MARSH_MAP});
+export const CHRISTMAS_MAP=makeMap('winter-v1',
+  [[-35,180],[280,180],[280,90],[850,90],[850,390],[500,390],[500,250],[120,250],[120,560],[720,560],[720,640],[940,640]],
+  [[130,120],[390,170],[620,170],[940,230],[670,310],[350,330],[260,455],[435,470],[680,470],[205,635],[520,635],[835,550]],
+  'Frozen switchback: save the free Canopy Bell for frost-armored packs or the Tyrant blizzard. Piercing attacks and poison bypass frost armor.');
+export const MAPS=Object.freeze({[CHRISTMAS_MAP.id]:CHRISTMAS_MAP,[HARVEST_MAP.id]:HARVEST_MAP,[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP,[MARSH_MAP.id]:MARSH_MAP});
 export function mapFor(id) { return Object.hasOwn(MAPS,id)?MAPS[id]:LEGACY_MAP; }
 export const PATH_LENGTH = LEGACY_MAP.length;
 export function pointAt(distance, map = LEGACY_MAP) {
@@ -107,8 +111,9 @@ export const HAUNTED_GROVE = Object.freeze({ id: 'haunted-grove', version: 1, na
   mixes: [{termite:8,moth:2},{termite:8,beetle:4},{termite:10,moth:6},{termite:5,beetle:5,moth:4,blight:4},{termite:6,beetle:6,moth:4,blight:4}],
   rewards: ['grove-badge','lantern-oak','web-watchtower'] });
 export const HARVEST_CANOPY = Object.freeze({id:'harvest-canopy',version:2,name:'Harvest of the Canopy',waves:5,bossName:'Hollow Harvester',gaps:[1.15,1.25,1,.95,.85],mixes:[{termite:7,beetle:2},{termite:6,beetle:5},{termite:5,moth:7,beetle:3},{termite:4,beetle:5,blight:5,moth:2},{termite:5,beetle:7,moth:4,blight:4}],rewards:['harvest-badge','copperleaf-oak','harvest-watchtower','amber-life-tree']});
+export const CHRISTMAS_CHAOS=Object.freeze({id:'christmas-chaos',version:1,name:'Christmas Chaos',waves:5,bossName:'Tinsel Tyrant',gaps:[1.15,1.35,1.05,1.1,.95],mixes:[{termite:8,beetle:2},{termite:5,beetle:6},{termite:5,beetle:3,moth:7},{termite:4,beetle:4,moth:3,blight:5},{termite:5,beetle:6,moth:4,blight:4}],rewards:['christmas-badge','festive-oak','bellkeeper-banner','starry-life-tree']});
 export function eventLineup(wave, mode=HAUNTED_GROVE.id) {
-  const event=mode===HARVEST_CANOPY.id?HARVEST_CANOPY:mode===HAUNTED_GROVE.id?HAUNTED_GROVE:null;
+  const event=mode===CHRISTMAS_CHAOS.id?CHRISTMAS_CHAOS:mode===HARVEST_CANOPY.id?HARVEST_CANOPY:mode===HAUNTED_GROVE.id?HAUNTED_GROVE:null;
   const mix = event?.mixes[wave-1]; if (!mix || !Number.isInteger(wave)) return [];
   const remaining = {...mix}, queue=[];
   while(Object.values(remaining).some(n=>n>0)) for(const kind of ['termite','beetle','moth','blight']) if(remaining[kind]>0){queue.push(kind);remaining[kind]--;}
@@ -152,14 +157,14 @@ export function mothDashing(enemy, time) {
   return enemy.behavior === 1 && enemy.kind === 'moth' && (time - enemy.bornAt) % 4 >= 2 && (time - enemy.bornAt) % 4 < 2.65;
 }
 export function enemySpeed(enemy, time) {
-  return enemy.speed * (enemy.harvestRule===1&&harvestWind(time,enemy.harvestWaveAt)?1.25:1) * (enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5?1.3:1) * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
+  return enemy.speed * (enemy.winterStunUntil>time?0:1) * (enemy.harvestRule===1&&harvestWind(time,enemy.harvestWaveAt)?1.25:1) * (enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5?1.3:1) * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
 }
 export function blightHealing(enemy, time) {
   return enemy.behavior === 1 && (enemy.kind === 'blight'||enemy.miniBoss==='sprayer') && enemy.hp > 0 && enemy.hp < enemy.maxHp && enemy.poisonUntil <= time && enemy.recoverAt <= time;
 }
 
 const REPORT_KINDS = ['termite','beetle','moth','blight','boss'];
-const REPORT_REWARDS = [...HAUNTED_GROVE.rewards,...HARVEST_CANOPY.rewards];
+const REPORT_REWARDS = [...HAUNTED_GROVE.rewards,...HARVEST_CANOPY.rewards,...CHRISTMAS_CHAOS.rewards];
 function freshReport(complete = true) {
   return { version: 1, complete, cleared: 0, sapEarned: 0, treeSpent: 0, damage: 0, absorbed: 0, continues: 0,
     leaks: Object.fromEntries(REPORT_KINDS.map(kind => [kind,0])), unlocks: [], rewards: [] };
@@ -192,6 +197,7 @@ export class Game {
     this.veteranBestWaves=CHAPTERS.map(()=>0);
     this.season = { bestWave: 0, bestHealth: 0, teamClear: false };
     this.seasonLooks = { oak: false, watchtower: false };
+    this.winter={bestWave:0,bestHealth:0,bellWaves:0};
     this.harvest={bestWave:0,bestHealth:0,teamClear:false};this.harvestLooks={oak:false,watchtower:false,tree:false};
     this.newRun();
   }
@@ -204,21 +210,24 @@ export class Game {
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
     this.enemyRules = 1; this.encounters = 1;
     this.runReport = freshReport();
+    this.winterBellUsed=false;this.winterWarmUntil=0;this.winterBellClears=0;
     this.harvestWaveAt=0;
-    this.mapId = this.isHarvest ? HARVEST_MAP.id : this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
+    this.mapId = this.isChristmas ? CHRISTMAS_MAP.id : this.isHarvest ? HARVEST_MAP.id : this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
     this.eventTeam = []; this.eventVersion = this.isHarvest ? 2 : this.isEvent ? 1 : null;
   }
   get veteranUnlocked(){return this.forest.stars.every(s=>s>0);}
   get isVeteran(){return this.difficulty==='veteran'&&!this.isEvent;}
   startCampaign(difficulty='standard'){if(!this.access||!['standard','veteran'].includes(difficulty)||difficulty==='veteran'&&!this.veteranUnlocked)return false;this.difficulty=difficulty;return this.chooseChapter(0);}
-  get isEvent() { return [HAUNTED_GROVE.id,HARVEST_CANOPY.id].includes(this.mode); }
+  get isEvent() { return [HAUNTED_GROVE.id,HARVEST_CANOPY.id,CHRISTMAS_CHAOS.id].includes(this.mode); }
+  get isChristmas(){return this.mode===CHRISTMAS_CHAOS.id;}
   get isHarvest(){return this.mode===HARVEST_CANOPY.id;}
   get harvestTactics(){return this.isHarvest&&this.eventVersion===2;}
-  get event(){return this.isHarvest?HARVEST_CANOPY:HAUNTED_GROVE;}
+  get event(){return this.isChristmas?CHRISTMAS_CHAOS:this.isHarvest?HARVEST_CANOPY:HAUNTED_GROVE;}
   get bossName(){return this.isEvent?this.event.bossName:MINI_BOSSES[miniBossFor(this.chapter,this.wave,this.mode,this.encounters)]?.name||'Blight King';}
-  get seasonProgress(){return this.isHarvest?this.harvest:this.season;}
+  get seasonProgress(){return this.isChristmas?this.winter:this.isHarvest?this.harvest:this.season;}
   get harvestRewards(){return [this.harvest.bestWave===5&&'harvest-badge',this.harvest.bestHealth>=80&&'copperleaf-oak',this.harvest.teamClear&&'harvest-watchtower',this.harvest.bestHealth===100&&'amber-life-tree'].filter(Boolean);}
-  get activeSeasonRewards(){return this.isHarvest?this.harvestRewards:this.seasonRewards;}
+  get winterRewards(){return [this.winter.bestWave===5&&'christmas-badge',this.winter.bestHealth>=80&&'festive-oak',this.winter.bestWave===5&&this.winter.bellWaves>=3&&'bellkeeper-banner',this.winter.bestHealth===100&&'starry-life-tree'].filter(Boolean);}
+  get activeSeasonRewards(){return this.isChristmas?this.winterRewards:this.isHarvest?this.harvestRewards:this.seasonRewards;}
   setHarvestLook(type,enabled){const reward={oak:'copperleaf-oak',watchtower:'harvest-watchtower',tree:'amber-life-tree'}[type];if(!this.access||typeof enabled!=='boolean'||!reward||!this.harvestRewards.includes(reward))return false;this.harvestLooks[type]=enabled;return true;}
   get map() { return mapFor(this.mapId); }
   get waveCount() { return this.isEvent ? 5 : 10; }
@@ -227,6 +236,17 @@ export class Game {
   startEvent(mode=HAUNTED_GROVE.id) {
     if(!this.access || !this.forest.stars[0] || ![HAUNTED_GROVE.id,HARVEST_CANOPY.id].includes(mode))return false;
     this.difficulty='standard';this.mode=mode;this.newRun();this.message=`${this.runName}: five waves. Protect the Tree of Life and earn seasonal looks.`;return true;
+  }
+  startChristmasPreview(){
+    if(!this.access||!this.forest.stars[0])return false;
+    this.difficulty='standard';this.mode=CHRISTMAS_CHAOS.id;this.newRun();this.message='CHRISTMAS CHAOS DEVELOPMENT PREVIEW · public launch November 27. The Canopy Bell is free once per wave.';return true;
+  }
+  ringWinterBell(){
+    if(!this.access||!this.isChristmas||this.phase!=='running'||this.winterBellUsed||!this.enemies.some(e=>e.hp>0))return false;
+    this.winterBellUsed=true;this.winterWarmUntil=this.time+6;
+    for(const e of this.enemies){e.frostArmor=0;e.winterStunUntil=this.time+2.5;}
+    for(const t of this.towers)t.cooldown=Math.min(t.cooldown,TOWERS[t.type].interval/1.25);
+    this.events.push({type:'winter-bell'});this.message='Canopy Bell: frost shattered, pests stunned for 2.5 seconds, defenders rally for 6 seconds.';return true;
   }
   setSeasonLook(type, enabled) {
     const reward = type==='oak'?'lantern-oak':type==='watchtower'?'web-watchtower':null;
@@ -378,6 +398,7 @@ export class Game {
     if (!this.access || this.phase !== 'build' || this.wave >= this.waveCount) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
     if(this.harvestTactics)this.harvestWaveAt=this.time;
+    if(this.isChristmas){this.winterBellUsed=false;this.winterWarmUntil=0;}
     this.queue = this.isEvent ? eventLineup(this.wave,this.mode) : waveLineup(this.chapter, this.wave, this.encounters);
     this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter, enemyRules: this.enemyRules, encounters: this.encounters });
     if(this.isVeteran)this.events.at(-1).difficulty='veteran';
@@ -389,7 +410,7 @@ export class Game {
   spawn(kind) {
     const miniBoss=kind==='boss'?miniBossFor(this.chapter,this.wave,this.mode,this.encounters):null;
     const base = this.isEvent ? 45 + this.wave * 25 : (45 + this.wave * 18) * CHAPTERS[this.chapter].difficulty;
-    let hp = kind === 'boss' ? this.isEvent ? (this.isHarvest?1450:1200) : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
+    let hp = kind === 'boss' ? this.isEvent ? (this.isChristmas?1650:this.isHarvest?1450:1200) : 2100 * CHAPTERS[this.chapter].difficulty : kind === 'beetle' ? base * 1.8 : kind === 'moth' ? base * 0.7 : kind === 'blight' ? base * 1.3 : base;
     if(miniBoss)hp=MINI_BOSSES[miniBoss].hp*CHAPTERS[this.chapter].difficulty;
     if(this.isVeteran)hp*=2.4;
     const e = { id: this.nextId++, kind, appearanceTier:pestTier(this.chapter,this.wave,this.mode), progress: 0, hp, maxHp: hp, speed: kind === 'boss' ? 65 : kind === 'moth' ? 160 : 88 + this.wave * 3,
@@ -399,6 +420,7 @@ export class Game {
     if(this.mapId!==LEGACY_MAP.id)e.mapId=this.mapId;
     if (this.enemyRules === 1) Object.assign(e, { behavior: 1, bornAt: this.time, recoverAt: this.time + 2 });
     if(this.isEvent)e.theme=this.mode;
+    if(this.isChristmas)Object.assign(e,{frostArmor:kind==='boss'?150:kind==='beetle'?40:0,winterStunUntil:0,...(kind==='boss'?{blizzardCast:false}:{})});
     if(this.harvestTactics)Object.assign(e,{harvestRule:1,harvestWaveAt:this.harvestWaveAt,seedStolen:false,...(kind==='boss'?{harvestSummons:0}:{})});
     this.enemies.push(e);
     if (kind === 'boss') this.events.push({ type: 'boss-arrival', id: e.id, ...(this.isEvent||miniBoss?{bossName:this.bossName}:{}) });
@@ -443,6 +465,10 @@ export class Game {
   }
   strike(enemy, damage, source, style = 0) {
     // Presentation events report actual hits; they never determine combat or rewards.
+    if(this.isChristmas&&enemy.frostArmor>0&&!['watchtower','cypress','poison','storm'].includes(source)){
+      const blocked=Math.min(enemy.frostArmor,Math.max(0,damage));enemy.frostArmor-=blocked;damage-=blocked;
+      if(blocked>0)this.events.push({type:'frost-hit',id:enemy.id,x:enemy.x,y:enemy.y,absorbed:blocked});
+    }
     if(enemy.miniBoss==='ironroot'&&!['watchtower','cypress','poison','storm'].includes(source))damage*=.8;
     if(enemy.veteran&&enemy.kind==='beetle'&&!['watchtower','cypress'].includes(source))damage*=.7;
     const dealt = Math.min(Math.max(0, enemy.hp), damage);
@@ -473,6 +499,11 @@ export class Game {
     this.spawnTimer -= dt;
     if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = this.isEvent ? this.event.gaps[this.wave-1] : waveSpawnInterval(this.wave)*(this.isVeteran?.7:1); }
     for (const enemy of [...this.enemies]) {
+      if(this.isChristmas&&enemy.kind==='boss'&&enemy.hp>0&&enemy.hp<=enemy.maxHp*.5&&!enemy.blizzardCast){
+        enemy.blizzardCast=true;
+        for(const other of this.enemies)if(other.hp>0)other.frostArmor=Math.min(240,(other.frostArmor||0)+40);
+        this.events.push({type:'winter-blizzard'});this.message='Tinsel Tyrant blizzard! Fresh frost armor covers the invaders. Ring the bell or use piercing attacks.';
+      }
       if(this.harvestTactics&&enemy.kind==='boss'){
         for(const [bit,threshold]of [[1,.65],[2,.3]])if(enemy.hp>0&&enemy.hp<=enemy.maxHp*threshold&&!(enemy.harvestSummons&bit)){
           enemy.harvestSummons|=bit;
@@ -512,7 +543,7 @@ export class Game {
       if (!targets.length) continue;
       const target = targets[0];
       this.events.push({ type: 'attack', towerId: tower.id, targetId: target.id, x: tower.x, y: tower.y, tx: target.x, ty: target.y, guardian: tower.type, style: tower.style, level: tower.level });
-      tower.cooldown = definition.interval;
+      tower.cooldown = definition.interval/(this.isChristmas&&this.winterWarmUntil>this.time?1.25:1);
       const damage = definition.damage * (1 + (tower.level - 1) * 0.6) * (this.boostUntil > this.time ? 1.5 : 1);
       const armor = target.kind === 'beetle' && tower.type !== 'watchtower' ? 0.8 : 1;
       this.strike(target, damage * armor, tower.type, tower.style);
@@ -541,6 +572,7 @@ export class Game {
       this.shots = [];
       this.phase = this.wave === this.waveCount ? 'victory' : 'build';
       if(this.isEvent)this.seasonProgress.bestWave=Math.max(this.seasonProgress.bestWave,this.wave);
+      if(this.isChristmas&&this.winterBellUsed)this.winterBellClears++;
       else if(this.isVeteran)this.veteranBestWaves[this.chapter]=Math.max(this.veteranBestWaves[this.chapter],this.wave);
       else if(!this.isVeteran)this.forest.bestWaves[this.chapter] = Math.max(this.forest.bestWaves[this.chapter], this.wave);
       this.events.push({ type: 'wave-clear', wave: this.wave, sap: 85 });
@@ -549,7 +581,7 @@ export class Game {
         const stars = this.health >= 80 ? 3 : this.health >= 40 ? 2 : 1;
         if(this.isEvent){
           this.seasonProgress.bestHealth=Math.max(this.seasonProgress.bestHealth,this.health);
-          this.seasonProgress.teamClear ||= this.eventTeam.length>=3;
+          if(this.isChristmas)this.winter.bellWaves=Math.max(this.winter.bellWaves,this.winterBellClears);else this.seasonProgress.teamClear ||= this.eventTeam.length>=3;
           for(const reward of this.activeSeasonRewards.filter(r=>!previousSeasonRewards.includes(r))){this.runReport.rewards.push(reward);this.events.push({type:'season-reward',reward});}
         } else if(this.isVeteran)this.veteranStars[this.chapter]=Math.max(this.veteranStars[this.chapter],stars);else this.forest.stars[this.chapter] = Math.max(this.forest.stars[this.chapter], stars);
         this.events.push({ type: 'victory', x: 940, y: 640 });
@@ -568,9 +600,11 @@ export class Game {
     const validNumber = x => Number.isFinite(x) && x >= 0;
     const mapId=data.mapId===undefined?LEGACY_MAP.id:data.mapId;
     if(typeof mapId!=='string'||!Object.hasOwn(MAPS,mapId))return null;
-    if(mapId===HARVEST_MAP.id){if(data.mode!=='harvest-canopy'||data.eventVersion!==2||data.version!==2)return null;}
-    else if(mapId!==LEGACY_MAP.id&&(data.chapter!==(mapId===MEADOW_MAP.id?1:2)||['haunted-grove','harvest-canopy'].includes(data.mode)||data.version!==2))return null;
+    if(mapId===CHRISTMAS_MAP.id){if(data.mode!=='christmas-chaos'||data.eventVersion!==1||data.version!==2)return null;}
+    else if(mapId===HARVEST_MAP.id){if(data.mode!=='harvest-canopy'||data.eventVersion!==2||data.version!==2)return null;}
+    else if(mapId!==LEGACY_MAP.id&&(data.chapter!==(mapId===MEADOW_MAP.id?1:2)||['haunted-grove','harvest-canopy','christmas-chaos'].includes(data.mode)||data.version!==2))return null;
     if(data.mode==='harvest-canopy'&&data.eventVersion===2&&(mapId!==HARVEST_MAP.id||!Number.isFinite(data.harvestWaveAt)||data.harvestWaveAt<0||data.harvestWaveAt>data.time))return null;
+    if(data.mode==='christmas-chaos'&&(mapId!==CHRISTMAS_MAP.id||typeof data.winterBellUsed!=='boolean'||!Number.isInteger(data.winterBellClears)||data.winterBellClears<0||data.winterBellClears>5||data.winterBellClears>data.wave||!Number.isFinite(data.winterWarmUntil)||data.winterWarmUntil<0))return null;
     const map=MAPS[mapId];
     if (!['tree', 'sap', 'health', 'shield', 'score', 'kills', 'time', 'wave', 'nextId', 'boostUntil'].every(k => validNumber(data[k]))) return null;
     if (data.health > 100 || data.shield > 50 || !Number.isInteger(data.wave) || data.wave > 10 || typeof data.access !== 'boolean') return null;
@@ -591,7 +625,7 @@ export class Game {
     if (!data.queue.every(k => kinds.includes(k)) || !Number.isFinite(data.spawnTimer)) return null;
     const game = new Game();
     game.mapId=mapId;
-    if(['haunted-grove','harvest-canopy'].includes(data.mode)){
+    if(['haunted-grove','harvest-canopy','christmas-chaos'].includes(data.mode)){
       if(!(data.eventVersion===1||data.mode==='harvest-canopy'&&data.eventVersion===2)||data.wave>5)return null;
       game.mode=data.mode;game.eventVersion=data.eventVersion;game.harvestWaveAt=data.eventVersion===2?data.harvestWaveAt:0;
     }
@@ -645,6 +679,17 @@ export class Game {
       game.season.bestWave=Number.isInteger(season.bestWave)&&season.bestWave>=0&&season.bestWave<=5?season.bestWave:0;
       game.season.bestHealth=game.season.bestWave===5 && validNumber(season.bestHealth)&&season.bestHealth<=100?season.bestHealth:0;
       game.season.teamClear=game.season.bestWave===5 && season.teamClear===true;
+    }
+    const winter=data.winter;
+    if(winter&&typeof winter==='object'){
+      game.winter.bestWave=Number.isInteger(winter.bestWave)&&winter.bestWave>=0&&winter.bestWave<=5?winter.bestWave:0;
+      game.winter.bestHealth=game.winter.bestWave===5&&validNumber(winter.bestHealth)&&winter.bestHealth<=100?winter.bestHealth:0;
+      game.winter.bellWaves=Number.isInteger(winter.bellWaves)&&winter.bellWaves>=0&&winter.bellWaves<=game.winter.bestWave?winter.bellWaves:0;
+    }
+    if(game.isChristmas){game.winterBellUsed=data.winterBellUsed;game.winterWarmUntil=data.winterWarmUntil;game.winterBellClears=data.winterBellClears;}
+    for(const e of game.enemies){
+      if(game.isChristmas){if(!validNumber(e.frostArmor)||e.frostArmor>240||!validNumber(e.winterStunUntil)||e.blizzardCast!==undefined&&typeof e.blizzardCast!=='boolean')return null;}
+      else{delete e.frostArmor;delete e.winterStunUntil;delete e.blizzardCast;}
     }
     const harvest=data.harvest;
     if(harvest&&typeof harvest==='object'){

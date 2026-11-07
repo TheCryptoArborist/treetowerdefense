@@ -88,3 +88,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Christmas Chaos teaser art includes Oak's Santa hat and Christmas lights on the face-free Tree of Life. Its date remains November 27, 2026; the teaser does not unlock Christmas gameplay.
 
 - The dedicated Harvest orchard and festive Christmas teaser are live on checkout-test. Latest baseline and checks: integration/tree-arcade/harvest-orchard-release-receipt.json. Holder hosted/device acceptance remains pending; regular-game promotion has not occurred.
+
+- Christmas Chaos has an isolated development preview on feature/christmas-chaos-preview-20261106. It uses winter-v1, five waves, frost armor, a free once-per-wave Canopy Bell and a one-time Tyrant blizzard below half health. Preserve public teaser-only entry until the November 27 launch; the explicit engine preview API is for local development. See docs/christmas-chaos/README.md. No Christmas deployment or public entry activation has occurred. Existing live Harvest release records remain authoritative.
