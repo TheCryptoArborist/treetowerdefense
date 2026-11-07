@@ -3,7 +3,7 @@ import {publicPaymentError,paymentDiagnostic} from './errors.mjs';
 const PATH='/play/canopy-defense/api/payments';
 const H={'Cache-Control':'private, no-store','Vary':'Cookie','X-Content-Type-Options':'nosniff'};
 const fields={run:[],quote:['product','species','runId','defenderSlot'],bind:['id','signed'],redeem:['id'],consume:['id','runId'],cancel:['id'],submit:['id'],reconcile:['id']};
-export function createPaymentHandler({authorize,ledger,enabled=false,path=PATH,report=entry=>console.warn(JSON.stringify(entry))}){
+export function createPaymentHandler({authorize,ledger,enabled=false,production=false,path=PATH,report=entry=>console.warn(JSON.stringify(entry))}){
  return async request=>{
   const reply=(data,status=200)=>Response.json(data,{status,headers:H});
   if(new URL(request.url).pathname!==path)return reply({error:'Not found'},404);
@@ -11,9 +11,9 @@ export function createPaymentHandler({authorize,ledger,enabled=false,path=PATH,r
   try{
    await authorize(request);
    if(request.method==='GET'){
-    if(!enabled)return reply({enabled:false});
+    if(!enabled)return reply({enabled:false,...(production?{production:true}:{})});
     const collection=ledger.collection?await ledger.collection(request):null;
-    return reply({enabled:true,...(collection?{collection}:{}),growth:await ledger.progress(request),invoices:await ledger.history(request),entitlements:await ledger.entitlements(request)});
+    return reply({enabled:true,...(production?{production:true}:{}),...(collection?{collection}:{}),growth:await ledger.progress(request),invoices:await ledger.history(request),entitlements:await ledger.entitlements(request)});
    }
    if(request.method!=='POST')return reply({error:'Method not allowed'},405);
    if(request.headers.get('origin')!==new URL(request.url).origin||request.headers.get('sec-fetch-site')==='cross-site')return reply({error:'Use the game checkout'},403);

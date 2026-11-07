@@ -1,0 +1,9 @@
+{
+  "status": "pending-user-wallet-test",
+  "transactionDigest": null,
+  "receiptVerified": false,
+  "shieldAfterPurchase": null,
+  "historyPurchaseCount": null,
+  "recoveryWithoutSecondPayment": false,
+  "duplicateGrantObserved": null
+}

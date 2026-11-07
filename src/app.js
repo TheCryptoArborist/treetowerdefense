@@ -14,6 +14,7 @@ import {createStoryPlayback} from './story-playback.js';
 import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createShopView} from './shop.js';
+import {adoptCheckoutBattle,requireLiveCheckout} from './save-promotion.js';
 import {createModePicker,hasBattleToReplace,modeName} from './modes.js';
 import {createWorldMap} from './world-map-view.js';
 import {waitForForestArt} from './asset-loading.js';
@@ -23,6 +24,7 @@ const holder=window.canopyAccess?.account;
 if(!holder)throw Error('Verified NFTree access is required');
 const payments=window.canopyPayments;
 const initialPayments=await payments.status();
+requireLiveCheckout(initialPayments);
 const paidMode=initialPayments.enabled===true;
 const paidSavePrefix=location.pathname==='/play/canopy-defense/checkout-test/'?'canopy-defense-checkout-test-v1:':'canopy-defense-paid-v1:';
 const STORAGE_KEY = (paidMode?paidSavePrefix:'canopy-defense-wallet-v1:')+holder.address;
@@ -36,6 +38,7 @@ let storageAvailable = true;
 let saved = null;
 try {
   saved = localStorage.getItem(STORAGE_KEY);
+  if(paidMode&&!saved&&location.pathname==='/play/canopy-defense/')saved=adoptCheckoutBattle(localStorage,holder.address,Game.restore);
   if(!paidMode && !saved && !localStorage.getItem('canopy-defense-preview-migrated-to')){
     const legacy=localStorage.getItem('canopy-defense-preview-v1');
     if(legacy && Game.restore(JSON.parse(legacy))){saved=legacy;localStorage.setItem(STORAGE_KEY,legacy);localStorage.setItem('canopy-defense-preview-migrated-to',holder.address);}
@@ -155,7 +158,7 @@ $('guide-action').addEventListener('click', () => {
 
 function save() {
   if (!storageAvailable) return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(paidMode?{game:game.snapshot(),runId:paidRunId,applied:[...appliedPayments]}:game.snapshot())); $('save-status').textContent = 'Preview saved on this device'; }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(paidMode?{game:game.snapshot(),runId:paidRunId,applied:[...appliedPayments]}:game.snapshot())); $('save-status').textContent = paidMode?'Battle saved on this device':'Preview saved on this device'; }
   catch { storageAvailable = false; $('save-status').textContent = 'Save unavailable · keep this tab open'; }
 }
 for (const [i, type] of Object.keys(TOWERS).entries()) {

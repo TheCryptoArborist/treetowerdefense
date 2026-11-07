@@ -88,3 +88,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 - Christmas Chaos teaser art includes Oak's Santa hat and Christmas lights on the face-free Tree of Life. Its date remains November 27, 2026; the teaser does not unlock Christmas gameplay.
 
 - The dedicated Harvest orchard and festive Christmas teaser are live on checkout-test. Latest baseline and checks: integration/tree-arcade/harvest-orchard-release-receipt.json. Holder hosted/device acceptance remains pending; regular-game promotion has not occurred.
+
+- Production launch is authorized by Peter. Prepare the regular Arcade entry from the stable Campaign/Harvest build; keep the winter gameplay draft isolated and Christmas a teaser until November 27. Retain the existing real-TREE ledger, adopt the same wallet's checkout battle only when no paid production save exists, and prevent disabled production checkout from falling back to simulation. Preserve every unrelated static path, function package and schedule. Do not mark real-wallet purchase/recovery acceptance complete without transaction evidence. See docs/production-launch.md and integration/tree-arcade/production-launch/.

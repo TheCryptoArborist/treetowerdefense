@@ -56,7 +56,7 @@ enter.onclick=async()=>{
   if(principal.expiresAt<=Date.now())return lock('Your session expired. Verify your NFTree again.');
   shell.hidden=false;dialog.close();notify();
  }catch(error){
-  if(stamp===revision){lock(error?.code==='CANOPY_ART_NOT_READY'?'Some forest graphics could not load. Reload to try again.':'The game could not load. Reload to try again.');retryForest.hidden=false;}
+  if(stamp===revision){lock(error?.code==='CANOPY_CHECKOUT_DISABLED'?'Wallet checkout is temporarily unavailable. Reload to reconnect; saved progress is retained.':error?.code==='CANOPY_ART_NOT_READY'?'Some forest graphics could not load. Reload to try again.':'The game could not load. Reload to try again.');retryForest.hidden=false;}
  }finally{opening=false;paintGate();}
 };
 disconnect.onclick=async()=>{revision++;lock('Wallet disconnected. Connect an NFTree holder wallet to enter.');await post({action:'logout'}).catch(()=>{});await kit.disconnectWallet();};
