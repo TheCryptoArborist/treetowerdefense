@@ -5,13 +5,13 @@ import {parseHTML} from 'linkedom';
 import {Game} from '../src/engine.js';
 import {createModePicker,hasBattleToReplace,modeName} from '../src/modes.js';
 
-async function setup(){
+async function setup(onManage=()=>false){
  const {document}=parseHTML(await readFile('index.html','utf8')),dialog=document.querySelector('#mode-dialog');
  assert.equal(document.querySelector('[data-open-modes]').getAttribute('aria-controls'),'mode-dialog');
  dialog.showModal=()=>dialog.open=true;dialog.close=()=>dialog.open=false;
  let game=new Game(),blocked=false,result=true,saves=0;game.allowPreview();
  const choices=[],selected=[];
- const picker=createModePicker({dialog,getGame:()=>game,blocked:()=>blocked,onSelect:async kind=>{choices.push(kind);if(result instanceof Error)throw result;return typeof result==='function'?result():result;},onSelected:kind=>selected.push(kind),save:()=>saves++});
+ const picker=createModePicker({dialog,getGame:()=>game,blocked:()=>blocked,onManage,onSelect:async kind=>{choices.push(kind);if(result instanceof Error)throw result;return typeof result==='function'?result():result;},onSelected:kind=>selected.push(kind),save:()=>saves++});
  return {dialog,picker,choices,selected,get game(){return game;},get saves(){return saves;},setBlocked:v=>blocked=v,setResult:v=>result=v,replaceGame:g=>game=g};
 }
 test('entry offers the existing battle first and continuation preserves its exact state',async()=>{
@@ -54,4 +54,11 @@ test('replacement warnings cover planted setups and purchased supplies before wa
 test('access and modal guards prevent a mode picker from opening or changing battle state',async()=>{
  const s=await setup(),before=s.game.snapshot();s.setBlocked(true);assert.equal(s.picker.open(),false);s.setBlocked(false);
  s.game.access=false;assert.equal(s.picker.open(),false);s.game.access=true;assert.deepEqual(s.game.snapshot(),before);
+});
+test('lobby shortcuts manage the same saved battle without selecting a mode, charging or closing the lobby',async()=>{
+ const managed=[],s=await setup((section,button)=>managed.push([section,button]));s.game.place('pine',0);s.game.shield=20;s.picker.open();const before=s.game.snapshot();
+ const buttons=[...s.dialog.querySelectorAll('[data-lobby-command]')];assert.deepEqual(buttons.map(b=>b.dataset.lobbyCommand),['shop','defenders','cosmetics','guide']);
+ for(const button of buttons)button.click();assert.equal(managed.length,4);assert.equal(s.dialog.open,true);assert.deepEqual(s.choices,[]);assert.deepEqual(s.game.snapshot(),before);
+ s.setBlocked(true);s.picker.refresh();assert(buttons.every(b=>b.disabled));buttons[0].click();assert.equal(managed.length,4);
+ s.setBlocked(false);s.game.access=false;s.picker.refresh();buttons[2].click();assert.equal(managed.length,4);
 });

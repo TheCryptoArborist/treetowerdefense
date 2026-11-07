@@ -5,7 +5,7 @@ export function hasBattleToReplace(game){
 export function modeName(game){
  return game.isHarvest?'Harvest · seasonal challenge':game.isEvent?game.runName:game.isVeteran?'Campaign · Veteran':'Campaign';
 }
-export function createModePicker({dialog,getGame,blocked=()=>false,onSelect,onSelected=()=>{},save=()=>{}}){
+export function createModePicker({dialog,getGame,blocked=()=>false,onSelect,onSelected=()=>{},onManage=()=>false,save=()=>{}}){
  const find=id=>dialog.querySelector('#'+id);
  let busy=false,entry=false,hasSaved=false,opener=null;
  const text=(id,value)=>{const node=find(id);if(node.textContent!==value)node.textContent=value;};
@@ -21,6 +21,7 @@ export function createModePicker({dialog,getGame,blocked=()=>false,onSelect,onSe
   find('mode-harvest').disabled=locked||!unlocked;
   find('mode-campaign').disabled=locked;find('mode-continue').disabled=locked;
   find('mode-close').hidden=entry;find('mode-close').disabled=locked;
+  for(const button of dialog.querySelectorAll('[data-lobby-command]'))button.disabled=locked;
  }
  async function choose(kind){
   const owner=getGame();
@@ -34,6 +35,9 @@ export function createModePicker({dialog,getGame,blocked=()=>false,onSelect,onSe
   finally{busy=false;if(dialog.open)refresh();}
  }
  for(const [id,kind] of [['mode-campaign','campaign'],['mode-harvest','harvest'],['mode-continue','continue'],['mode-close','continue']])find(id).addEventListener('click',()=>{void choose(kind);});
+ for(const button of dialog.querySelectorAll('[data-lobby-command]'))button.addEventListener('click',()=>{
+  if(!busy&&!blocked()&&getGame().access)onManage(button.dataset.lobbyCommand,button);
+ });
  dialog.addEventListener('cancel',event=>{event.preventDefault();if(!entry&&!busy)void choose('continue');});
  return {
   open(trigger=null,{initial=false,saved=true}={}){

@@ -7,7 +7,7 @@ not included.
 
 ## Current status
 
-Hosted candidate verified; **not published**. The immutable backend is
+Earlier hosted candidate verified, now **superseded by the lobby management revision and not published**. Rebuild and verify the current game before promotion. See [lobby management](lobby-management.md). The immutable backend is
 `6aee89c32b81ee06b1ec6532`; the site candidate is
 `6aee8ab4aa9a7130941746f3`. See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json). Automated validation:
 333 tests, 332 passed, one Windows-only test skipped; syntax checks and the

@@ -30,6 +30,7 @@ if(mode==='prepare'){
  }else{
   current(s);verify(s);
   if(mode==='publish'){
+   const receipt=JSON.parse(fs.readFileSync(folder+'candidate-receipt.json'));assert.equal(receipt.status,'candidate-verified-awaiting-wallet-acceptance','Production candidate is superseded; prepare and verify the current game before publishing');assert.equal(receipt.siteCandidateDeployId,s.candidate);
    const proof=JSON.parse(fs.readFileSync(folder+'wallet-acceptance.json'));requireProductionAcceptance(proof);
    api('lockDeploy',{deploy_id:s.candidate});
   }

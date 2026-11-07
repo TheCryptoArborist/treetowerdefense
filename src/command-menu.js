@@ -1,4 +1,4 @@
-export const COMMAND_SECTIONS=Object.freeze({defenders:'Defenders',shop:'TREE shop',harvest:'Harvest of the Canopy',guide:'Field guide',unlocks:'Defense unlocks',scout:'Wave scout'});
+export const COMMAND_SECTIONS=Object.freeze({defenders:'My defenders',shop:'Shop & upgrades',cosmetics:'Styles & cosmetics',harvest:'Harvest of the Canopy',guide:'Field guide',unlocks:'Defense unlocks',scout:'Wave scout'});
 // A native dialog holds simulation without changing running-phase item eligibility.
 // Closing it leaves an active battle explicitly paused, ready for manual Resume.
 export function createCommandMenu({dialog,getGame,blocked,render,save,returnFocus}){

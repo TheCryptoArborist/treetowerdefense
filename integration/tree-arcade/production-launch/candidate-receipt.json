@@ -1,5 +1,5 @@
 {
-  "status": "candidate-verified-awaiting-wallet-acceptance",
+  "status": "superseded-by-lobby-management",
   "gameSourceCommit": "d9dac24e660a262cee00a5e2b6b43108c019d541",
   "baseSourceCommit": "4e072604c65a2ea148896b5772d7d0fa7874ff17",
   "pullRequest": "https://github.com/TheCryptoArborist/treetowerdefense/pull/4",
@@ -145,5 +145,6 @@
   "entry": "https://tree-token.xyz/play/canopy-defense/",
   "walletTest": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
   "walletAcceptance": "pending; no purchase performed by the assistant",
-  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026"
+  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026",
+  "supersededReason": "Lobby management and separate cosmetics require a fresh production backend/candidate before publication."
 }
