@@ -43,7 +43,7 @@ export function worldMapState(game,regions=WORLD_REGIONS){
   const best=Math.max(bounded(history,region.waves),stars>0?region.waves:0,bounded(clearedThisRun,region.waves));
   const current=active?Math.max(1,Math.min(region.waves,game.wave+(game.phase==='build'?1:0))):0;
   const waves=Array.from({length:region.waves},(_,i)=>{
-   const wave=i+1,forecast=scoutWave(region.chapter,wave,active?game.enemyRules:1,region.mode,region.difficulty,active?game.encounters:1);
+   const wave=i+1,forecast=scoutWave(region.chapter,wave,active?game.enemyRules:1,region.mode,region.difficulty,active?game.encounters:1,active?game.eventVersion:2);
    const boss=forecast.groups.find(group=>group.kind==='boss');
    const milestones=seasonal?(wave===region.waves?['Harvest Defender badge · finish to earn seasonal looks']:[]):
     region.difficulty==='veteran'?[]:Object.entries(UNLOCKS).filter(([,rule])=>rule.chapter===region.chapter&&(rule.kind==='wave'?rule.wave===wave:rule.kind==='chapter'&&wave===region.waves)).map(([type])=>TOWERS[type].name);
@@ -72,11 +72,11 @@ export function nodePosition(index){
 }
 const routePath=count=>Array.from({length:count},(_,i)=>{const p=nodePosition(i);return `${i?'L':'M'}${p.x*10},${p.y}`;}).join(' ');
 export function regionMapArtwork(region){
- return {emerald:'assets/brand/oak-home.png',sunpetal:'assets/towers/sap-cannon-v1.png',moonlit:'assets/environment/tree-life-v1.png',harvest:'assets/towers/archer-watchtower-v1.png'}[region.biome]||'assets/brand/oak-home.png';
+ return {emerald:'assets/brand/oak-home.png',sunpetal:'assets/towers/sap-cannon-v1.png',moonlit:'assets/environment/tree-life-v1.png',harvest:'assets/brand/harvest-orchard-preview.jpg'}[region.biome]||'assets/brand/oak-home.png';
 }
 export function regionScenery(region){
  const b=WORLD_MAP_BRAND;
- const colors={emerald:['#071520','#0b2631',b.green],sunpetal:['#101522','#192b34',b.gold],moonlit:['#091024','#11253d',b.cyan],harvest:['#141322','#2a2434',b.amber]}[region.biome]||['#071520','#0b2631',b.green];
+ const colors={emerald:['#071520','#0b2631',b.green],sunpetal:['#101522','#192b34',b.gold],moonlit:['#091024','#11253d',b.cyan],harvest:['#26190f','#633819',b.amber]}[region.biome]||['#071520','#0b2631',b.green];
  const artwork=regionMapArtwork(region);
  const trees=Array.from({length:32},(_,i)=>{
   const x=(i*197+47)%1000,y=(i*83+42)%370,s=.65+(i%4)*.17;

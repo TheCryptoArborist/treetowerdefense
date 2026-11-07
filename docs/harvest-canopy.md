@@ -1,10 +1,16 @@
 # Harvest of the Canopy
 
-November's active seasonal challenge replaces the Halloween entry card. Protect the Tree of Life's seed reserves through five waves, using the original crossing route and twelve build sites. Seed-store ornaments are scenery; the existing Tree of Life health remains the defense objective. Copper leaves, warm terrain lighting and bronze pest colors provide the autumn theme. No new token rewards or admission fee.
+Fresh Harvest runs now use **eventVersion 2** and the dedicated `harvest-v2` autumn orchard route, with twelve repositioned build sites. An orange orchard ground painting, leaf-strewn stone lanes, harvest baskets, fall foliage uniforms on every defender and themed structural pennants make this a distinct battlefield. Invaders have their own seed-weevil, pumpkin beetle, maple moth, rot-gourd and Hollow Harvester artwork. The Tree of Life remains the health objective. No new token rewards or admission fee.
+
+- **Seed thieves:** each surviving seed weevil steals up to 8 earned Sap once at the marked middle cache. Early coverage prevents the theft. Sap cannot become negative; TREE is unaffected.
+- **Tailwinds:** ten calm battle seconds are followed by four seconds of 25% faster invader movement, repeating until the wave clears. Palm slows stack with the wind. The on-map rules banner shows the timer; pausing freezes it.
+- **Hollow Harvester:** releases two extra seed thieves at 65% health and two at 30% health, once per threshold. Escorts enter at its route position. Save/reload and continues retain the threshold flags.
+
+Existing version-one Harvest saves keep their original crossing route, queues and gameplay rules. They receive the new seasonal art/uniforms and a visible original-rules notice. Start a new Harvest run to play the orchard rules; the normal replacement confirmation protects unfinished battles. Campaign, Veteran and Haunted Grove rules are unchanged.
 
 Unlock by protecting Emerald Crossing. Campaign roster and permanent growth carry over. New seasonal entry creates a fresh run using the existing confirmation/paid-run flow; it never resets permanent progress. Seasonal victories do not grant campaign stars, landmarks or roster unlocks.
 
-| Wave | Leaf borers | Bark beetles | Autumn moths | Harvest blight | Harvester | Spawn gap |
+| Wave | Seed thieves | Gourdback beetles | Maple-wing moths | Rot gourds | Harvester | Spawn gap |
 |---|---:|---:|---:|---:|---:|---:|
 | Seed watch | 7 | 2 | 0 | 0 | 0 | 1.15s |
 | Bark armor | 6 | 5 | 0 | 0 | 0 | 1.25s |
@@ -12,7 +18,7 @@ Unlock by protecting Emerald Crossing. Campaign roster and permanent growth carr
 | Blighted harvest | 4 | 5 | 2 | 5 | 0 | 0.95s |
 | Hollow Harvester | 5 | 7 | 4 | 4 | 1 | 0.85s |
 
-The Hollow Harvester has 1,450 HP and the existing boss movement/breach rules. It uses bronze insect armor artwork; no new damage-resistance rule is added. Moth dashes, beetle defenses and blight regeneration retain existing behavior. Scouting shares the actual queue and presents matching counters, warnings and boss health labels.
+The Hollow Harvester has 1,450 HP and the existing boss movement/breach rules. It has a new hollow-gourd stag-beetle silhouette and releases up to four extra seed thieves at its health thresholds; no new damage-resistance rule is added. Moth dashes, beetle defenses and blight regeneration retain existing behavior. Scouting shares the actual queue and presents matching counters, warnings and boss health labels.
 
 | Earned reward | Goal |
 |---|---|
@@ -21,17 +27,17 @@ The Hollow Harvester has 1,450 HP and the existing boss movement/breach rules. I
 | Harvest Watchtower banners | Win after planting three different defender types |
 | Amber Tree of Life | Complete at 100 health |
 
-Rewards are cosmetic, optional, permanent, available at every NFTree rarity and usable in campaign play. Earned Sap plants defenders; TREE pays for optional growth, supplies and continues under the existing checkout rules. The deterministic milestone-roster test completes at 100 health with twelve Sapling defenders and zero TREE spent.
+Automatic fall uniforms apply to all defenders while playing Harvest. Earned reward looks remain cosmetic, optional, permanent, available at every NFTree rarity and usable in campaign play. Earned Sap plants defenders; TREE pays for optional growth, supplies and continues under the existing checkout rules. The deterministic milestone-roster test completes at 100 health with twelve Sapling defenders and zero TREE spent.
 
-`harvest` progress and `harvestLooks` remain separate from Halloween `season`/`seasonLooks`. Legacy Haunted Grove mode/version, queued pests, timers, old reward IDs, active battles and appearances remain supported. Archived Halloween cosmetics are shown below the Harvest panel. Saves without Harvest fields default to zero progress; unsupported active event versions are rejected. Battle reports retain all reward names. Gameplay saves remain editable browser data and never authorize token transfers.
+`harvest` progress and `harvestLooks` remain separate from Halloween `season`/`seasonLooks`. Legacy Haunted Grove mode/version, queued pests, timers, old reward IDs, active battles and appearances remain supported. Archived Halloween cosmetics are shown below the Harvest panel. Saves without Harvest fields default to zero progress; unsupported active event versions and mismatched map/version pairs are rejected. Battle reports retain all reward names. Gameplay saves remain editable browser data and never authorize token transfers.
 
 Validation covers admission, queue/scout agreement, seasonal boss feedback, independent reward thresholds, no duplicate rewards, cosmetic-only application, Halloween save migration, Harvest reload/continue and zero-TREE completion. Actual mobile/device acceptance and a real TREE purchase remain manual checks.
 
-![Harvest battlefield rendered with the game engine art](harvest-battle-preview.jpg)
+![New autumn orchard rendered with the game engine art](harvest-orchard-preview.jpg)
 
 This is a local render of the actual game art and seasonal layers, not a hosted gameplay screenshot.
 
-## Release status
+## Previous version-one release status
 
 Live at `https://tree-token.xyz/play/canopy-defense/checkout-test/`. Source `6c8fee69718ef03b704a90df7c13e192af8d537d` passes 172 local tests with one Windows-only skip, syntax checks and CI workflows `41332681774` / `41332677720`. Isolated backend deploy `6ae779a7606d80668ff269ff` is served through routing-only production release `6ae77a35cc69828cb3fe0ebd`.
 

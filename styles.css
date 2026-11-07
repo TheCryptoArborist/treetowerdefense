@@ -330,3 +330,14 @@ dialog.world-map-dialog{width:min(1320px,calc(100% - 24px));max-width:1320px;max
 .christmas-teaser-copy small{font-size:10px;line-height:1.6;color:#adc5ce}
 @media(max-width:720px){.christmas-teaser-copy{padding:21px}.christmas-teaser-copy h3{font-size:25px}.christmas-teaser-guardian{left:6px;width:115px}.christmas-teaser-tree{right:-20px;width:150px}.christmas-teaser-art{min-height:245px}}
 @media(max-width:540px){.mode-christmas-teaser{grid-template-columns:minmax(0,1fr);margin:0 14px 18px}.christmas-teaser-art{min-height:160px}.christmas-teaser-art::after{background:linear-gradient(0deg,#142e3a,transparent 60%)}.christmas-teaser-tree{right:12px;width:150px;height:199px;bottom:-39px}.christmas-teaser-guardian{left:35px;width:112px;height:132px;bottom:0}.christmas-teaser-art>span{max-width:55%;font-size:8px;top:13px;left:19px}.christmas-teaser-copy{padding:16px 20px 22px}.christmas-teaser-copy h3{font-size:26px}.christmas-teaser-copy .eyebrow{font-size:8px}.christmas-teaser-copy p{font-size:12px}}
+
+/* Distinct seasonal previews and the live Harvest rule readout. */
+.christmas-teaser-art{background:radial-gradient(ellipse at 75% 25%,#597f85,#102433 75%);min-height:240px}
+.christmas-teaser-composite{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+.christmas-teaser-art>span{max-width:70%;top:12px}
+.mode-harvest-art{background:linear-gradient(90deg,#4d291a70,#49301820),url('assets/environment/terrain-harvest-v2.webp') center/cover}
+.harvest-rules{padding:13px 18px;background:#422b1c;border-bottom:1px solid #ac7941;color:#f8dca0}
+.harvest-rules[hidden]{display:none}.harvest-rules strong{display:block;font-size:11px;line-height:1.5;letter-spacing:1px}.harvest-rules p{font-size:12px;line-height:1.5;color:#e7d1ab;margin:5px 0 0}.harvest-rules.wind-active{background:#634020;border-color:#f5cb70}
+@media(max-width:540px){.christmas-teaser-art{min-height:210px}.harvest-rules{padding:11px 13px}.harvest-rules strong{font-size:10px}.harvest-rules p{font-size:11px}}
+
+.mode-harvest-art{background:url('assets/brand/harvest-orchard-preview.jpg') center 30%/cover}.mode-harvest-art>img{display:none}

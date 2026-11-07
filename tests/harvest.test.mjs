@@ -7,7 +7,7 @@ import {MIXED_PLACEMENTS} from '../tools/balance-audit.mjs';
 const ready=()=>{const g=new Game();g.allowPreview();g.forest.stars=[3,0,0];g.forest.bestWaves=[10,0,0];g.forest.unlocked=[...ORIGINAL_GUARDIANS,'watchtower'];return g;};
 const finish=(g,wave,health)=>{g.phase='running';g.wave=wave;g.health=health;g.enemies=[];g.queue=[];g.step(.05);};
 test('Harvest admission is included but requires NFT access and Emerald completion',()=>{
- const g=new Game(),before=g.snapshot();assert.equal(g.startEvent(HARVEST_CANOPY.id),false);assert.deepEqual(g.snapshot(),before);g.allowPreview();assert.equal(g.startEvent(HARVEST_CANOPY.id),false);g.forest.stars[0]=1;const funds=g.tree,forest=structuredClone(g.forest);assert.ok(g.startEvent(HARVEST_CANOPY.id));assert.equal(g.runName,HARVEST_CANOPY.name);assert.equal(g.map.id,'crossing-v1');assert.equal(g.tree,funds);assert.deepEqual(g.forest,forest);
+ const g=new Game(),before=g.snapshot();assert.equal(g.startEvent(HARVEST_CANOPY.id),false);assert.deepEqual(g.snapshot(),before);g.allowPreview();assert.equal(g.startEvent(HARVEST_CANOPY.id),false);g.forest.stars[0]=1;const funds=g.tree,forest=structuredClone(g.forest);assert.ok(g.startEvent(HARVEST_CANOPY.id));assert.equal(g.runName,HARVEST_CANOPY.name);assert.equal(g.map.id,'harvest-v2');assert.equal(g.tree,funds);assert.deepEqual(g.forest,forest);
 });
 test('Harvest waves and scouting agree, with one final Hollow Harvester and correct feedback',()=>{
  const g=ready();g.startEvent(HARVEST_CANOPY.id);
@@ -24,7 +24,7 @@ test('lower health and missing team goals cannot equip unearned looks',()=>{
 test('old Halloween battle restores unchanged; Harvest queue, report and cosmetics survive reload and continue',()=>{
  const old=ready();old.startEvent();old.place('pine',0);old.startWave();old.step(.05);const save=old.snapshot();delete save.harvest;delete save.harvestLooks;const legacy=Game.restore(save);assert.equal(legacy.runName,'Haunted Grove');assert.deepEqual(legacy.queue,old.queue);assert.deepEqual(legacy.harvestRewards,[]);
  const g=ready();g.season={bestWave:5,bestHealth:100,teamClear:true};g.startEvent(HARVEST_CANOPY.id);g.sap=500;g.place('pine',0);g.wave=3;g.phase='running';g.queue=['beetle','moth'];g.spawnTimer=.7;g.spawn('blight');g.harvest={bestWave:5,bestHealth:100,teamClear:true};g.setHarvestLook('tree',true);const r=Game.restore(g.snapshot());assert.equal(r.phase,'paused');assert.equal(r.runName,HARVEST_CANOPY.name);assert.deepEqual(r.harvestLooks,g.harvestLooks);assert.deepEqual(r.season,g.season);assert.deepEqual(r.queue,g.queue);assert.equal(r.enemies[0].theme,'harvest-canopy');r.phase='defeat';r.applyPurchasedContinue();assert.equal(r.mode,HARVEST_CANOPY.id);assert.equal(r.wave,3);assert.deepEqual(r.queue,g.queue);
- const bad=g.snapshot();bad.eventVersion=2;assert.equal(Game.restore(bad),null);bad.eventVersion=1;bad.harvest={bestWave:99,bestHealth:Infinity,teamClear:true};bad.harvestLooks={oak:true,tree:true};const invalid=Game.restore(bad);assert.deepEqual(invalid.harvestRewards,[]);assert.equal(invalid.harvestLooks.tree,false);
+ const bad=g.snapshot();bad.eventVersion=3;assert.equal(Game.restore(bad),null);bad.eventVersion=2;bad.harvest={bestWave:99,bestHealth:Infinity,teamClear:true};bad.harvestLooks={oak:true,tree:true};const invalid=Game.restore(bad);assert.deepEqual(invalid.harvestRewards,[]);assert.equal(invalid.harvestLooks.tree,false);
 });
 test('all Harvest goals are achievable with earned roster, Saplings and zero TREE spending',()=>{
  const g=ready();g.startEvent(HARVEST_CANOPY.id);const tree=g.tree;

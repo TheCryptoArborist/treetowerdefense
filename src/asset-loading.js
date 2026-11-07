@@ -1,5 +1,5 @@
 // Keep the holder entrance visible until downloads AND sprite preparation finish.
-const required={environment:['terrain','tree','road'],defenders:['oak','pine','palm','cypress','mushroom'],aim:['oak','pine','palm','cypress','mushroom','willow'],structures:['watchtower','cannon']};
+const required={environment:['terrain','tree','road','harvestTerrain','harvestPests'],defenders:['oak','pine','palm','cypress','mushroom'],aim:['oak','pine','palm','cypress','mushroom','willow'],structures:['watchtower','cannon']};
 function unavailable(){const error=new Error('Forest graphics could not finish loading. Reload to try again.');error.code='CANOPY_ART_NOT_READY';return error;}
 export async function waitForForestArt(loaders,{timeoutMs=20000,setTimer=setTimeout,clearTimer=clearTimeout}={}){
  let timer;

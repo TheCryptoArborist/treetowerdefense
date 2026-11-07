@@ -1,4 +1,4 @@
-import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance } from './engine.js';
+import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance, harvestWind } from './engine.js';
 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
@@ -164,14 +164,14 @@ for (const [i, type] of Object.keys(TOWERS).entries()) {
   button.setAttribute('aria-label', `${d.name}: ${d.role}, ${d.cost} Sap. ${d.description}`);
   button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small class="roster-role">${d.role}</small><b>${d.cost} SAP</b><span class="roster-progress"></span><progress class="unlock-track" max="1" value="0" hidden></progress></span><kbd>${i + 1}</kbd>`;
   button.addEventListener('click', () => selectDefender(type));
-  shapeTree(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
+  paintModeDefender(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
   $('tower-cards').append(button);
 }
 for (const [i, style] of STYLES.entries()) {
   const button = document.createElement('button'); button.className = 'style-card'; button.dataset.style = i;
   button.setAttribute('aria-label', `${RARITIES[i]}: ${style.name}. ${style.detail}`);
   button.innerHTML = `<canvas width="128" height="128" aria-hidden="true"></canvas><strong>${style.name}</strong><small>${RARITIES[i]}</small><span class="lock" aria-hidden="true">◆</span>`;
-  shapeTree(button.querySelector('canvas').getContext('2d'), 'oak', 64, 100, 1, i);
+  paintModeDefender(button.querySelector('canvas').getContext('2d'), 'oak', 64, 100, 1, i);
   button.addEventListener('click', () => {
     if (game.setStyle(i, selectedTower)) { game.message = `${style.name} appearance selected. Combat stats stay the same.`; save(); renderUI(); }
   }); $('style-grid').append(button);
@@ -444,7 +444,7 @@ function renderSeason(){
   $('season-access').textContent=game.forest.stars[0]?'Unlocked · five waves · campaign roster and permanent growth available':'Unlock by protecting Emerald Crossing.';
   const signature=getAimArtStatus().loaded.length+':'+getStructureArtStatus().loaded.length+':'+getDefenderArtStatus().loaded.length;
   if(signature!==seasonArtSignature){
-    for(const[id,type]of [['copper-preview','oak'],['harvest-tower-preview','watchtower'],['amber-preview','tree']]){const c=$(id).getContext('2d');c.clearRect(0,0,144,176);if(type==='tree')paintLifeTree(c,'oak',72,150,1.08,0,1,0);else shapeTree(c,type,72,150,1.08,0,1);paintHarvestLook(c,type,72,150,1.08);}
+    for(const[id,type]of [['copper-preview','oak'],['harvest-tower-preview','watchtower'],['amber-preview','tree']]){const c=$(id).getContext('2d');c.clearRect(0,0,144,176);if(type==='tree')paintLifeTree(c,'oak',72,150,1.08,0,1,0);else paintModeDefender(c,type,72,150,1.08,0,1);paintHarvestLook(c,type,72,150,1.08);}
     seasonArtSignature=signature;
   }
 }
@@ -473,7 +473,7 @@ function renderCommandCollections(){
    const art=document.createElement('canvas');art.width=144;art.height=176;art.setAttribute('aria-hidden','true');button.append(art);
    const name=document.createElement('strong');name.textContent=d.name;button.append(name);
    const detail=document.createElement('small');detail.textContent=status.unlocked?d.cost+' Sap · '+(game.collection?game.availableDefenders(type).length+'/12 available':'Unlocked'):status.label+' · '+status.current+'/'+status.goal;button.append(detail);
-   shapeTree(art.getContext('2d'),type,72,150,1.08,0,deploymentLevel(type));button.onclick=()=>selectDefender(type);$('collection-roster').append(button);
+   paintModeDefender(art.getContext('2d'),type,72,150,1.08,0,deploymentLevel(type));button.onclick=()=>selectDefender(type);$('collection-roster').append(button);
    const row=document.createElement('article');row.className='unlock-row';const portrait=art.cloneNode();portrait.getContext('2d').drawImage(art,0,0);row.append(portrait);
    const text=document.createElement('div'),title=document.createElement('strong'),note=document.createElement('p');title.textContent=d.name;note.textContent=status.unlocked?'Earned · '+d.role:status.label+' · '+status.current+'/'+status.goal;text.append(title,note);row.append(text);$('unlock-roster').append(row);
   }
@@ -508,11 +508,11 @@ function renderUI() {
   }
   const currentLevel=CAMPAIGN_LEVELS[game.chapter+(game.isVeteran?3:0)];
   $('level-unlocks').textContent=game.isEvent?'Seasonal battle active · choose a level above to return to the campaign.':levelUnlockText(currentLevel);
-  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + JSON.stringify(deploymentChoice) + game.towers.map(t=>t.id).join(',') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
+  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + JSON.stringify(deploymentChoice) + game.towers.map(t=>t.id).join(',') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.mode,game.seasonLooks,game.harvestLooks]);
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
       const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = deploymentLevel(type);
-      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level); if(game.seasonLooks[type])paintSeasonLook(c,type,72,150,1.08);if(game.harvestLooks[type])paintHarvestLook(c,type,72,150,1.08);
+      c.clearRect(0,0,icon.width,icon.height); paintModeDefender(c,type,72,150,1.08,0,level); if(game.seasonLooks[type])paintSeasonLook(c,type,72,150,1.08);if(!game.isHarvest&&game.harvestLooks[type])paintHarvestLook(c,type,72,150,1.08);
     }); cardSignature = nextCards;
   }
   if (!tower) selectedTower = null;
@@ -528,6 +528,15 @@ function renderUI() {
   const status = { build: 'Prepare your forest', running: 'Defenders engaged', paused: 'Battle paused', defeat: 'Tree of Life fallen', victory: 'Forest protected' }[game.phase];
   $('phase-value').textContent = status; $('battle-status').textContent = game.access ? status.toUpperCase() : 'NFTREE ACCESS PREVIEW';
   if ($('message').textContent !== game.message) $('message').textContent = game.message;
+  $('harvest-rules').hidden=!game.isHarvest;
+  if(game.isHarvest){
+    const elapsed=Math.max(0,game.time-game.harvestWaveAt)%14,active=game.harvestTactics&&harvestWind(game.time,game.harvestWaveAt);
+    const text=game.phase==='victory'?'HARVEST PROTECTED':game.phase==='defeat'?'HARVEST INTERRUPTED':game.harvestTactics?(game.phase==='build'?'AUTUMN ORCHARD · WIND STARTS 10s INTO EACH WAVE':`${active?'TAILWIND · INVADERS 25% FASTER':'AUTUMN ORCHARD · NEXT TAILWIND'} · ${Math.ceil((active?14:10)-elapsed)}s`):'SAVED HARVEST ROUTE · ORIGINAL RULES';
+    if($('harvest-rule-title').textContent!==text)$('harvest-rule-title').textContent=text;
+    const detail=game.harvestTactics?'Seed thieves steal 8 Sap once at the marked cache. Defeat them early. Palm slows counter the wind; the Harvester can release four extra thieves.':'This saved battle keeps its route and rules. Start a new Harvest run for the autumn orchard, seed thieves and wind rushes.';
+    if($('harvest-rule-detail').textContent!==detail)$('harvest-rule-detail').textContent=detail;
+    $('harvest-rules').classList.toggle('wind-active',active);
+  }
   $('enemy-count').textContent = game.enemies.length ? `${game.enemies.length} ON PATH · ${game.queue.length} INCOMING` : 'PATH CLEAR';
   $('account-rarity').textContent = game.access ? RARITIES[game.rarity] : 'Choose rarity';
   $('wave-button').textContent = game.phase === 'victory' ? 'Forest protected ✓' : `Send wave ${Math.min(game.waveCount, game.wave + 1)} →`;
@@ -563,13 +572,13 @@ function renderUI() {
     button.disabled = !active;
   });
   shopView.update();
-  const nextInspector = tower ? `${tower.id}:${tower.level}:${tower.style}:${tower.targetMode}:${JSON.stringify([game.seasonLooks,game.harvestLooks])}:${active}:${game.tree >= game.upgradeCost(tower)}` : 'none';
+  const nextInspector = tower ? `${tower.id}:${tower.level}:${tower.style}:${tower.targetMode}:${JSON.stringify([game.mode,game.seasonLooks,game.harvestLooks])}:${active}:${game.tree >= game.upgradeCost(tower)}` : 'none';
   if (nextInspector !== inspectorSignature) {
   if (tower) {
     const d = TOWERS[tower.type];
     $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${game.collection?'#'+(tower.defenderSlot+1)+' · ':''}${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><button id="upgrade-button" class="primary">${tower.level === 3 ? (game.collection?'This defender is Ancient ✓':'Species growth complete ✓') : `Upgrade ${game.collection?d.name+' #'+(tower.defenderSlot+1):'all '+d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button>${tower.level===3?'<p class="growth-note">TREE field supplies and continues remain available for future runs.</p>':''}<div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">${game.collection?`TREE upgrades only ${d.name} #${tower.defenderSlot+1}. Its level stays in your collection when removed or when a new run starts.`:`TREE growth permanently upgrades every ${d.name}, now and in future runs.`} Sap only pays for deployment.</p><p class="upgrade-gains">${tower.level<3?`Next: ${GROWTH_NAMES[tower.level]} · damage ${Math.round(d.damage*(1+(tower.level-1)*.6))} → ${Math.round(d.damage*(1+tower.level*.6))} · range ${d.range+(tower.level-1)*18} → ${d.range+tower.level*18}`:"Maximum level reached"}</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><div class="target-orders"><label for="target-mode">Target priority</label><select id="target-mode" aria-describedby="target-detail">${Object.entries(TARGET_MODES).map(([mode,order]) => `<option value="${mode}" ${tower.targetMode === mode ? 'selected' : ''}>${order.name}</option>`).join('')}</select><p id="target-detail">${TARGET_MODES[tower.targetMode].detail}</p><small>This defender only · order included</small></div><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
-    shapeTree($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
-    if(game.seasonLooks[tower.type])paintSeasonLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);if(game.harvestLooks[tower.type])paintHarvestLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);
+    paintModeDefender($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
+    if(game.seasonLooks[tower.type])paintSeasonLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);if(!game.isHarvest&&game.harvestLooks[tower.type])paintHarvestLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);
     $('target-mode').disabled = !active;
     $('target-mode').addEventListener('change', event => {
       const mode = event.target.value;
@@ -680,10 +689,10 @@ function renderGuide() {
   }
 }
 function renderScout() {
-  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}:${game.mode}:${game.difficulty}`;
+  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}:${game.mode}:${game.difficulty}:${game.eventVersion}`;
   if (signature === scoutSignature) return;
   scoutSignature = signature;
-  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules, game.mode, game.difficulty, game.encounters);
+  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules, game.mode, game.difficulty, game.encounters,game.eventVersion);
   $('scout-title').textContent = game.wave === game.waveCount ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave} · ${scout.title}`;
   $('scout-total').textContent = scout.total ? `${scout.total} PESTS${scout.wave === game.waveCount ? ' · BOSS WAVE' : ''}` : `${game.waveCount} OF ${game.waveCount}`;
   $('scout-pests').replaceChildren();
@@ -716,13 +725,13 @@ function draw(clock, dt) {
   aiming.track(game,held);
   for(const shot of aiming.shots)if(!shot.origin)shot.origin=getGuardianShotOrigin(shot);
   const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}:${game.mode}:${game.mapId}`;
-  if (key !== backdropKey) { paintBackdrop(bg, game.isEvent?2:game.chapter, game.forestRank,game.map); if(game.isHarvest)paintHarvestBackdrop(bg);else if(game.isEvent)paintHauntedBackdrop(bg); backdropKey = key; }
+  if (key !== backdropKey) { paintBackdrop(bg, game.isHarvest?0:game.isEvent?2:game.chapter, game.isHarvest?0:game.forestRank,game.map); if(game.isHarvest)paintHarvestBackdrop(bg,game.map);else if(game.isEvent)paintHauntedBackdrop(bg); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
   aura.addColorStop(0, '#d8ad6230'); aura.addColorStop(1, '#d8ad6200'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
   // Earning chapter landmarks grows the Tree of Life's visible silhouette.
-  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
-  if(game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
+  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock,game.isHarvest);
+  if(game.isHarvest||game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
   ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
   if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(885,606,75,90,0,0,Math.PI*2);ctx.stroke(); }
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
@@ -736,9 +745,9 @@ function draw(clock, dt) {
     paintBuildSite(ctx,x,y,{selected,hovered:hoveredPad===i,recommended:suggestedPad===i,occupied:!!tower,number:i+1});
     if (tower) {
       const pose=aiming.pose(tower.id);
-      shapeTree(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing,
+      paintModeDefender(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing,
         aiming.motion(tower,{battleActive:['running','paused'].includes(game.phase),reducedMotion}));
-      if(game.seasonLooks[tower.type])paintSeasonLook(ctx,tower.type,x,y,GUARDIAN_SCALE);if(game.harvestLooks[tower.type])paintHarvestLook(ctx,tower.type,x,y,GUARDIAN_SCALE);
+      if(game.seasonLooks[tower.type])paintSeasonLook(ctx,tower.type,x,y,GUARDIAN_SCALE);if(!game.isHarvest&&game.harvestLooks[tower.type])paintHarvestLook(ctx,tower.type,x,y,GUARDIAN_SCALE);
       ctx.fillStyle='#d9c592';ctx.strokeStyle='#283d2e';ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(x+29,y+7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#435b39';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText(tower.level,x+29,y+10);
     }
@@ -794,10 +803,15 @@ await forestArtReady;
 cardSignature='';inspectorSignature=null;scoutSignature='';backdropKey='';
 document.querySelectorAll('[data-style]').forEach(button=>{
  const icon=button.querySelector('canvas'),c=icon.getContext('2d');
- c.clearRect(0,0,icon.width,icon.height);shapeTree(c,'oak',64,100,1,Number(button.dataset.style));
+ c.clearRect(0,0,icon.width,icon.height);paintModeDefender(c,'oak',64,100,1,Number(button.dataset.style));
 });
 renderUI();
 if (!storageAvailable) $('save-status').textContent = 'Save unavailable · keep this tab open';
 if (!game.access) accessDialog.showModal();
 lastTime=performance.now();draw(lastTime/1000,0);
 requestAnimationFrame(frame);
+
+function paintModeDefender(c,type,x,y,scale,style=0,level=1,clock=0,attack=false,facing=null,motion=null){
+ shapeTree(c,type,x,y,scale,style,level,clock,attack,facing,motion,game.isHarvest);
+ if(game.isHarvest)paintHarvestLook(c,type,x,y,scale);
+}

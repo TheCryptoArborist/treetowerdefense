@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {waitForForestArt} from '../src/asset-loading.js';
-const ready=()=>({environment:Promise.resolve({loaded:['terrain','tree','road']}),defenders:Promise.resolve({loaded:['oak','pine','palm','cypress','mushroom']}),aim:Promise.resolve({loaded:['oak','pine','palm','cypress','mushroom','willow']}),structures:Promise.resolve({loaded:['watchtower','cannon']}),enemies:Promise.resolve(true)});
+const ready=()=>({environment:Promise.resolve({loaded:['terrain','tree','road','harvestTerrain','harvestPests']}),defenders:Promise.resolve({loaded:['oak','pine','palm','cypress','mushroom']}),aim:Promise.resolve({loaded:['oak','pine','palm','cypress','mushroom','willow']}),structures:Promise.resolve({loaded:['watchtower','cannon']}),enemies:Promise.resolve(true)});
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};};
 test('finished art waits for the last slow download and sprite preparation, not an arbitrary delay',async()=>{
  const art=ready(),slow=deferred();art.aim=slow.promise;let finished=false;
@@ -24,5 +24,5 @@ test('a stalled image reaches a retryable deadline; late completion cannot resta
  const art=ready(),slow=deferred();art.environment=slow.promise;let expire,cleared=false;
  const pending=waitForForestArt(art,{setTimer:fn=>{expire=fn;return 1;},clearTimer:()=>{cleared=true;}});
  expire();await assert.rejects(pending,error=>error.code==='CANOPY_ART_NOT_READY');assert(cleared);
- slow.resolve({loaded:['terrain','tree','road']});await new Promise(resolve=>setImmediate(resolve));
+ slow.resolve({loaded:['terrain','tree','road','harvestTerrain','harvestPests']});await new Promise(resolve=>setImmediate(resolve));
 });

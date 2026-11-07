@@ -80,7 +80,12 @@ export const MARSH_MAP=makeMap('marsh-v1',
   [[-35,150],[900,150],[900,320],[105,320],[105,500],[740,500],[740,640],[940,640]],
   [[155,235],[320,235],[520,235],[760,235],[245,415],[430,415],[620,415],[170,590],[365,590],[565,590],[840,570],[940,430]],
   'Staggered causeways: long-range defenders can reach across several passes. Support them with slows; sites 10–12 guard the final gap to the Tree of Life.');
-export const MAPS=Object.freeze({[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP,[MARSH_MAP.id]:MARSH_MAP});
+export const HARVEST_MAP=makeMap('harvest-v2',
+  [[-35,120],[800,120],[800,275],[200,275],[200,435],[680,435],[680,555],[95,555],[95,640],[940,640]],
+  [[150,195],[350,195],[550,195],[900,205],[110,355],[320,355],[520,355],[800,380],[280,495],[470,495],[800,560],[935,460]],
+  'Harvest orchard: stop seed thieves before the middle cache. Every 14 seconds a four-second tailwind speeds the invaders; Palm slows counter the rush.');
+export function harvestWind(time,epoch=0){return Math.max(0,time-epoch)%14>=10;}
+export const MAPS=Object.freeze({[HARVEST_MAP.id]:HARVEST_MAP,[LEGACY_MAP.id]:LEGACY_MAP,[MEADOW_MAP.id]:MEADOW_MAP,[MARSH_MAP.id]:MARSH_MAP});
 export function mapFor(id) { return Object.hasOwn(MAPS,id)?MAPS[id]:LEGACY_MAP; }
 export const PATH_LENGTH = LEGACY_MAP.length;
 export function pointAt(distance, map = LEGACY_MAP) {
@@ -101,7 +106,7 @@ export const HAUNTED_GROVE = Object.freeze({ id: 'haunted-grove', version: 1, na
   bossName: 'Hollow King', gaps: [1.1,1.15,.9,.85,.8],
   mixes: [{termite:8,moth:2},{termite:8,beetle:4},{termite:10,moth:6},{termite:5,beetle:5,moth:4,blight:4},{termite:6,beetle:6,moth:4,blight:4}],
   rewards: ['grove-badge','lantern-oak','web-watchtower'] });
-export const HARVEST_CANOPY = Object.freeze({id:'harvest-canopy',version:1,name:'Harvest of the Canopy',waves:5,bossName:'Hollow Harvester',gaps:[1.15,1.25,1,.95,.85],mixes:[{termite:7,beetle:2},{termite:6,beetle:5},{termite:5,moth:7,beetle:3},{termite:4,beetle:5,blight:5,moth:2},{termite:5,beetle:7,moth:4,blight:4}],rewards:['harvest-badge','copperleaf-oak','harvest-watchtower','amber-life-tree']});
+export const HARVEST_CANOPY = Object.freeze({id:'harvest-canopy',version:2,name:'Harvest of the Canopy',waves:5,bossName:'Hollow Harvester',gaps:[1.15,1.25,1,.95,.85],mixes:[{termite:7,beetle:2},{termite:6,beetle:5},{termite:5,moth:7,beetle:3},{termite:4,beetle:5,blight:5,moth:2},{termite:5,beetle:7,moth:4,blight:4}],rewards:['harvest-badge','copperleaf-oak','harvest-watchtower','amber-life-tree']});
 export function eventLineup(wave, mode=HAUNTED_GROVE.id) {
   const event=mode===HARVEST_CANOPY.id?HARVEST_CANOPY:mode===HAUNTED_GROVE.id?HAUNTED_GROVE:null;
   const mix = event?.mixes[wave-1]; if (!mix || !Number.isInteger(wave)) return [];
@@ -147,7 +152,7 @@ export function mothDashing(enemy, time) {
   return enemy.behavior === 1 && enemy.kind === 'moth' && (time - enemy.bornAt) % 4 >= 2 && (time - enemy.bornAt) % 4 < 2.65;
 }
 export function enemySpeed(enemy, time) {
-  return enemy.speed * (enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5?1.3:1) * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
+  return enemy.speed * (enemy.harvestRule===1&&harvestWind(time,enemy.harvestWaveAt)?1.25:1) * (enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5?1.3:1) * (mothDashing(enemy,time) ? 1.2 : 1) * (enemy.slowUntil > time ? .55 : 1);
 }
 export function blightHealing(enemy, time) {
   return enemy.behavior === 1 && (enemy.kind === 'blight'||enemy.miniBoss==='sprayer') && enemy.hp > 0 && enemy.hp < enemy.maxHp && enemy.poisonUntil <= time && enemy.recoverAt <= time;
@@ -199,14 +204,16 @@ export class Game {
     this.events = []; this.message = 'Place your defenders, then send the first wave.';
     this.enemyRules = 1; this.encounters = 1;
     this.runReport = freshReport();
-    this.mapId = this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
-    this.eventTeam = []; this.eventVersion = this.isEvent ? 1 : null;
+    this.harvestWaveAt=0;
+    this.mapId = this.isHarvest ? HARVEST_MAP.id : this.isEvent ? LEGACY_MAP.id : [LEGACY_MAP.id,MEADOW_MAP.id,MARSH_MAP.id][this.chapter];
+    this.eventTeam = []; this.eventVersion = this.isHarvest ? 2 : this.isEvent ? 1 : null;
   }
   get veteranUnlocked(){return this.forest.stars.every(s=>s>0);}
   get isVeteran(){return this.difficulty==='veteran'&&!this.isEvent;}
   startCampaign(difficulty='standard'){if(!this.access||!['standard','veteran'].includes(difficulty)||difficulty==='veteran'&&!this.veteranUnlocked)return false;this.difficulty=difficulty;return this.chooseChapter(0);}
   get isEvent() { return [HAUNTED_GROVE.id,HARVEST_CANOPY.id].includes(this.mode); }
   get isHarvest(){return this.mode===HARVEST_CANOPY.id;}
+  get harvestTactics(){return this.isHarvest&&this.eventVersion===2;}
   get event(){return this.isHarvest?HARVEST_CANOPY:HAUNTED_GROVE;}
   get bossName(){return this.isEvent?this.event.bossName:MINI_BOSSES[miniBossFor(this.chapter,this.wave,this.mode,this.encounters)]?.name||'Blight King';}
   get seasonProgress(){return this.isHarvest?this.harvest:this.season;}
@@ -370,10 +377,11 @@ export class Game {
   startWave() {
     if (!this.access || this.phase !== 'build' || this.wave >= this.waveCount) return false;
     this.wave++; this.phase = 'running'; this.spawnTimer = 0;
+    if(this.harvestTactics)this.harvestWaveAt=this.time;
     this.queue = this.isEvent ? eventLineup(this.wave,this.mode) : waveLineup(this.chapter, this.wave, this.encounters);
     this.events.push({ type: 'wave-start', wave: this.wave, chapter: this.chapter, enemyRules: this.enemyRules, encounters: this.encounters });
     if(this.isVeteran)this.events.at(-1).difficulty='veteran';
-    if(this.isEvent)Object.assign(this.events.at(-1),{mode:this.mode,waveCount:5});
+    if(this.isEvent)Object.assign(this.events.at(-1),{mode:this.mode,waveCount:5,eventVersion:this.eventVersion});
     this.message = this.wave === 10 ? 'Final wave. The Blight King approaches!' : `Wave ${this.wave}: protect the Tree of Life.`;
     if(this.isEvent)this.message=this.wave===5?`Final wave. The ${this.bossName} approaches!`:`${this.runName} wave ${this.wave}: protect the forest reserves.`;
     return true;
@@ -391,6 +399,7 @@ export class Game {
     if(this.mapId!==LEGACY_MAP.id)e.mapId=this.mapId;
     if (this.enemyRules === 1) Object.assign(e, { behavior: 1, bornAt: this.time, recoverAt: this.time + 2 });
     if(this.isEvent)e.theme=this.mode;
+    if(this.harvestTactics)Object.assign(e,{harvestRule:1,harvestWaveAt:this.harvestWaveAt,seedStolen:false,...(kind==='boss'?{harvestSummons:0}:{})});
     this.enemies.push(e);
     if (kind === 'boss') this.events.push({ type: 'boss-arrival', id: e.id, ...(this.isEvent||miniBoss?{bossName:this.bossName}:{}) });
     return e;
@@ -463,12 +472,23 @@ export class Game {
     dt = Math.min(dt, 0.05); this.time += dt;
     this.spawnTimer -= dt;
     if (this.queue.length && this.spawnTimer <= 0) { this.spawn(this.queue.shift()); this.spawnTimer = this.isEvent ? this.event.gaps[this.wave-1] : waveSpawnInterval(this.wave)*(this.isVeteran?.7:1); }
-    for (const enemy of this.enemies) {
+    for (const enemy of [...this.enemies]) {
+      if(this.harvestTactics&&enemy.kind==='boss'){
+        for(const [bit,threshold]of [[1,.65],[2,.3]])if(enemy.hp>0&&enemy.hp<=enemy.maxHp*threshold&&!(enemy.harvestSummons&bit)){
+          enemy.harvestSummons|=bit;
+          for(let n=0;n<2;n++){const child=this.spawn('termite');child.progress=Math.max(0,enemy.progress-20-n*22);Object.assign(child,pointAt(child.progress,this.map));}
+          this.events.push({type:'harvest-escort',x:enemy.x,y:enemy.y});this.message='The Hollow Harvester released two seed thieves!';
+        }
+      }
       if(enemy.veteran&&enemy.kind==='boss'&&enemy.hp<enemy.maxHp*.5&&!enemy.enraged){enemy.enraged=true;this.events.push({type:'boss-enrage'});}
       if (enemy.poisonUntil > this.time) enemy.hp -= enemy.poisonDamage * dt;
       if (blightHealing(enemy,this.time)) enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * .006 * dt);
       enemy.progress += enemySpeed(enemy,this.time) * dt;
       Object.assign(enemy, pointAt(enemy.progress,this.map));
+      if(this.harvestTactics&&enemy.kind==='termite'&&enemy.hp>0&&!enemy.seedStolen&&enemy.progress>=this.map.length*.42){
+        enemy.seedStolen=true;const stolen=Math.min(8,this.sap);this.sap-=stolen;
+        this.events.push({type:'harvest-theft',x:enemy.x,y:enemy.y,sap:stolen});this.message=`A seed thief raided the cache: −${stolen} Sap. Guard the early orchard bends.`;
+      }
     }
     this.resolveKills();
     const survivors = [];
@@ -547,7 +567,10 @@ export class Game {
     if (!data || ![1, 2].includes(data.version) || !['build', 'running', 'paused', 'defeat', 'victory'].includes(data.phase)) return null;
     const validNumber = x => Number.isFinite(x) && x >= 0;
     const mapId=data.mapId===undefined?LEGACY_MAP.id:data.mapId;
-    if(typeof mapId!=='string' || !Object.hasOwn(MAPS,mapId) || mapId!==LEGACY_MAP.id && (data.chapter!==(mapId===MEADOW_MAP.id?1:2) || ['haunted-grove','harvest-canopy'].includes(data.mode) || data.version!==2))return null;
+    if(typeof mapId!=='string'||!Object.hasOwn(MAPS,mapId))return null;
+    if(mapId===HARVEST_MAP.id){if(data.mode!=='harvest-canopy'||data.eventVersion!==2||data.version!==2)return null;}
+    else if(mapId!==LEGACY_MAP.id&&(data.chapter!==(mapId===MEADOW_MAP.id?1:2)||['haunted-grove','harvest-canopy'].includes(data.mode)||data.version!==2))return null;
+    if(data.mode==='harvest-canopy'&&data.eventVersion===2&&(mapId!==HARVEST_MAP.id||!Number.isFinite(data.harvestWaveAt)||data.harvestWaveAt<0||data.harvestWaveAt>data.time))return null;
     const map=MAPS[mapId];
     if (!['tree', 'sap', 'health', 'shield', 'score', 'kills', 'time', 'wave', 'nextId', 'boostUntil'].every(k => validNumber(data[k]))) return null;
     if (data.health > 100 || data.shield > 50 || !Number.isInteger(data.wave) || data.wave > 10 || typeof data.access !== 'boolean') return null;
@@ -569,8 +592,8 @@ export class Game {
     const game = new Game();
     game.mapId=mapId;
     if(['haunted-grove','harvest-canopy'].includes(data.mode)){
-      if(data.eventVersion!==1 || data.wave>5)return null;
-      game.mode=data.mode;game.eventVersion=1;
+      if(!(data.eventVersion===1||data.mode==='harvest-canopy'&&data.eventVersion===2)||data.wave>5)return null;
+      game.mode=data.mode;game.eventVersion=data.eventVersion;game.harvestWaveAt=data.eventVersion===2?data.harvestWaveAt:0;
     }
     if (data.version === 2) {
       if (!data.forest || !data.forest.levels || !Array.isArray(data.forest.stars) || data.forest.stars.length !== CHAPTERS.length) return null;
@@ -611,6 +634,12 @@ export class Game {
     }
     game.enemies = data.enemies.map(e => ({ ...e, ...pointAt(e.progress,map) })); game.queue = [...data.queue];
     for(const enemy of game.enemies){if(mapId!==LEGACY_MAP.id)enemy.mapId=mapId;else delete enemy.mapId;}
+    for(const enemy of game.enemies){
+      if(game.harvestTactics){
+        if(enemy.seedStolen!==undefined&&typeof enemy.seedStolen!=='boolean'||enemy.harvestSummons!==undefined&&(!Number.isInteger(enemy.harvestSummons)||enemy.harvestSummons<0||enemy.harvestSummons>3))return null;
+        enemy.harvestRule=1;enemy.harvestWaveAt=game.harvestWaveAt;enemy.seedStolen=enemy.seedStolen===true;if(enemy.kind==='boss')enemy.harvestSummons=enemy.harvestSummons??0;
+      }else{delete enemy.harvestRule;delete enemy.harvestWaveAt;delete enemy.seedStolen;delete enemy.harvestSummons;}
+    }
     const season=data.season;
     if(season && typeof season==='object'){
       game.season.bestWave=Number.isInteger(season.bestWave)&&season.bestWave>=0&&season.bestWave<=5?season.bestWave:0;

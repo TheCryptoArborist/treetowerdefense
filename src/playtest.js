@@ -39,7 +39,7 @@ function pestDetails(kind, veteran) {
   if (kind === 'boss') return { ...info, trait: 'Enrages below half health · +30% speed', counter: 'The King accelerates below half health. Reserve Palm slows and overlapping damage for the final bends.' };
   return info;
 }
-export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', difficulty = 'standard', encounters=enemyRules===1?1:0) {
+export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', difficulty = 'standard', encounters=enemyRules===1?1:0,eventVersion=2) {
   const harvest=mode==='harvest-canopy',event = harvest||mode==='haunted-grove';
   const veteran = difficulty === 'veteran' && !event;
   const lineup = event ? eventLineup(wave,mode) : waveLineup(chapter, wave, encounters);
@@ -48,7 +48,8 @@ export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', diff
     const legacy = enemyRules === 0 && ['moth','blight'].includes(kind);
     let details = legacy ? { ...info, trait: kind === 'moth' ? 'Fast movers' : 'Extra health', counter: kind === 'moth' ? 'Palm slows fast moths so other defenders can finish them.' : 'Maintain damage coverage against extra health. This saved run uses the original pest rules.' } : pestDetails(kind, veteran);
     if(harvest)details={...details,name:{termite:'Leaf borers',beetle:'Bark beetles',moth:'Autumn moths',blight:'Harvest blight',boss:'Hollow Harvester'}[kind]};
-    else if(event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
+    if(harvest&&eventVersion===2){const names={termite:'Seed thieves',beetle:'Gourdback beetles',moth:'Maple-wing moths',blight:'Rot gourds',boss:'Hollow Harvester'};details={...details,name:names[kind]};if(kind==='termite')Object.assign(details,{trait:'Steals 8 Sap once at the middle seed cache',counter:'Defeat it on the early bends before it raids your cache.'});if(kind==='boss')Object.assign(details,{trait:'Releases two seed thieves at 65% and 30% health',counter:'Four extra thieves may appear on its route. Keep later bends covered.'});}
+    if(!harvest&&event)details={...details,name:{termite:'Dusk termites',beetle:'Hollow beetles',moth:'Dusk moths',blight:'Webbed blight',boss:'Hollow King'}[kind]};
     const miniBoss=kind==='boss'?miniBossFor(chapter,wave,mode,encounters):null;
     if(miniBoss)details={...MINI_BOSSES[miniBoss],trait:MINI_BOSSES[miniBoss].trait+(veteran?' · Enrages below half health':''),miniBoss};
     const appearanceTier=pestTier(chapter,wave,mode);
@@ -56,7 +57,8 @@ export function scoutWave(chapter, wave, enemyRules = 1, mode = 'campaign', diff
   });
   const eventBriefings=[['Lantern watch','Dusk termites and two moths test the entrance. Start with Pine and Oak, then reinforce a later bend.'],['Hollow armor','Four armored beetles approach. The earned Watchtower ignores their armor; sustained fire also works.'],['Dusk swarm','Dense termites and six dashing moths approach. Oak splash and Palm slows help cover the rush.'],['Webbed escort','Blight regenerates between hits. Mushroom poison suppresses recovery; keep several bends covered.'],['Hollow King','The Hollow King follows twenty escorts. Spread damage and slows along the route. Finish with 80 health for Lantern Oak; use three defender types for the web-carved Watchtower.']];
   const harvestBriefings=[['Seed watch','Leaf borers and two armored bark beetles approach. Start with Pine and Oak.'],['Bark armor','Five beetles test your sustained damage. Watchtower armor-piercing bolts help break the escort.'],['Autumn flight','Seven dashing moths surge between beetles. Use Palm slows and overlapping coverage.'],['Blighted harvest','Five blight pests regenerate between hits. Mushroom poison suppresses recovery.'],['Hollow Harvester','The Harvester follows twenty escorts. Spread damage along the route. Finish at 80 health for Copperleaf Oak, use three defender types for Harvest banners, or finish at 100 for the amber Tree of Life.']];
-  const [title, tip] = lineup.length ? (harvest?harvestBriefings:event?eventBriefings:veteran?VETERAN_BRIEFINGS:WAVE_BRIEFINGS)[wave-1] : ['', ''];
+  let [title, tip] = lineup.length ? (harvest?harvestBriefings:event?eventBriefings:veteran?VETERAN_BRIEFINGS:WAVE_BRIEFINGS)[wave-1] : ['', ''];
+  if(harvest&&eventVersion===2&&lineup.length)tip='AUTUMN ORCHARD · Seed thieves steal 8 Sap at the marked cache. A four-second tailwind follows each ten calm seconds (+25% enemy speed); Palm slows help. '+(wave===5?'The Hollow Harvester releases two extra seed thieves at 65% and 30% health.':'Guard early bends to protect your Sap; build a second line for wind rushes.');
   const mini=miniBossFor(chapter,wave,mode,encounters);
   return { wave, title:mini?MINI_BOSSES[mini].name+' incoming':title, total: lineup.length, groups, tip: mini?MINI_BOSSES[mini].counter+' Defeat it for 150 Sap; a breach costs 25 health. '+(veteran?'':tip+' ')+(veteran?'VETERAN · 2.4× health · 18% faster; enrages below half health.':''):enemyRules === 0 && lineup.length ? 'This saved run keeps the original pest rules: moths move at a steady speed and blight has extra health without regeneration. Extend coverage along the route.' : veteran && lineup.length ? `VETERAN · 2.4× health · 18% faster movement · 30% shorter spawn gaps. ${tip}` : tip };
 }

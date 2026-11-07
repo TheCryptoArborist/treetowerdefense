@@ -19,7 +19,7 @@ export function createWorldMap({dialog,getGame,blocked,onTravel,onSeason,save,re
   return true;
  }
  function refresh(){
-  const game=getGame(),source=JSON.stringify([game.access,game.mode,game.difficulty,game.chapter,game.wave,game.phase,game.enemyRules,game.encounters,game.forest.stars,game.forest.bestWaves,game.veteranStars,game.veteranBestWaves,game.harvest.bestWave]);
+  const game=getGame(),source=JSON.stringify([game.access,game.mode,game.eventVersion,game.difficulty,game.chapter,game.wave,game.phase,game.enemyRules,game.encounters,game.forest.stars,game.forest.bestWaves,game.veteranStars,game.veteranBestWaves,game.harvest.bestWave]);
   if(source!==stateSignature){state=worldMapState(game);stateSignature=source;}
   const active=state.regions.find(region=>region.active);
   const text=`${state.cleared}/${state.total} campaign waves cleared${active?' · '+active.label+' · wave '+active.current:''}`;
