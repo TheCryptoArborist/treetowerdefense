@@ -1,5 +1,5 @@
 {
-  "status": "candidate-verified-awaiting-wallet-acceptance",
+  "status": "superseded-by-lobby-purchase-fix",
   "gameSourceCommit": "8cb71e2b1f4c35f99b6f842b1faf573d8f71c715",
   "validatedGameCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
   "runtimeSourcesUnchangedSinceValidation": true,
@@ -151,5 +151,6 @@
   "entry": "https://tree-token.xyz/play/canopy-defense/",
   "walletTest": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
   "walletAcceptance": "pending; no purchase performed by the assistant",
-  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026"
+  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026",
+  "supersededReason": "Purchase review was blocked inside the lobby shop. Rebuild with the corrected guard before production publication."
 }

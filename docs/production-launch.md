@@ -8,8 +8,8 @@ not included.
 ## Current status
 
 The current production candidate includes the approved lobby management,
-separate cosmetics, Campaign and Harvest game. **It is verified but not yet
-published.** Backend: `6aee93ef532103e89cfc72c6`. Site candidate:
+separate cosmetics, Campaign and Harvest game. **This candidate is now superseded by the lobby purchase fix and must not be
+published.** See [purchase guard correction](lobby-purchase-fix.md). Backend: `6aee93ef532103e89cfc72c6`. Site candidate:
 `6aee9467cd626c3f4efe9a70`. The previous candidate is superseded.
 See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json).
 

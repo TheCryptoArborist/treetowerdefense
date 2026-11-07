@@ -218,7 +218,7 @@ $('preview-button').addEventListener('click', () => { if(game.phase==='running')
 $('help-button').addEventListener('click',()=>openCommand('guide',$('help-button')));
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
-  if(storyDialog.open||modeDialog.open)return;
+  if(storyDialog.open||(modeDialog.open&&!(lobbyManagement&&helpDialog.open&&commandMenu.section==='shop')))return;
   if(paidMode)return reviewPaidPurchase(kind,towerId);
   if (purchaseDialog.open) return;
   pendingPurchase = new PurchaseReview(game, kind, towerId);
