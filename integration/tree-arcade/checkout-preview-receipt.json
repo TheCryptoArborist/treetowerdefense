@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aee644e07529c5e9edbbb8d",
-    "upstreamDeployId": "6aee636099aebf4ac3ca74ca",
-    "backendSourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
-    "releaseSourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
+    "productionDeployId": "6aee6967c673047a3cd02e58",
+    "upstreamDeployId": "6aee68dbc19b3cdd6eb0a290",
+    "backendSourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
+    "releaseSourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
     "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
+    "gameplaySourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
     "existingStaticEntriesRetained": 299
   },
   "gatewayRedesign": {
@@ -1533,5 +1533,10 @@
     "state": "live-test",
     "sourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
     "receipt": "game-mode-entry-release-receipt.json"
+  },
+  "modeEntrancePolish": {
+    "state": "live-test",
+    "sourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
+    "receipt": "mode-entrance-polish-release-receipt.json"
   }
 }

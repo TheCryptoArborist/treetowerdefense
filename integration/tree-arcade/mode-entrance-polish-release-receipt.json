@@ -1,0 +1,169 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-06T23:59:50.538616+00:00",
+  "sourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
+  "backendDeployId": "6aee68dbc19b3cdd6eb0a290",
+  "productionRoutingDeployId": "6aee6967c673047a3cd02e58",
+  "previousProductionRoutingDeployId": "6aee644e07529c5e9edbbb8d",
+  "functionDigest": "70bc05d59a69d2ba97096b9ba599d414a45231add0d4ead348a7056b49987805",
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "functionPackageUnchanged": true,
+  "functionConfigurationPreserved": true,
+  "changes": [
+    "Forest painting hero using existing Canopy art",
+    "Original Oak guardian and Tree of Life artwork",
+    "Green Campaign and autumn Harvest illustrated cards",
+    "Saved battle text uses a flexible grid column; Continue explicitly overrides inherited full-width dialog sizing",
+    "Saved action stacks below text at 720px; mode cards stack at 540px",
+    "Descriptions and shared progress remain explicit; all existing controller IDs retained"
+  ],
+  "localTests": {
+    "passed": 321,
+    "skipped": 1,
+    "failed": 0
+  },
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "ci": {
+    "runs": [
+      42314921682,
+      42314914995
+    ],
+    "conclusion": "success"
+  },
+  "visualAcceptance": "pending holder desktop/phone review; workspace Chromium launch and native screenshot service unavailable",
+  "viewportMeasurements": "not performed; local renderer blocked",
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "backendHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "originalArtHttp": [
+    {
+      "path": "assets/brand/canopy-home-scene.webp",
+      "bytes": 491280,
+      "matchesOriginal": true
+    },
+    {
+      "path": "assets/brand/oak-home.png",
+      "bytes": 395051,
+      "matchesOriginal": true
+    },
+    {
+      "path": "assets/environment/tree-life-v1.png",
+      "bytes": 2812492,
+      "matchesOriginal": true
+    }
+  ],
+  "liveHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "gameplayCodeChanged": false,
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "realPurchaseAndRecoveryAcceptance": "pending"
+}

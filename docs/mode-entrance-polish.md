@@ -7,3 +7,5 @@ The saved-battle row uses a bounded grid with a flexible text column and an expl
 Descriptions identify Campaign as the three-forest main adventure and Harvest as the separate five-wave autumn challenge. Shared permanent progress and replacement of run-only supplies remain explained.
 
 Validation: 321 tests passed, one Windows-only test skipped; syntax checks passed. Local Chromium visual/layout verification could not run because the workspace denied its process socket. Authenticated desktop/phone visual acceptance remains pending; do not claim measured viewport or overflow results from the blocked browser attempt.
+
+Published to the existing checkout-test URL from `4b67eae7a35c7a0202bb2c5f337823bf87adeeb3`. Backend `6aee68dbc19b3cdd6eb0a290`; routing `6aee6967c673047a3cd02e58` replaces `6aee644e07529c5e9edbbb8d`. Both CI runs passed. Hosted HTML, CSS, gateway and original art match the source; protected modules and endpoints remain unauthorized anonymously. Release verification preserved 43 functions, five schedules and 299 static paths, with only `/_redirects` changed. See [release receipt](../integration/tree-arcade/mode-entrance-polish-release-receipt.json).
