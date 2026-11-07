@@ -1,0 +1,152 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-07T00:19:54.633634+00:00",
+  "sourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
+  "backendDeployId": "6aee6d91d4b0b30aa01afa02",
+  "productionRoutingDeployId": "6aee6e292c39ae987fa35641",
+  "previousProductionRoutingDeployId": "6aee6ce6bb0a0468641afa10",
+  "functionDigest": "70bc05d59a69d2ba97096b9ba599d414a45231add0d4ead348a7056b49987805",
+  "functionPackageUnchanged": true,
+  "functionConfigurationPreserved": true,
+  "localTests": {
+    "passed": 321,
+    "skipped": 1,
+    "failed": 0
+  },
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "ci": {
+    "runs": [
+      42317017517,
+      42317011198
+    ],
+    "conclusion": "success"
+  },
+  "changes": [
+    "Separate Christmas teaser section below playable mode cards",
+    "Christmas Chaos title and Friday November 27 2026 opening date",
+    "Original Oak and Tree of Life imagery with a static winter treatment",
+    "Teaser only; not playable yet; no action or purchase button",
+    "Phone layout stacks artwork above text"
+  ],
+  "christmasCampaignImplemented": false,
+  "inGameTimedUnlockImplemented": false,
+  "launchDayTaskScheduledSeparately": true,
+  "targetOpeningDate": "2026-11-27",
+  "visualAcceptance": "pending holder desktop/phone review; local rendering unavailable",
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "backendHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true,
+        "christmasTeaser": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "liveHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true,
+        "christmasTeaser": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "gameplayCodeChanged": false,
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false
+}

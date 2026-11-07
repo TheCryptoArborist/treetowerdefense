@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aee6967c673047a3cd02e58",
-    "upstreamDeployId": "6aee68dbc19b3cdd6eb0a290",
-    "backendSourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
-    "releaseSourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
+    "productionDeployId": "6aee6e292c39ae987fa35641",
+    "upstreamDeployId": "6aee6d91d4b0b30aa01afa02",
+    "backendSourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
+    "releaseSourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
     "existingStaticFilesPreserved": 298,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
+    "gameplaySourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
     "existingStaticEntriesRetained": 299
   },
   "gatewayRedesign": {
@@ -1538,5 +1538,10 @@
     "state": "live-test",
     "sourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
     "receipt": "mode-entrance-polish-release-receipt.json"
+  },
+  "christmasTeaser": {
+    "state": "live-test",
+    "sourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
+    "receipt": "christmas-teaser-release-receipt.json"
   }
 }
