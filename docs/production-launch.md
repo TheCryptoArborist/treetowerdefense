@@ -7,7 +7,9 @@ not included.
 
 ## Current status
 
-Prepared for hosted verification; **not published**. Automated validation:
+Hosted candidate verified; **not published**. The immutable backend is
+`6aee89c32b81ee06b1ec6532`; the site candidate is
+`6aee8ab4aa9a7130941746f3`. See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json). Automated validation:
 333 tests, 332 passed, one Windows-only test skipped; syntax checks and the
 protected production-profile build pass. A real-wallet purchase/recovery
 acceptance is still required before promotion.

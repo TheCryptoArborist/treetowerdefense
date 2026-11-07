@@ -1,0 +1,138 @@
+{
+  "status": "candidate-verified-awaiting-wallet-acceptance",
+  "gameSourceCommit": "d9dac24e660a262cee00a5e2b6b43108c019d541",
+  "baseSourceCommit": "4e072604c65a2ea148896b5772d7d0fa7874ff17",
+  "pullRequest": "https://github.com/TheCryptoArborist/treetowerdefense/pull/4",
+  "upstreamDeployId": "6aee89c32b81ee06b1ec6532",
+  "siteCandidateDeployId": "6aee8ab4aa9a7130941746f3",
+  "publishedBaseline": "6aee769eb270ae5a44d02d78",
+  "functionZipSha256": "542a0d30b53326e0d534c743ae8744d26f4f81fde29e9757b3bd2017242d42b3",
+  "runtime": {
+    "node": "24.x",
+    "region": "us-east-2",
+    "memory": 1024
+  },
+  "preservation": {
+    "staticPaths": 302,
+    "functionPackages": 43,
+    "unrelatedFunctionsUnchanged": 42,
+    "schedules": 5,
+    "changedStaticFiles": [
+      "/_redirects",
+      "/play/index.html"
+    ],
+    "legacyCanopyRoutesParked": "/play/canopy-defense/legacy-disabled/*"
+  },
+  "upstreamSmoke": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "matching": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matching": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matching": true
+    },
+    {
+      "path": "api/access",
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "api/payments",
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "src/app.js",
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "src/save-promotion.js",
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "origin": "https://tree-token.xyz",
+      "status": 400
+    },
+    {
+      "origin": "https://evil.example",
+      "status": 403
+    }
+  ],
+  "candidateSmoke": [
+    {
+      "path": "/play/",
+      "origin": null,
+      "status": 200,
+      "profile": null
+    },
+    {
+      "path": "/play/canopy-defense/",
+      "origin": null,
+      "status": 200,
+      "profile": null
+    },
+    {
+      "path": "/play/canopy-defense/api/access",
+      "origin": null,
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "/play/canopy-defense/api/payments",
+      "origin": null,
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "/play/canopy-defense/src/app.js",
+      "origin": null,
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "/play/canopy-defense/api/access",
+      "origin": "https://tree-token.xyz",
+      "status": 400,
+      "profile": "production"
+    },
+    {
+      "path": "/play/canopy-defense/api/access",
+      "origin": "https://evil.example",
+      "status": 403,
+      "profile": "production"
+    },
+    {
+      "path": "/play/canopy-defense/checkout-test/api/access",
+      "origin": null,
+      "status": 401,
+      "profile": null
+    }
+  ],
+  "validation": {
+    "tests": 333,
+    "passed": 332,
+    "skippedWindowsOnly": 1,
+    "syntax": "passed",
+    "protectedBuild": "passed",
+    "windowsCabinetHash": "normalized LF; CI rerun pending"
+  },
+  "ledger": {
+    "branch": "canopy-checkout-test",
+    "existingRowsRetained": true,
+    "migrationStatus": "three applied; none pending"
+  },
+  "entry": "https://tree-token.xyz/play/canopy-defense/",
+  "walletTest": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "walletAcceptance": "pending; no purchase performed by the assistant",
+  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026"
+}
