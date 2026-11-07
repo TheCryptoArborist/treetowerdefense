@@ -1,0 +1,30 @@
+{
+  "status": "blocked-before-deployment",
+  "sourceCommit": "b4295d507a7c811b058699d5a9e10c188edf63a6",
+  "feature": "Root Shield translucent force-field dome",
+  "validation": {
+    "tests": 345,
+    "passed": 344,
+    "windowsOnlySkippedOnLinux": 1,
+    "syntax": "passed",
+    "nativeCanvasVisualQA": "Actual tree/Harvest renderer inspected at forest ranks 0, 2 and 3",
+    "ci": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42336145314",
+    "ciResult": "success: Ubuntu, Windows and PostgreSQL"
+  },
+  "liveWalletRecovery": "accepted; no new payment needed",
+  "publicationAuthorized": true,
+  "deploymentAttempt": {
+    "site": "tree-token",
+    "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+    "branchAlias": "canopy-checkout-test",
+    "context": "deploy-preview",
+    "exitCode": 127,
+    "error": "/bin/bash: line 1: /home/agent/.npm/_npx/251cbab0c7453ed9/node_modules/.bin/netlify: No such file or directory",
+    "deploymentCreated": false,
+    "deployId": null,
+    "deployLogUrl": null
+  },
+  "lastKnownPublishedRoutingDeploy": "6aee9eb009ccc3479306da4d",
+  "previewLibraryFileId": "libfile_5a3c3ceb90a08191a7ef70f240b8b88c",
+  "nextRequiredWork": "Restore the official deployment CLI dependency, then deploy the current production profile, prepare and verify a current preservation candidate, publish under existing authorization and verify the live Arcade. No further Netlify operations attempted after the launcher failure."
+}

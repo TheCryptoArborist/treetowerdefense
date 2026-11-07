@@ -96,3 +96,19 @@ current-run history entry, visible protection after reload, and no second
 payment or duplicate grant observed. Do not invent a numeric HUD reading.
 The current production build must include the force-field visual correction
 and automatic session return. Publication remains authorized.
+
+## Current publication blocker
+
+The force-field correction is committed at
+`b4295d507a7c811b058699d5a9e10c188edf63a6`. All 345 tests completed
+(344 passed, one Windows-only skip), syntax checks, native Canvas visual QA
+and Ubuntu/Windows/PostgreSQL CI passed. Wallet recovery is accepted.
+Publication remains authorized.
+
+The local deploy launcher failed with exit 127 before Netlify ran:
+`/bin/bash: line 1: /home/agent/.npm/_npx/251cbab0c7453ed9/node_modules/.bin/netlify: No such file or directory`.
+Affected target: tree-token, branch alias canopy-checkout-test. No deployment
+was created and no deploy log URL exists. No further Netlify operations were
+attempted. Restore the official CLI dependency before continuing the
+existing preservation release procedure. Do not request another purchase or
+publication approval. See `force-field-release-status.json`.
