@@ -1,16 +1,19 @@
 {
-  "status": "transfer-verified-awaiting-game-recovery-check",
+  "status": "accepted",
   "transactionDigest": "AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3",
-  "receiptVerified": false,
+  "receiptVerified": true,
   "shieldAfterPurchase": null,
   "historyPurchaseCount": 1,
-  "recoveryWithoutSecondPayment": false,
-  "duplicateGrantObserved": null,
+  "recoveryWithoutSecondPayment": true,
+  "duplicateGrantObserved": false,
   "onChainTransferVerified": true,
   "wallet": "0x18d72fc2a3df6d92d0806da3b04d92be056e2d6d35882a56c16ddb25f48d35d6",
   "amountTREE": 3000,
   "chainVerification": "integration/tree-arcade/production-launch/root-shield-chain-verification.json",
-  "remainingEvidence": "Shield persistence after a full refresh of the same battle. The user encountered the gateway Enter step during refresh; session-restoration correction is being published. Do not purchase again.",
+  "remainingEvidence": null,
   "purchaseHistoryEvidence": "User screenshot shows one shield \u00b7 paid entry for the current run with no Recover action. Separate earlier-run paid and unpaid quoted entries do not count as a duplicate current-run purchase.",
-  "shieldVisualObserved": true
+  "shieldVisualObserved": true,
+  "shieldVisibleAfterReload": true,
+  "reloadEvidence": "User explicitly confirmed: the shield still shows, after being asked to refresh and check the saved battle.",
+  "numericStrengthEvidence": "No numeric HUD reading supplied. Acceptance uses observed protection after reload; fixed 50-point grant/cap is verified by existing game/ledger tests."
 }

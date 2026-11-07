@@ -82,6 +82,43 @@ export function paintLifeTree(c,type,x,y,scale=1,style=0,level=1,clock=0,autumn=
   }
   c.restore();
 }
+// Two translucent layers surround the original tree instead of covering its artwork.
+export function paintRootShield(c,x,y,{scale=1,shield=50,clock=0,reducedMotion=false,layer='front'}={}){
+  if(!(shield>0)||!Number.isFinite(scale)||scale<=0)return;
+  const strength=Math.min(1,shield/50),time=reducedMotion?0:clock;
+  const radius=96,base=24,top=-184;
+  const dome=()=>{c.beginPath();c.moveTo(-radius,base);c.bezierCurveTo(-radius,-100,-62,top,0,top);c.bezierCurveTo(62,top,radius,-100,radius,base);c.bezierCurveTo(60,base+23,-60,base+23,-radius,base);c.closePath();};
+  c.save();c.translate(x,y);c.scale(Math.min(scale,(WIDTH-x-5)/radius),scale);c.globalAlpha=.55+.45*strength;
+  if(layer==='back'){
+    const ground=c.createRadialGradient(0,base,8,0,base,116);ground.addColorStop(0,'#22e7d700');ground.addColorStop(.7,'#22e7d72c');ground.addColorStop(1,'#22e7d700');
+    c.save();c.translate(0,base);c.scale(1,.28);c.fillStyle=ground;c.beginPath();c.arc(0,0,116,0,TAU);c.fill();c.restore();
+    const glow=c.createLinearGradient(0,top,0,base);glow.addColorStop(0,'#7ef3a010');glow.addColorStop(.55,'#22e7d709');glow.addColorStop(1,'#22e7d724');dome();c.fillStyle=glow;c.fill();
+    c.beginPath();c.ellipse(0,base,radius,18,0,Math.PI,TAU);c.strokeStyle='#7ef3a064';c.lineWidth=1.5;c.stroke();
+  }else{
+    c.save();dome();c.clip();
+    const shell=c.createRadialGradient(-15,-72,12,0,-72,152);shell.addColorStop(0,'#22e7d700');shell.addColorStop(.55,'#22e7d706');shell.addColorStop(1,'#5bffd533');c.fillStyle=shell;c.fillRect(-100,top,200,245);
+    // A quiet hex lattice gives the barrier a visible surface and depth.
+    for(let row=0;row<9;row++)for(let col=-4;col<=4;col++){
+      const hx=col*33+(row%2?16.5:0),hy=top+15+row*28.5;
+      const alpha=.055+.13*Math.min(1,Math.abs(hx)/radius);
+      c.strokeStyle=`rgba(126,255,224,${alpha})`;c.lineWidth=.8;c.beginPath();
+      for(let i=0;i<6;i++){const a=Math.PI/6+i*TAU/6,px=hx+19*Math.cos(a),py=hy+19*Math.sin(a);i?c.lineTo(px,py):c.moveTo(px,py);}c.closePath();c.stroke();
+    }
+    for(let band=0;band<2;band++){
+      const phase=((time*.12+band*.5)%1+1)%1,py=top+12+phase*192;
+      const width=radius*Math.sqrt(Math.max(0,1-((base-py)/208)**2));
+      c.beginPath();c.ellipse(0,py,width,4+phase*10,0,0,TAU);c.strokeStyle='#b7ffe02b';c.lineWidth=1;c.stroke();
+    }
+    c.restore();
+    c.beginPath();c.moveTo(-radius,base);c.bezierCurveTo(-radius,-100,-62,top,0,top);c.bezierCurveTo(62,top,radius,-100,radius,base);
+    c.shadowColor='#22e7d7';c.shadowBlur=12;c.strokeStyle='#22e7d772';c.lineWidth=4;c.stroke();c.shadowBlur=4;c.strokeStyle='#c5ffe7c4';c.lineWidth=1.35;c.stroke();c.shadowBlur=0;
+    c.beginPath();c.ellipse(0,base,radius,18,0,0,Math.PI);c.strokeStyle='#7ef3a0bf';c.lineWidth=2;c.stroke();
+    // A small shield crest identifies the protection even at phone size.
+    c.save();c.translate(0,top+17);c.fillStyle='#082d32dc';c.strokeStyle='#baffd8';c.lineWidth=1.25;c.beginPath();c.moveTo(-8,-7);c.lineTo(8,-7);c.lineTo(7,2);c.quadraticCurveTo(5,8,0,11);c.quadraticCurveTo(-5,8,-7,2);c.closePath();c.fill();c.stroke();
+    c.beginPath();c.moveTo(0,-3);c.lineTo(0,5);c.moveTo(-3,1);c.lineTo(3,1);c.strokeStyle='#7ef3a0';c.stroke();c.restore();
+  }
+  c.restore();
+}
 const defenderSprites = new Map();
 const aimSprites = new Map();
 const aimFailures = [];

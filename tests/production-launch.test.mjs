@@ -20,6 +20,7 @@ test('checkout battle promotion preserves the same run and applied IDs, never ov
 test('a launch cannot be published from incomplete or duplicated wallet evidence',async()=>{
  const {requireProductionAcceptance}=await import('../tools/production-acceptance.mjs');const proof={status:'accepted',receiptVerified:true,shieldAfterPurchase:50,historyPurchaseCount:1,recoveryWithoutSecondPayment:true,duplicateGrantObserved:false,transactionDigest:'3'.repeat(44)};
  assert.ok(requireProductionAcceptance(proof));for(const patch of [{status:'pending-user-wallet-test'},{receiptVerified:false},{shieldAfterPurchase:100},{historyPurchaseCount:2},{recoveryWithoutSecondPayment:false},{duplicateGrantObserved:true},{transactionDigest:null}])assert.throws(()=>requireProductionAcceptance({...proof,...patch}));
+ assert.ok(requireProductionAcceptance({...proof,shieldAfterPurchase:null,shieldVisibleAfterReload:true}));assert.throws(()=>requireProductionAcceptance({...proof,shieldAfterPurchase:null,shieldVisibleAfterReload:false}));
 });
 test('disabled production checkout cannot silently become a simulated shop',async()=>{
  const {createPaymentHandler}=await import('../server/payments/http.mjs');const {requireLiveCheckout}=await import('../src/save-promotion.js');let calls=0;const handler=createPaymentHandler({authorize:async()=>{},ledger:{progress:()=>calls++},production:true,enabled:false});

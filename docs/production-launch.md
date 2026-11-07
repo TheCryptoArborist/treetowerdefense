@@ -87,3 +87,12 @@ game granted 50 shield, retained it after refresh of the same battle, and
 shows one purchase with no second payment or duplicate grant. Keep the
 publish acceptance pending until that evidence arrives, then rebuild the
 corrected production candidate and publish under the existing authorization.
+
+## Recovery accepted and force-field release
+
+The user confirmed that the shield still shows after refresh. The real
+purchase/recovery gate is complete: verified 3,000 TREE transfer, one applied
+current-run history entry, visible protection after reload, and no second
+payment or duplicate grant observed. Do not invent a numeric HUD reading.
+The current production build must include the force-field visual correction
+and automatic session return. Publication remains authorized.
