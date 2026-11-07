@@ -7,13 +7,24 @@ not included.
 
 ## Current status
 
-Earlier hosted candidate verified, now **superseded by the lobby management revision and not published**. Rebuild and verify the current game before promotion. See [lobby management](lobby-management.md). The immutable backend is
-`6aee89c32b81ee06b1ec6532`; the site candidate is
-`6aee8ab4aa9a7130941746f3`. See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json). Automated validation:
-333 tests, 332 passed, one Windows-only test skipped; syntax checks and the
-protected production-profile build pass. Linux, Windows and PostgreSQL CI
-also passed on `bc6146019fee4de9536a319e7c2edbdfe63854f8`. A real-wallet purchase/recovery
-acceptance is still required before promotion.
+The current production candidate includes the approved lobby management,
+separate cosmetics, Campaign and Harvest game. **It is verified but not yet
+published.** Backend: `6aee93ef532103e89cfc72c6`. Site candidate:
+`6aee9467cd626c3f4efe9a70`. The previous candidate is superseded.
+See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json).
+
+The user accepted the latest lobby; their device was not specified. All 335
+local tests completed (334 passed, one Windows-only skip), syntax and protected
+packaging passed, and Ubuntu, Windows and PostgreSQL CI passed on
+`95ae49834a772d0a2017503a0f5c973a960a7ea9`. Runtime sources are unchanged
+between that validated commit and the deployed `8cb71e2b1f4c35f99b6f842b1faf573d8f71c715`.
+Hosted assets, canonical-origin boundaries, protected modules and actual
+candidate routing passed. All 302 static paths, 43 function packages and five
+schedules are retained, with only the Canopy card, rewrite and legacy Canopy
+route bindings changed. The published baseline remains locked and unchanged.
+
+The remaining launch condition is one real-wallet purchase/recovery check.
+Production publication is already authorized; do not request it again.
 
 ## Release behavior
 

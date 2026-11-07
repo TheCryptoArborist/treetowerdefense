@@ -31,3 +31,7 @@ that candidate from the current game before publishing it.
 The revision is live on the existing checkout-test URL. See
 [integrity and release receipt](../integration/tree-arcade/lobby-management-release-receipt.json).
 Ubuntu, Windows and PostgreSQL CI passed on the recorded source commit.
+
+The user accepted the latest lobby review. The device was not specified.
+The rebuilt production candidate includes this revision and is verified;
+real-wallet purchase/recovery acceptance remains pending before publication.

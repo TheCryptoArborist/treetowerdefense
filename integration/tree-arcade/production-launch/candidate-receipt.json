@@ -1,12 +1,15 @@
 {
-  "status": "superseded-by-lobby-management",
-  "gameSourceCommit": "d9dac24e660a262cee00a5e2b6b43108c019d541",
+  "status": "candidate-verified-awaiting-wallet-acceptance",
+  "gameSourceCommit": "8cb71e2b1f4c35f99b6f842b1faf573d8f71c715",
+  "validatedGameCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
+  "runtimeSourcesUnchangedSinceValidation": true,
   "baseSourceCommit": "4e072604c65a2ea148896b5772d7d0fa7874ff17",
   "pullRequest": "https://github.com/TheCryptoArborist/treetowerdefense/pull/4",
-  "upstreamDeployId": "6aee89c32b81ee06b1ec6532",
-  "siteCandidateDeployId": "6aee8ab4aa9a7130941746f3",
-  "publishedBaseline": "6aee769eb270ae5a44d02d78",
-  "functionZipSha256": "542a0d30b53326e0d534c743ae8744d26f4f81fde29e9757b3bd2017242d42b3",
+  "upstreamDeployId": "6aee93ef532103e89cfc72c6",
+  "siteCandidateDeployId": "6aee9467cd626c3f4efe9a70",
+  "publishedBaseline": "6aee900be7f4cbafae9c333d",
+  "functionZipSha256": "ee90052c6d7cc7facf15f221cb5778b52747f923c0a4d6a8a4142cb59de0fc74",
+  "privateModules": 23,
   "runtime": {
     "node": "24.x",
     "region": "us-east-2",
@@ -22,51 +25,56 @@
       "/play/index.html"
     ],
     "legacyCanopyRoutesParked": "/play/canopy-defense/legacy-disabled/*",
-    "verification": "passed; published baseline remains locked and unchanged"
+    "verification": "passed; published baseline locked and unchanged"
   },
   "upstreamSmoke": [
     {
       "path": "index.html",
+      "origin": null,
       "status": 200,
-      "matching": true
+      "profile": null
     },
     {
       "path": "styles.css",
+      "origin": null,
       "status": 200,
-      "matching": true
+      "profile": null
     },
     {
       "path": "gateway.js",
+      "origin": null,
       "status": 200,
-      "matching": true
+      "profile": null
     },
     {
-      "path": "api/access",
+      "path": "src/app.js",
+      "origin": null,
+      "status": 401,
+      "profile": "production"
+    },
+    {
+      "path": "src/modes.js",
+      "origin": null,
       "status": 401,
       "profile": "production"
     },
     {
       "path": "api/payments",
+      "origin": null,
       "status": 401,
       "profile": "production"
     },
     {
-      "path": "src/app.js",
-      "status": 401,
-      "profile": "production"
-    },
-    {
-      "path": "src/save-promotion.js",
-      "status": 401,
-      "profile": "production"
-    },
-    {
+      "path": "api/access",
       "origin": "https://tree-token.xyz",
-      "status": 400
+      "status": 400,
+      "profile": "production"
     },
     {
+      "path": "api/access",
       "origin": "https://evil.example",
-      "status": 403
+      "status": 403,
+      "profile": "production"
     }
   ],
   "candidateSmoke": [
@@ -83,19 +91,13 @@
       "profile": null
     },
     {
-      "path": "/play/canopy-defense/api/access",
+      "path": "/play/canopy-defense/src/app.js",
       "origin": null,
       "status": 401,
       "profile": "production"
     },
     {
       "path": "/play/canopy-defense/api/payments",
-      "origin": null,
-      "status": 401,
-      "profile": "production"
-    },
-    {
-      "path": "/play/canopy-defense/src/app.js",
       "origin": null,
       "status": 401,
       "profile": "production"
@@ -120,15 +122,14 @@
     }
   ],
   "validation": {
-    "tests": 333,
-    "passed": 332,
-    "skippedWindowsOnly": 1,
+    "tests": 335,
+    "passed": 334,
+    "skippedWindowsOnlyOnLinux": 1,
     "syntax": "passed",
     "protectedBuild": "passed",
-    "windowsCabinetHash": "normalized LF; Windows CI passed",
     "ci": {
-      "sourceCommit": "bc6146019fee4de9536a319e7c2edbdfe63854f8",
-      "run": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42328801258",
+      "sourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
+      "run": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42330363740",
       "result": "success",
       "jobs": [
         "Ubuntu game/build/syntax",
@@ -137,14 +138,18 @@
       ]
     }
   },
+  "holderLobbyReview": {
+    "accepted": true,
+    "device": "unspecified",
+    "userStatement": "All of this looks good, proceed with the next step."
+  },
   "ledger": {
     "branch": "canopy-checkout-test",
     "existingRowsRetained": true,
-    "migrationStatus": "three applied; none pending"
+    "migrationStatus": "three applied; none pending; no database changes in this revision"
   },
   "entry": "https://tree-token.xyz/play/canopy-defense/",
   "walletTest": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
   "walletAcceptance": "pending; no purchase performed by the assistant",
-  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026",
-  "supersededReason": "Lobby management and separate cosmetics require a fresh production backend/candidate before publication."
+  "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026"
 }
