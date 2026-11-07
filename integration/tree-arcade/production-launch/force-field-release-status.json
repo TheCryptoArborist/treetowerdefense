@@ -1,5 +1,5 @@
 {
-  "status": "blocked-before-deployment",
+  "status": "ready-awaiting-netlify-cli-authorization",
   "sourceCommit": "b4295d507a7c811b058699d5a9e10c188edf63a6",
   "feature": "Root Shield translucent force-field dome",
   "validation": {
@@ -26,5 +26,20 @@
   },
   "lastKnownPublishedRoutingDeploy": "6aee9eb009ccc3479306da4d",
   "previewLibraryFileId": "libfile_5a3c3ceb90a08191a7ef70f240b8b88c",
-  "nextRequiredWork": "Restore the official deployment CLI dependency, then deploy the current production profile, prepare and verify a current preservation candidate, publish under existing authorization and verify the live Arcade. No further Netlify operations attempted after the launcher failure."
+  "nextRequiredWork": "Check the locally saved official Netlify login ticket after the user authorizes it. Then deploy the prepared production profile, verify the immutable backend and preservation candidate, publish with existing authorization and verify the live Arcade. No further purchase or publication approval is needed.",
+  "restoredWorkspace": {
+    "path": "/workspace/scratch/canopy-release-20261107",
+    "deploymentCliPath": "/workspace/scratch/canopy-release-tools/node_modules/.bin/netlify",
+    "deploymentCliVersion": "27.16.2",
+    "sourceRestoredFrom": "release/canopy-production-20261106",
+    "runtimeMatchesValidatedCommit": true,
+    "tests": 345,
+    "passed": 344,
+    "skippedWindowsOnly": 1,
+    "syntax": "passed",
+    "productionProfileBuild": "passed",
+    "privateModules": 23,
+    "authorizationStatus": "NOT_LOGGED_IN; official agent/human login ticket created and pending",
+    "authorizationTicketLocation": "ignored .netlify/publishing-auth-ticket.json; never commit ticket details"
+  }
 }
