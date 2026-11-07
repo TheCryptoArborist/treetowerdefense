@@ -150,7 +150,7 @@
   },
   "entry": "https://tree-token.xyz/play/canopy-defense/",
   "walletTest": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-  "walletAcceptance": "pending; no purchase performed by the assistant",
+  "walletAcceptance": "Mainnet transfer of 3,000 TREE independently verified; game grant/history/reload confirmation pending. Do not pay again.",
   "christmas": "teaser only; winter draft PR 3 excluded; targeted November 27, 2026",
   "supersededReason": "Purchase review was blocked inside the lobby shop. Rebuild with the corrected guard before production publication."
 }

@@ -1,0 +1,33 @@
+{
+  "digest": "AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3",
+  "verification": "independent Sui Mainnet read; public transfer only, not ledger entitlement proof",
+  "success": true,
+  "wallet": "0x18d72fc2a3df6d92d0806da3b04d92be056e2d6d35882a56c16ddb25f48d35d6",
+  "recipient": "0x6f1020c2fd6c91129f7cb5e0d651295e87f7245f96b7d090715c89b38197e77f",
+  "coinType": "0x6c5a609f6d0288523ce4a6ed87d19ae127f62073ab75fd9b0b1c9b455d4895cf::tree::TREE",
+  "decimals": 6,
+  "amountAtomic": "3000000000",
+  "amountTREE": 3000,
+  "checkpoint": "342502382",
+  "timestampMs": 1794021939578,
+  "balanceChanges": [
+    {
+      "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+      "address": "0x18d72fc2a3df6d92d0806da3b04d92be056e2d6d35882a56c16ddb25f48d35d6",
+      "amount": "-1422532"
+    },
+    {
+      "coinType": "0x6c5a609f6d0288523ce4a6ed87d19ae127f62073ab75fd9b0b1c9b455d4895cf::tree::TREE",
+      "address": "0x18d72fc2a3df6d92d0806da3b04d92be056e2d6d35882a56c16ddb25f48d35d6",
+      "amount": "-3000000000"
+    },
+    {
+      "coinType": "0x6c5a609f6d0288523ce4a6ed87d19ae127f62073ab75fd9b0b1c9b455d4895cf::tree::TREE",
+      "address": "0x6f1020c2fd6c91129f7cb5e0d651295e87f7245f96b7d090715c89b38197e77f",
+      "amount": "3000000000"
+    }
+  ],
+  "gasSUI": "0.001422532",
+  "productExpected": "Root Shield",
+  "gameEntitlementVerified": false
+}

@@ -1,9 +1,14 @@
 {
-  "status": "pending-user-wallet-test",
-  "transactionDigest": null,
+  "status": "transfer-verified-awaiting-game-recovery-check",
+  "transactionDigest": "AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3",
   "receiptVerified": false,
   "shieldAfterPurchase": null,
   "historyPurchaseCount": null,
   "recoveryWithoutSecondPayment": false,
-  "duplicateGrantObserved": null
+  "duplicateGrantObserved": null,
+  "onChainTransferVerified": true,
+  "wallet": "0x18d72fc2a3df6d92d0806da3b04d92be056e2d6d35882a56c16ddb25f48d35d6",
+  "amountTREE": 3000,
+  "chainVerification": "integration/tree-arcade/production-launch/root-shield-chain-verification.json",
+  "remainingEvidence": "Confirm 50 shield after purchase and refresh of the same battle; one purchase-history entry; no second payment or duplicate grant. Public transfer verification alone is not a server-ledger entitlement proof."
 }

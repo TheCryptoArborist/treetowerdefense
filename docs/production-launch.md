@@ -72,3 +72,18 @@ After accepted wallet evidence, `publish` promotes that exact candidate;
 `verify-live` checks the published inventory, function bindings and schedules.
 The public entry is https://tree-token.xyz/play/canopy-defense/ and the lobby
 is https://tree-token.xyz/play/.
+
+## Live payment evidence
+
+The user supplied transaction `AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3`.
+An independent Mainnet gRPC read verified successful execution, exact
+3,000 TREE sender debit and configured treasury credit, six decimals,
+checkpoint 342502382 and 0.001422532 SUI gas. This is public transfer
+evidence, not a fabricated server-owned invoice or entitlement.
+See `root-shield-chain-verification.json` in the production launch folder.
+
+Do not ask the user to purchase again. The remaining evidence is that the
+game granted 50 shield, retained it after refresh of the same battle, and
+shows one purchase with no second payment or duplicate grant. Keep the
+publish acceptance pending until that evidence arrives, then rebuild the
+corrected production candidate and publish under the existing authorization.
