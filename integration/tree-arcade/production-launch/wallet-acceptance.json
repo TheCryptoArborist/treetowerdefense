@@ -3,12 +3,14 @@
   "transactionDigest": "AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3",
   "receiptVerified": false,
   "shieldAfterPurchase": null,
-  "historyPurchaseCount": null,
+  "historyPurchaseCount": 1,
   "recoveryWithoutSecondPayment": false,
   "duplicateGrantObserved": null,
   "onChainTransferVerified": true,
   "wallet": "0x18d72fc2a3df6d92d0806da3b04d92be056e2d6d35882a56c16ddb25f48d35d6",
   "amountTREE": 3000,
   "chainVerification": "integration/tree-arcade/production-launch/root-shield-chain-verification.json",
-  "remainingEvidence": "Confirm 50 shield after purchase and refresh of the same battle; one purchase-history entry; no second payment or duplicate grant. Public transfer verification alone is not a server-ledger entitlement proof."
+  "remainingEvidence": "Shield persistence after a full refresh of the same battle. The user encountered the gateway Enter step during refresh; session-restoration correction is being published. Do not purchase again.",
+  "purchaseHistoryEvidence": "User screenshot shows one shield \u00b7 paid entry for the current run with no Recover action. Separate earlier-run paid and unpaid quoted entries do not count as a duplicate current-run purchase.",
+  "shieldVisualObserved": true
 }
