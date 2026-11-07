@@ -11,3 +11,5 @@ Local rendering remains unavailable because workspace Chromium and the native sc
 Published to checkout-test from `97646d03b31ed3c24d39c488171e8a66feaf43e9`. Backend `6aee6d91d4b0b30aa01afa02`; routing `6aee6e292c39ae987fa35641`. Both CI runs passed. Hosted markup includes the teaser/date/status and styles match source. Release checks preserve 43 functions, five schedules and 299 paths, with only `/_redirects` changed. See [release receipt](../integration/tree-arcade/christmas-teaser-release-receipt.json).
 
 The revised Christmas preview features the original Oak guardian in a Santa hat and the face-free Tree of Life with Christmas lights and snow, composed as one dedicated transparent illustration. The date remains November 27, 2026; this artwork does not enable Christmas gameplay.
+
+The festive teaser illustration is live with the orchard revision from `5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b`; see [combined release receipt](../integration/tree-arcade/harvest-orchard-release-receipt.json).

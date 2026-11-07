@@ -57,11 +57,11 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aee6e292c39ae987fa35641",
-    "upstreamDeployId": "6aee6d91d4b0b30aa01afa02",
-    "backendSourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
-    "releaseSourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
-    "existingStaticFilesPreserved": 298,
+    "productionDeployId": "6aee769eb270ae5a44d02d78",
+    "upstreamDeployId": "6aee76184855bbd05e6ff42f",
+    "backendSourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "releaseSourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "existingStaticFilesPreserved": 301,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
     "newStaticFiles": [],
@@ -71,8 +71,8 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
-    "existingStaticEntriesRetained": 299
+    "gameplaySourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "existingStaticEntriesRetained": 302
   },
   "gatewayRedesign": {
     "art": "Existing Oak Guardian game artwork and forest terrain",
@@ -1541,7 +1541,12 @@
   },
   "christmasTeaser": {
     "state": "live-test",
-    "sourceCommit": "97646d03b31ed3c24d39c488171e8a66feaf43e9",
-    "receipt": "christmas-teaser-release-receipt.json"
+    "sourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "receipt": "harvest-orchard-release-receipt.json"
+  },
+  "harvestOrchard": {
+    "state": "live-test",
+    "sourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "receipt": "harvest-orchard-release-receipt.json"
   }
 }

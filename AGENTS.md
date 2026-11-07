@@ -86,3 +86,5 @@ Read README.md for accepted product decisions and current prototype limitations.
 
 - Seasonal modes must differ in battlefield geometry, invader identities, defense styling and actual gameplay. Fresh Harvest runs use eventVersion 2 / harvest-v2, a dedicated autumn orchard with seed-thief Sap raids, a 10-second calm / 4-second +25% tailwind cycle, and two Harvester escorts at each of 65% and 30% boss health. Legacy version-one saves keep their old route and rules. All defenses receive automatic fall uniforms during Harvest; earned cosmetics remain optional outside it. Preserve original guardian faces, silhouettes, aim sockets and limb geometry. See docs/harvest-canopy.md and docs/seasonal-art-v2.md.
 - Christmas Chaos teaser art includes Oak's Santa hat and Christmas lights on the face-free Tree of Life. Its date remains November 27, 2026; the teaser does not unlock Christmas gameplay.
+
+- The dedicated Harvest orchard and festive Christmas teaser are live on checkout-test. Latest baseline and checks: integration/tree-arcade/harvest-orchard-release-receipt.json. Holder hosted/device acceptance remains pending; regular-game promotion has not occurred.
