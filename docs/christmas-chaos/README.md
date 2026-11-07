@@ -38,3 +38,5 @@ New assets, generated with the built-in image tool and encoded as WebP at qualit
 - `assets/enemies/christmas-invaders-v1.webp`: transparent 3×2 top-down atlas, one upward-facing full-body insect per cell: ribbon-and-gift mite; icy red/gold Bauble Beetle; holly-marked Frostwing Moth; thorn-and-berry Holly Blight; antlered clockwork Tinsel Tyrant; thawed version of the Bauble Beetle. Mature painterly texture, intact separated silhouettes, no human faces, text or connecting shadows.
 
 Original generated PNGs remain in the generation output folder. Winter assets have a separate opt-in loader and are not requested by the ordinary game's existing loading entrance.
+
+Source `84053e9e35321fce68593f4878e65fd9fde1288d` is saved in [draft PR #3](https://github.com/TheCryptoArborist/treetowerdefense/pull/3). Both CI runs (`42326365877`, `42326360459`) passed, including Windows, Linux and PostgreSQL ledger checks. The MP4 was decoded for visual review and verified as 12 seconds of H.264 at 800×632. No hosted deployment or public Christmas entry activation occurred.
