@@ -57,11 +57,11 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aecab809924c531a486d91e",
-    "upstreamDeployId": "6aecaab7cc70d5c4903fa917",
-    "backendSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
-    "releaseSourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
-    "existingStaticFilesPreserved": 292,
+    "productionDeployId": "6aee769eb270ae5a44d02d78",
+    "upstreamDeployId": "6aee76184855bbd05e6ff42f",
+    "backendSourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "releaseSourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "existingStaticFilesPreserved": 301,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
     "newStaticFiles": [],
@@ -71,8 +71,8 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "86ca26266c51d32b043c1e2080abd23058e250c6",
-    "existingStaticEntriesRetained": 293
+    "gameplaySourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "existingStaticEntriesRetained": 302
   },
   "gatewayRedesign": {
     "art": "Existing Oak Guardian game artwork and forest terrain",
@@ -645,5 +645,908 @@
     "walletTransactionInitiated": false,
     "productionDatabaseChanged": false,
     "regularGamePromoted": false
+  },
+  "combatMotionRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "gameplaySourceCommit": "6e0d42f1249c135b275aca061417340ed95c22b1",
+    "packageSourceCommit": "d6b72442b872c7a9eed31bcc79a991f4ef1380f4",
+    "validationCommit": "c39e1c9c64644a16e71a9279ef1c84c79113bf6c",
+    "backendDeployId": "6aecf70daad207deed8d6aa4",
+    "productionRoutingDeployId": "6aecf77eb8248a2d2846f3a3",
+    "previousProductionRoutingDeployId": "6aecd939bda31b9caab62bf8",
+    "functionDigest": "0acee1fb09041931201da852cfd27141a54f0c685da84bd8233f75c43eb0253b",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 253,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42114625295,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "balanceScenariosUnchanged": 84,
+    "renderedDefenderCombinations": 1152,
+    "reducedMotionStatic": true,
+    "packageIsolatedImport": "passed",
+    "packageEntries": 676,
+    "packageBytes": 1678640,
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "realTreeNotice": true,
+        "realTreeBanner": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/enemies/ironroot-walk-v1.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/enemies/chainsaw-raider-walk-v1.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/enemies/blight-sprayer-walk-v1.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/defender-motion.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "originVerification": [
+      {
+        "origin": "https://tree-token.xyz",
+        "status": 200,
+        "canonicalOriginBound": true
+      },
+      {
+        "origin": "https://wrong-origin.example",
+        "status": 403
+      }
+    ],
+    "fixedInterruptedStagedDeploy": "6aecd1ed709f274c1e1f2fd6",
+    "interruptedFailure": "Archive contained a checkout-local node_modules link instead of deployed dependencies; backend was not linked from the canonical test route.",
+    "deploymentOnlyFlags": [
+      "CANOPY_CANONICAL_CHECKOUT_PREVIEW",
+      "CANOPY_CHECKOUT_ENABLED",
+      "CANOPY_INDIVIDUAL_DEFENDERS"
+    ],
+    "globalEnvironmentChanged": false,
+    "productionDatabaseChanged": false,
+    "regularGamePromoted": false,
+    "walletTransactionInitiated": false,
+    "holderDesktopAndPhoneAcceptance": "pending",
+    "realPurchaseAndRecoveryAcceptance": "pending",
+    "animationLimit": "Procedural performances of existing directional art; not new hand-painted or skeletal attack atlases.",
+    "previewLimit": "Offline native renderer; not authenticated holder gameplay.",
+    "browserGateVerified": true,
+    "canonicalHttpVerification": {
+      "checks": [
+        {
+          "path": "index.html",
+          "status": 200,
+          "realTreeBanner": true,
+          "realTreeNotice": true
+        },
+        {
+          "path": "styles.css",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "gateway.js",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "assets/enemies/chainsaw-raider-walk-v1.png",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "assets/enemies/blight-sprayer-walk-v1.png",
+          "status": 200,
+          "matchesSource": true
+        },
+        {
+          "path": "src/app.js",
+          "status": 401
+        },
+        {
+          "path": "src/defender-motion.js",
+          "status": 401
+        },
+        {
+          "path": "api/access",
+          "status": 401
+        },
+        {
+          "path": "api/payments",
+          "status": 401
+        }
+      ],
+      "regularSimulatedRoutePreserved": true
+    }
+  },
+  "watchtowerArrowRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
+    "backendDeployId": "6aecfb0e1a5fd6a3bea6ea62",
+    "productionRoutingDeployId": "6aecfbb27e7d4b9299fb819b",
+    "previousProductionRoutingDeployId": "6aecf77eb8248a2d2846f3a3",
+    "functionDigest": "499cd569d7737e3684300cc3d456007c70b587baec0d9e6d2c5b3a46b561973b",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 254,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42116895941,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "visualChange": "Fixed-length wooden arrow with feathered tail and metal head at the recorded hit; no bow-to-target beam or muzzle glow.",
+    "visualVerification": "Actual painter before/after, long-range and diagonal shots; offline, not authenticated holder gameplay.",
+    "damageTimingChanged": false,
+    "gameplayRulesChanged": false,
+    "pricesOrSavesChanged": false,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false,
+    "holderVisualAcceptance": "pending",
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200
+      },
+      {
+        "path": "src/art.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      }
+    ]
+  },
+  "cutsceneAudioRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "bc3d240a0537518d916a98c3526f897b5ea624a6",
+    "backendDeployId": "6aed02cdccaac36672b4b658",
+    "productionRoutingDeployId": "6aed035fb385f2f7869ac7f8",
+    "previousProductionRoutingDeployId": "6aecfbb27e7d4b9299fb819b",
+    "functionDigest": "2eb39691698c890003d2c3656bb262b16fc293d6a93bfe8ccdab1bf653e30044",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 264,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42121667995,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "audioFeatures": [
+      "Original four-palette score and ambience",
+      "Presentation-clock camera/footstep/strike/root cues",
+      "Shared header/in-scene enable and mute",
+      "Optional device narration, replay and readable fallback",
+      "Cancel on beat/skip/close/mute/hidden/access holds",
+      "Speech/music separation and narration ducking"
+    ],
+    "offlineSignalVerification": {
+      "verification": "Offline graph rendering; browser/device audio and narration acceptance remain pending",
+      "reports": [
+        {
+          "tone": "crossing",
+          "seconds": 13.055419501133787,
+          "rms": 0.025121788917018165,
+          "peak": 0.1098647490143776,
+          "secondRms": [
+            0.03510209985400023,
+            0.03533772107973486,
+            0.03197105622724451,
+            0.0033328686650097375,
+            0.030014665903670888,
+            0.031183705293933627,
+            0.02823195327924699,
+            0.0023004946404354934,
+            0.020018876119614205,
+            0.02121319288932569,
+            0.022470713007249284,
+            0.026340664590013878
+          ],
+          "silentAfterClose": true
+        },
+        {
+          "tone": "meadow",
+          "seconds": 13.055419501133787,
+          "rms": 0.025237891167027866,
+          "peak": 0.10881763696670532,
+          "secondRms": [
+            0.03506651354915173,
+            0.0353740823345976,
+            0.03196268026738542,
+            0.003356275519156365,
+            0.029990951760022012,
+            0.03127243384331877,
+            0.028227477979641587,
+            0.0023043817478964916,
+            0.02002084812563407,
+            0.02121814136915771,
+            0.02372317654568726,
+            0.02661652854347157
+          ],
+          "silentAfterClose": true
+        },
+        {
+          "tone": "marsh",
+          "seconds": 13.055419501133787,
+          "rms": 0.02497518831525406,
+          "peak": 0.10457306355237961,
+          "secondRms": [
+            0.035091806943880526,
+            0.03531494189135645,
+            0.031932684666897686,
+            0.0031594508025192445,
+            0.029968075037109583,
+            0.0312589805412616,
+            0.028154632806643518,
+            0.0023578963707423903,
+            0.02001732430803087,
+            0.021214842636860073,
+            0.020831492437279914,
+            0.026019592378685123
+          ],
+          "silentAfterClose": true
+        },
+        {
+          "tone": "harvest",
+          "seconds": 13.055419501133787,
+          "rms": 0.024973946318527486,
+          "peak": 0.10715069621801376,
+          "secondRms": [
+            0.03502630284552234,
+            0.03536512719527223,
+            0.0319425838411603,
+            0.00327132901317027,
+            0.030033229161133917,
+            0.03120362379357662,
+            0.02819019286335209,
+            0.002299156572732545,
+            0.020017911867330547,
+            0.0212225395313566,
+            0.020778723789710945,
+            0.02599166567086381
+          ],
+          "silentAfterClose": true
+        }
+      ]
+    },
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "inSceneAudioControls": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "browserPlaybackAcceptance": "pending; cloud browser policy blocked local-file preview navigation; no workaround attempted",
+    "phoneLayoutAcceptance": "pending; 390px component fixture generated but not visually accepted",
+    "deviceNarrationAcceptance": "pending; voice availability varies by device",
+    "protectedAudioSourceAnonymousStatus": 401,
+    "gameplayOrPaymentRulesChanged": false,
+    "pricesOrSavesChanged": false,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false,
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "inSceneAudioControls": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      }
+    ]
+  },
+  "atlasNarrationRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "3014033f5b27de204e4f551755c97ed594de7a09",
+    "backendDeployId": "6aed1d41b9984721f41c8991",
+    "productionRoutingDeployId": "6aed1db0660a20a39814c4fe",
+    "previousProductionRoutingDeployId": "6aed035fb385f2f7869ac7f8",
+    "functionDigest": "8d5ae0e36e4d09bbea86bdfc31c47540bf81a5054e02c9969ccc146ddc9275bd",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 279,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42135354619,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "map": {
+      "campaignWaves": 60,
+      "harvestWaves": 5,
+      "regions": 7,
+      "paletteSource": "https://tree-token.xyz/",
+      "features": [
+        "Every authored wave, boss and defense milestone",
+        "Inspectable wave briefings without checkpoint skips",
+        "Separate campaign, Veteran and Harvest progress",
+        "Pause and manual Resume; confirmed travel starts at wave 1",
+        "Original TREE logo and local guardian/structure art",
+        "Scoped TREE website colors and project link"
+      ],
+      "sampleMapVisualApprovedByUser": true,
+      "holderGameplayAcceptance": "pending",
+      "phoneLayoutAcceptance": "pending"
+    },
+    "narration": {
+      "features": [
+        "Original Heroic announcer delivery",
+        "Natural storyteller alternative",
+        "English device voice picker",
+        "Audition current line and persist choices",
+        "Mute, lifecycle cancellation and manual story pacing retained"
+      ],
+      "previousAudioPlaybackConfirmedByUser": true,
+      "newDeliveryListeningAcceptance": "pending; available device voices vary"
+    },
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "mapDialogPresent": true,
+        "mapBrandPresent": true,
+        "narrationControlsPresent": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/tree-logo.jpg",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/oak-home.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/world-map.js",
+        "status": 401
+      },
+      {
+        "path": "src/world-map-view.js",
+        "status": 401
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "mapDialogPresent": true,
+        "mapBrandPresent": true,
+        "narrationControlsPresent": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/tree-logo.jpg",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "assets/brand/oak-home.png",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/world-map.js",
+        "status": 401
+      },
+      {
+        "path": "src/world-map-view.js",
+        "status": 401
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "packageAudit": {
+      "entries": 676,
+      "privateConfigFiles": [],
+      "credentialPatternMatches": 0
+    },
+    "userApprovedPublication": true,
+    "userExplicitlyApprovedNetlifyCliTeamAccess": true,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "distinctNarrationVoicesRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "1882f14f4943f6baebe4267259aecf56d0caaf93",
+    "backendDeployId": "6aed20aa0bad8c2073a200fd",
+    "productionRoutingDeployId": "6aed214310030737ba14c461",
+    "previousProductionRoutingDeployId": "6aed1db0660a20a39814c4fe",
+    "functionDigest": "bc52aa67b1fcdbfc7c008ef9cd7b372baabfc6464f5dd925a3df7f020bb32471",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 283,
+      "skipped": 1,
+      "failed": 0
+    },
+    "audioRegressionTests": 17,
+    "ci": {
+      "run": 42137783577,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "problem": "Heroic and Natural previously shared a voice and only changed rate/pitch.",
+    "changes": [
+      "Automatic chooses different actual English device voices when available",
+      "Independent remembered manual voice for each delivery",
+      "Show both resolved voice names in the story dialog",
+      "Disclose one-voice devices and identical manual selections",
+      "Migrate the former shared voice preference into the original active delivery",
+      "Deduplicate device voice records and preserve missing-voice fallback",
+      "Cancel/replay only the current line; preserve mute and manual story pacing"
+    ],
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "voiceInfoPresent": true,
+        "voicePickerLabel": true,
+        "mapStillPresent": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "voiceInfoPresent": true,
+        "voicePickerLabel": true,
+        "mapStillPresent": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "packageAudit": {
+      "entries": 676,
+      "privateConfigFiles": [],
+      "credentialPatternMatches": 0
+    },
+    "deviceListeningAcceptance": "pending; actual voice availability and timbre depend on the device",
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "continuousCutsceneRelease": {
+    "state": "live-test",
+    "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+    "sourceCommit": "db3151b61e90288eff903957b7ce59b7572b8cfa",
+    "backendDeployId": "6aed2753a92c1230e052b165",
+    "productionRoutingDeployId": "6aed2875aa8b27d1ef7d53a6",
+    "previousProductionRoutingDeployId": "6aed214310030737ba14c461",
+    "functionDigest": "79a374aef9771632a28fba7e8d2fc560b701e3ac9ef5fc0652e61b0a7d36cd2a",
+    "runtime": "nodejs24.x",
+    "region": "us-east-2",
+    "memoryMb": 1024,
+    "databaseBranch": "canopy-checkout-test",
+    "localTests": {
+      "passed": 286,
+      "skipped": 1,
+      "failed": 0
+    },
+    "ci": {
+      "run": 42140733703,
+      "conclusion": "success",
+      "jobs": [
+        "Linux",
+        "Windows",
+        "PostgreSQL 16"
+      ]
+    },
+    "functionsPreservedExactly": 43,
+    "schedulesPreservedExactly": 5,
+    "staticPathsRetained": 299,
+    "unchangedStaticFiles": 298,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "problem": "The presentation froze at 12 seconds; reduced-motion preference could make it static, and autofocus could hide the stage.",
+    "changes": [
+      "Initial three-shot introduction leads into an ongoing action loop",
+      "Grounded guardian lunges, moving seed shots and supporting defenders",
+      "Real enemy gait, hit recoil and bark/leaf fragments",
+      "Moving root signals and foreground leaves; peaceful renewal endings retained",
+      "Visible Device setting / Action animation / Reduced motion controls",
+      "Default OS motion preference and independent remembered user override",
+      "Sticky stage and initial Skip focus keep the animation visible",
+      "Presentation holds on hidden tabs, checkout and access loss; replay resets and close clears"
+    ],
+    "preview": {
+      "fileName": "Canopy-Defense-Action-Cutscene-Preview.mp4",
+      "durationSeconds": 20,
+      "frames": 480,
+      "width": 960,
+      "height": 420,
+      "codec": "h264",
+      "silent": true,
+      "bytes": 2603361,
+      "source": "Offline production painter and original local artwork; not authenticated browser acceptance"
+    },
+    "backendHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "motionControlsPresent": true,
+        "stageAutofocus": true,
+        "motionStatusPresent": true,
+        "mapAndVoiceInfoRetained": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/story-art.js",
+        "status": 401
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalHttpVerification": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "motionControlsPresent": true,
+        "stageAutofocus": true,
+        "motionStatusPresent": true,
+        "mapAndVoiceInfoRetained": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/story-art.js",
+        "status": 401
+      },
+      {
+        "path": "src/audio.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "transientProbeFailures": [
+      {
+        "path": "api/access",
+        "status": 503,
+        "resolvedOnRetry": true,
+        "finalStatus": 401
+      }
+    ],
+    "packageAudit": {
+      "entries": 676,
+      "privateConfigFiles": [],
+      "credentialPatternMatches": 0
+    },
+    "holderMotionAcceptance": "pending",
+    "phoneLayoutAcceptance": "pending",
+    "existingNarrationControlsRetained": true,
+    "mapRetained": true,
+    "productionDatabaseChanged": false,
+    "globalEnvironmentChanged": false,
+    "walletTransactionInitiated": false,
+    "regularGamePromoted": false
+  },
+  "retroCutscenes": {
+    "state": "live-test",
+    "sourceCommit": "193b9c2a608bb180c580568bfb861ff7e14b041f",
+    "receipt": "retro-cutscene-release-receipt.json"
+  },
+  "forestLoading": {
+    "state": "live-test",
+    "sourceCommit": "38fae2809f48302ea8adb7ef96976d490f03163c",
+    "receipt": "forest-loading-release-receipt.json"
+  },
+  "simpleCutscenes": {
+    "state": "live-test",
+    "sourceCommit": "234962801363e334c9bd26657ee775deab1b3dc1",
+    "receipt": "simple-cutscene-release-receipt.json"
+  },
+  "mobileShopLabel": {
+    "state": "live-test",
+    "sourceCommit": "5f8d8e2fee0dc018089f03cb4679789318564fcb",
+    "receipt": "mobile-shop-label-release-receipt.json"
+  },
+  "gameModeEntry": {
+    "state": "live-test",
+    "sourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
+    "receipt": "game-mode-entry-release-receipt.json"
+  },
+  "shopClarity": {
+    "state": "live-test",
+    "sourceCommit": "e0e5856bedeaa4817e070719a7e3951740b075c2",
+    "receipt": "game-mode-entry-release-receipt.json"
+  },
+  "modeEntrancePolish": {
+    "state": "live-test",
+    "sourceCommit": "4b67eae7a35c7a0202bb2c5f337823bf87adeeb3",
+    "receipt": "mode-entrance-polish-release-receipt.json"
+  },
+  "christmasTeaser": {
+    "state": "live-test",
+    "sourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "receipt": "harvest-orchard-release-receipt.json"
+  },
+  "harvestOrchard": {
+    "state": "live-test",
+    "sourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "receipt": "harvest-orchard-release-receipt.json"
   }
 }

@@ -5,12 +5,20 @@ the attack step. The old presentation then drew a projectile traveling for 0.32
 seconds, so a health bar or defeated pest could change before its visible hit.
 
 The painter now draws a resolved strike at the recorded impact point on its first
-frame. Pine and Watchtower use target-connected needle/bolt traces; Oak shows a
+frame. Pine uses a target-connected needle trace; Oak shows a
 root connection and impact ring; Palm shows a wind snare at the target; Mushroom
 shows its spore burst there; Cypress and Willow retain connected root/pulse
 strikes. Cannon shows an immediate blast with a faint ballistic afterimage,
 rather than a shell still in flight after its damage has happened. Traces fade
 over the existing 0.32-second presentation lifetime. They do not cause damage.
+
+Watchtower playtest correction: its former full-range bolt trace looked like a
+laser. It now shows a short physical arrow at the recorded hit, with a wooden
+shaft, feathered tail and metal head. Its size stays fixed at every range; no
+beam or muzzle glow joins it to the bow. The arrow points along the actual shot
+direction and fades with the same held effect clock. Existing immediate impact,
+final-kill, pause and reduced-motion behavior is preserved. Damage and attack
+cadence are unchanged.
 
 Reduced-motion rendering keeps the strike geometry fixed while fading it. It
 omits the muzzle flash and Cannon's moving burst fragments. Pause and modal
@@ -63,3 +71,13 @@ local assets. Browser entry was verified at the NFTree gate.
 Holder gameplay, phone layout and real TREE purchase/recovery acceptance remain
 pending. No wallet signature or payment was initiated. Full defender animation
 and replacement Raider/Sprayer artwork remain separate work.
+
+## Published Watchtower arrow correction
+
+The physical-arrow correction is live on checkout-test. Backend
+`6aecfb0e1a5fd6a3bea6ea62`, routing `6aecfbb27e7d4b9299fb819b`, source
+`a857124`. All 254 local tests pass, with one Windows-only skip on Linux; Linux,
+Windows and PostgreSQL CI passed. The actual painter was compared at long range
+and diagonal aim. All 43 existing production backend identities/configurations,
+five schedules and 299 static paths are retained; only the test rewrite changed.
+See [release evidence](../integration/tree-arcade/watchtower-arrow-release-receipt.json).

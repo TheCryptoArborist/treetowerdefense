@@ -1,0 +1,199 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-07T00:55:39.787201+00:00",
+  "sourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+  "backendDeployId": "6aee76184855bbd05e6ff42f",
+  "productionRoutingDeployId": "6aee769eb270ae5a44d02d78",
+  "previousProductionRoutingDeployId": "6aee7192706fb813309a2622",
+  "functionDigest": "e73ec82a82c631015d8ba9fc6616cfa45ef2f2297af15f4e5a5272703e1600a1",
+  "functionConfigurationPreserved": true,
+  "localTests": {
+    "passed": 325,
+    "skipped": 1,
+    "failed": 0
+  },
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "protectedSourceModules": 22,
+  "ci": [
+    {
+      "id": 42320710760,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42320706057,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "harvestVersion": 2,
+  "harvestMapId": "harvest-v2",
+  "legacyHarvestGeometryAndRulesPreserved": true,
+  "mechanics": [
+    "Seed thieves steal up to 8 Sap once at the middle cache",
+    "10 calm seconds followed by 4 seconds of +25% invader movement, using paused battle time",
+    "Harvester releases two seed thieves at 65% health and two at 30%; flags persist through reload and continue"
+  ],
+  "visuals": [
+    "Dedicated autumn orchard terrain and a new twelve-site route",
+    "Original guardian foliage palette plus fall uniforms for all eight defense types",
+    "New weevil, pumpkin beetle, maple moth, rot-gourd and Harvester atlas",
+    "Christmas teaser Oak Santa hat and Tree of Life lights/snow"
+  ],
+  "artAudit": {
+    "recolored": 538,
+    "unchangedNeutralFacePixels": 131,
+    "alphaUnchanged": true
+  },
+  "localArtPreview": "docs/harvest-orchard-preview.jpg",
+  "visualAcceptance": "local engine/art render inspected; authenticated hosted desktop/phone playtest pending",
+  "sapOnlyCompletion": {
+    "health": 100,
+    "defenders": 12,
+    "levels": 1,
+    "treeSpent": 0
+  },
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 302,
+  "unchangedStaticFiles": 301,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "backendHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true,
+        "christmasTeaser": true,
+        "harvestRuleReadout": true,
+        "festiveChristmasArtwork": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "liveHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "modeChooserPresent": true,
+        "modeDescriptions": true,
+        "savedBattleOption": true,
+        "campaignAndHarvest": true,
+        "clearSupplies": true,
+        "shopCategories": true,
+        "modesCommandCorrectDialog": true,
+        "christmasTeaser": true,
+        "harvestRuleReadout": true,
+        "festiveChristmasArtwork": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "src/modes.js",
+        "status": 401
+      },
+      {
+        "path": "src/shop.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "passed": true
+    },
+    "wrongOriginStatus": 403
+  },
+  "newArtHttp": [
+    {
+      "path": "assets/brand/christmas-chaos-preview-v2.webp",
+      "bytes": 525838,
+      "matchesSource": true
+    },
+    {
+      "path": "assets/brand/harvest-orchard-preview.jpg",
+      "bytes": 376022,
+      "matchesSource": true
+    },
+    {
+      "path": "assets/enemies/harvest-invaders-v2.webp",
+      "bytes": 537344,
+      "matchesSource": true
+    },
+    {
+      "path": "assets/environment/terrain-harvest-v2.webp",
+      "bytes": 632066,
+      "matchesSource": true
+    }
+  ],
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "christmasGameplayEnabled": false,
+  "christmasOpeningDate": "2026-11-27"
+}

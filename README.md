@@ -6,7 +6,7 @@ A playable, mobile-friendly tower-defense prototype for the TREE Arcade.
 
 ## Status
 
-This repository contains the **development preview**, not a mainnet launch. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. TREE balances and purchases remain simulated; the game sends no transactions, transfers no tokens, and awards no money or token rewards. Saved gameplay remains editable browser data. See [NFTree access](docs/nftree-access.md). The [TREE purchase ledger](docs/tree-payments.md) is implemented and tested separately; checkout and recovery integration are prepared for an isolated preview; hosted migration and real-wallet acceptance remain pending.
+This repository contains the **development preview**, not a final release. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. The regular `/play/canopy-defense/` route uses simulated TREE purchases. The isolated `/play/canopy-defense/checkout-test/` route spends real TREE plus SUI gas and uses its separate test database; it includes the hosted payment ledger and individual defender progression. Peter accepted the latest loading playtest; real-wallet purchase/recovery and a phone-wallet round trip remain pending. Saved battle progress stays in the browser; paid growth in checkout-test is server-owned. Neither route offers money or token rewards. See [NFTree access](docs/nftree-access.md), [TREE purchase ledger](docs/tree-payments.md), [checkout interruption rehearsal](docs/checkout-recovery-rehearsal.md), and [latest motion work](docs/combat-motion.md).
 
 ## TREE Arcade home
 
@@ -34,11 +34,41 @@ It always uses **http://127.0.0.1:5173** to keep browser saves on the same origi
 
 The server binds to localhost by default and serves only game assets. Do not double-click `index.html`; browser module loading requires the local server. `PORT` and `HOST` can be set explicitly for development.
 
+## Game modes
+
+Verified entry on checkout-test offers Campaign, Harvest seasonal challenge, and the existing
+saved battle. Choosing Campaign opens the map; continuing keeps the exact
+run. Harvest retains its unlock and replacement warning. The current mode is
+shown while playing. See [mode navigation](docs/game-mode-entry.md).
+
 ## Individual progression preview
 
 The new collection preview changes growth from species-wide to individual numbered defenders while preserving earlier species purchases. It retains the three current levels; ten-level/HQ/research progression is not yet implemented. Activation and migration details: [Individual defender collection](docs/individual-defenders.md). The regular game remains on its previous release.
 
 ## Fantasy forest build · v0.17
+
+- **1990s retro cutscenes:** original guardian artwork and faces in a 16-bit
+  story stage with whole-sprite pose cuts, scrolling forest layers, portrait
+  dialogue, pixel typography and an original pulse/triangle score. Scene motion
+  presentation follows device reduced motion automatically, with no settings
+  panel. Narration and dialogue play in sequence; Skip and Return remain. See
+  [cutscene presentation and verification](docs/action-cutscenes.md).
+
+- **The living frontier:** a scrollable world map includes all 60 campaign waves
+  and five Harvest waves, with scouting, bosses, defender milestones and saved
+  progress, styled with the TREE website's colors and original ecosystem art.
+  Wave markers inspect battles; region entry starts at wave 1. See
+  [world map behavior and release status](docs/world-map.md).
+
+- **Cutscene audio:** original music, forest effects and Heroic narration play
+  with fixed defaults, preferring Microsoft Mark en-US when available. Global
+  mute, skip and tab/access changes stop playback; leaving the scene stays
+  manual. See [simple cutscene behavior](docs/simple-cutscenes.md).
+
+- **Combat motion pass:** distinct grounded guardian follow-through, Watchtower
+  draw/reload, Cannon barrel recoil, directional human mini-bosses and
+  distance-driven insect steps. Existing art is animated procedurally; combat
+  timing and progression are unchanged. See [motion and validation](docs/combat-motion.md).
 
 - **Strike feedback matches damage timing:** hits now show their target-connected
   strike and impact immediately, followed by a fading trace. Cannon uses an

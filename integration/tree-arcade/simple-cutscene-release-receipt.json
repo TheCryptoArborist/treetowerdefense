@@ -1,0 +1,157 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-06T05:24:04.208560+00:00",
+  "sourceCommit": "234962801363e334c9bd26657ee775deab1b3dc1",
+  "repository": "https://github.com/TheCryptoArborist/treetowerdefense",
+  "branch": "feature/canopy-motion-publication-20261105",
+  "backendDeployId": "6aed630d633573778e46f39b",
+  "productionRoutingDeployId": "6aed63aa82fdd1d950dcb5ed",
+  "previousProductionRoutingDeployId": "6aed50085e7465e17b0df3a2",
+  "functionDigest": "fcc9b3bd03e1de3d8e08d503588e6b7a80ad53f6e96bc2465ca1af79bc29f0bd",
+  "packageMatchesLiveDigest": true,
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "databaseBranch": "canopy-checkout-test",
+  "pendingMigrations": [],
+  "localTests": {
+    "passed": 311,
+    "skipped": 1,
+    "failed": 0
+  },
+  "focusedNewRegressions": 6,
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "ci": {
+    "run": 42167552365,
+    "conclusion": "success",
+    "sourceCommit": "234962801363e334c9bd26657ee775deab1b3dc1"
+  },
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "behavior": [
+    "Cutscene dialog contains only Skip and Return/results",
+    "No motion, narration, delivery, device voice, replay or show-story settings",
+    "Heroic narration prefers Microsoft Mark en-US for narrator and guardians; English device fallback",
+    "Narration flows automatically into dialogue on the held presentation clock",
+    "System reduced motion and existing global mute retained",
+    "Close/skip stops speech and scene audio; no later wave starts automatically",
+    "Original guardian art, retro animation, captions and score preserved"
+  ],
+  "backendHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "cutsceneButtons": [
+        "story-skip",
+        "story-next"
+      ],
+      "configurationFields": 0
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/story-playback.js",
+      "status": 401
+    },
+    {
+      "path": "src/app.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "canonicalHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "cutsceneButtons": [
+        "story-skip",
+        "story-next"
+      ],
+      "configurationFields": 0
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/story-playback.js",
+      "status": 401
+    },
+    {
+      "path": "src/app.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "browserVerification": {
+    "gate": "rendered",
+    "cutsceneButtons": [
+      "story-skip",
+      "story-next"
+    ],
+    "cutsceneConfigurationFields": 0,
+    "authenticatedSceneOpened": false,
+    "limitation": "No connected holder wallet; hidden dialog DOM inspected, not authenticated playback or device listening"
+  },
+  "holderVisualAcceptance": "accepted by Peter",
+  "deviceListeningAcceptance": "not separately described in holder acceptance; device voices vary",
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "holderFunctionalAcceptance": "accepted by Peter",
+  "holderAcceptance": {
+    "reportedOn": "2026-11-06",
+    "statement": "That looks and functions a lot better.",
+    "scope": "Simplified cutscene appearance and function",
+    "device": "unspecified"
+  },
+  "realPurchaseAndRecoveryAcceptance": "pending",
+  "followupLiveChecks": {
+    "checkedOn": "2026-11-06",
+    "gateStatus": 200,
+    "cutsceneConfigurationFields": 0,
+    "cutsceneButtons": [
+      "story-skip",
+      "story-next"
+    ],
+    "unauthenticatedAccessStatus": 401,
+    "unauthenticatedPaymentsStatus": 401,
+    "unauthenticatedPlaybackSourceStatus": 401
+  }
+}

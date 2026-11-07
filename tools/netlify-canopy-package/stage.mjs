@@ -5,7 +5,7 @@ import {validateZip} from './zip.mjs';
 export async function stageCanopyPackage({packageDir,dist}){
  const manifest=JSON.parse(await fs.readFile(path.join(packageDir,'manifest.json'),'utf8'));
  assert.equal(manifest.functions.length,1,'Only the isolated Canopy package may be staged');
- const fn=manifest.functions[0];assert.equal(fn.name,'canopy-access');assert.equal(fn.invocationMode,'stream');assert.equal(fn.runtimeVersion,'nodejs22.x');
+ const fn=manifest.functions[0];assert.equal(fn.name,'canopy-access');assert.equal(fn.invocationMode,'stream');assert.equal(fn.runtimeVersion,'nodejs24.x');
  const bytes=await fs.readFile(path.join(packageDir,'canopy-access.zip'));
  const names=validateZip(bytes);assert(names.has('___netlify-entry-point.mjs'));assert(names.has('netlify/functions/canopy-access.mjs'));
  const target=path.resolve(dist,'canopy-access.zip');await fs.mkdir(dist,{recursive:true});

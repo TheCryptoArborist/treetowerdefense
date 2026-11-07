@@ -1,0 +1,112 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "recordedAt": "2026-11-06T22:39:14.244747+00:00",
+  "sourceCommit": "5f8d8e2fee0dc018089f03cb4679789318564fcb",
+  "backendDeployId": "6aee55a32a8067ba11f6bd85",
+  "productionRoutingDeployId": "6aee5647a4159f1459b094f8",
+  "previousProductionRoutingDeployId": "6aed63aa82fdd1d950dcb5ed",
+  "functionDigest": "fcc9b3bd03e1de3d8e08d503588e6b7a80ad53f6e96bc2465ca1af79bc29f0bd",
+  "functionPackageByteIdenticalToPreviousRelease": true,
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "databaseBranch": "canopy-checkout-test",
+  "pendingMigrations": [],
+  "behavior": "Cannon command now says Shop & upgrades in its main label; mobile hides the small subtitle. The same command opens the existing TREE shop.",
+  "tests": {
+    "passed": 311,
+    "skipped": 1,
+    "failed": 0
+  },
+  "syntaxCheck": "passed",
+  "protectedBuild": "passed",
+  "ci": {
+    "run": 42221352277,
+    "conclusion": "success",
+    "sourceCommit": "5f8d8e2fee0dc018089f03cb4679789318564fcb"
+  },
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "backendHttp": {
+    "paths": [
+      {
+        "path": "index.html",
+        "status": 200,
+        "shopLabelPresent": true,
+        "oldLabelAbsent": true
+      },
+      {
+        "path": "gateway.js",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "styles.css",
+        "status": 200,
+        "matchesSource": true
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      }
+    ],
+    "canonicalOriginMode": {
+      "status": 400,
+      "error": "Invalid sign-in proof",
+      "passed": true
+    }
+  },
+  "liveHttp": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "newShopLabel": true,
+      "oldLabelAbsent": true
+    },
+    {
+      "path": "gateway.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "src/app.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    },
+    {
+      "path": "api/payments",
+      "status": 401
+    }
+  ],
+  "mobileWalletConnectionAcceptance": "User reported success",
+  "mobileNftreeVerificationAcceptance": "User reported success",
+  "realPurchaseAndRecoveryAcceptance": "pending",
+  "holderAcceptanceOfNewLabel": "pending",
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "deploymentCommandCorrection": "Use normal shell build-environment assignments with documented deploy flags; --env is not supported by the installed CLI. Netlify login was reauthorized. No environment-variable listing was used for this release."
+}

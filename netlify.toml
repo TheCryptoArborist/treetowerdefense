@@ -2,7 +2,7 @@
   command = "npm run build:gate && node tools/prepare-checkout-preview.mjs"
   publish = ".netlify/checkout-site"
 [build.environment]
-  AWS_LAMBDA_JS_RUNTIME = "nodejs22.x"
+  AWS_LAMBDA_JS_RUNTIME = "nodejs24.x"
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

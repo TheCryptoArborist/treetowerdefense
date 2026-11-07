@@ -9,6 +9,9 @@ import {readFile,readdir} from 'node:fs/promises';
 import {transactionDatabase} from '../server/payments/database.mjs';
 import {createPurchaseLedger} from '../server/payments/ledger.mjs';
 import {TREE_TYPE} from '../server/payments/tree.mjs';
+import {checkoutRehearsal} from './helpers/checkout-rehearsal.mjs';
+import {Game} from '../src/engine.js';
+import {applyEntitlement} from '../src/paid.js';
 let pool;
 const testURL=process.env.CANOPY_TEST_DATABASE_URL;
 if(testURL){const url=new URL(testURL);if(!['localhost','127.0.0.1'].includes(url.hostname)||url.pathname!=='/canopy_ledger_test')throw Error('Use only the dedicated local test database');pool=new pg.Pool({connectionString:testURL});}
@@ -94,4 +97,72 @@ test('individual upgrade rollback leaves both inventory and invoice unchanged',a
  const s=setup(true),q=await s.ledger.quote('valid',{product:'growth',species:'cannon',defenderSlot:4});await bind(s,q,freshDigest());
  const broken=createPurchaseLedger({...s.deps,database:{query:(...args)=>db.query(...args),transaction:fn=>db.transaction(tx=>fn({query:(sql,args)=>{if(sql.startsWith('INSERT INTO canopy_payments.entitlements'))throw Error('Injected write failure');return tx.query(sql,args);}}))}});
  await assert.rejects(broken.redeem('valid',q.id),/write failure/);assert.equal((await s.ledger.collection('valid')).defenders[0].level,1);assert.equal((await s.ledger.history('valid'))[0].status,'bound');
+});
+
+async function oneReceiptAndEntitlement(id){
+ for(const table of ['receipts','entitlements']){
+  const result=await db.query(`SELECT count(*) AS n FROM canopy_payments.${table} WHERE invoice_id=$1`,[id]);
+  assert.equal(Number(result.rows[0].n),1,table+' must contain one grant');
+ }
+}
+test('full checkout recovers a lost bind response after reload without another signature',async()=>{
+ const s=checkoutRehearsal(db),q=await s.request('quote',{product:'growth',species:'pine',defenderSlot:0}),flow=s.flow();
+ s.dropResponse('bind');await assert.rejects(flow.pay(q),/Recording signed payment: Injected lost bind/);
+ assert.equal(flow.pending,q.id);await assert.rejects(flow.pay(q));
+ assert.equal(s.signedPayments.length,1);assert.equal(s.submissions.length,0);
+ assert.equal((await s.request()).invoices[0].status,'bound');
+ const item=await s.flow().resume(q.id);
+ assert.equal(item.defender_slot,0);assert.equal(s.signedPayments.length,1);
+ assert.equal(s.submissions.length,1);assert.deepEqual(s.submissions[0].signed,s.signedPayments[0]);
+ assert.equal((await s.request()).collection.defenders[0].level,2);
+ await oneReceiptAndEntitlement(q.id);
+});
+test('full checkout checks a lost submission response without broadcasting again or upgrading twice',async()=>{
+ const s=checkoutRehearsal(db),q=await s.request('quote',{product:'growth',species:'oak',defenderSlot:3});
+ s.dropResponse('submit');await assert.rejects(s.flow().pay(q),/Submitting recorded payment: Injected lost submit/);
+ assert.equal(s.transactions.size,1);assert.equal((await s.request()).invoices[0].status,'bound');
+ const [a,b]=await Promise.all([s.flow().recover(q.id),s.flow().recover(q.id)]);
+ assert.equal(a.id,b.id);assert.equal(s.signedPayments.length,1);assert.equal(s.submissions.length,1);
+ const status=await s.request(),game=new Game();game.allowPreview();
+ assert(game.applyPurchasedCollection(status.growth,status.collection.defenders));
+ assert.equal(game.collection.levels.oak[3],2);assert.equal(game.collection.levels.oak[2],1);
+ await oneReceiptAndEntitlement(q.id);
+});
+test('a lost paid receipt response recovers the same supply and skips execution on resume',async()=>{
+ const s=checkoutRehearsal(db),run=await s.request('run'),q=await s.request('quote',{product:'shield',runId:run.id});
+ s.dropResponse('redeem');await assert.rejects(s.flow().pay(q),/Checking payment receipt: Injected lost redeem/);
+ const status=await s.request();assert.equal(status.invoices[0].status,'paid');
+ const item=await s.flow().resume(q.id);assert.equal(item.id,status.entitlements[0].id);
+ assert.equal(s.signedPayments.length,1);assert.equal(s.submissions.length,1);
+ await s.request('consume',{id:item.id,runId:run.id});
+ const game=new Game();game.allowPreview();const applied=new Set();
+ assert(applyEntitlement(game,item,{wallet:s.wallet,runId:run.id,applied}));assert.equal(game.shield,50);
+ game.shield=20;assert(applyEntitlement(game,item,{wallet:s.wallet,runId:run.id,applied}));assert.equal(game.shield,20);
+ await oneReceiptAndEntitlement(q.id);
+});
+test('a lost continue-consumption response restores the saved battle once after reload',async()=>{
+ const s=checkoutRehearsal(db),run=await s.request('run'),q=await s.request('quote',{product:'continue',runId:run.id});
+ const item=await s.flow().pay(q),game=new Game();game.allowPreview();game.phase='defeat';game.health=0;
+ const before=JSON.stringify({game:game.snapshot(),runId:run.id,applied:[]});
+ s.dropResponse('consume');await assert.rejects(s.request('consume',{id:item.id,runId:run.id}),/lost consume/);
+ const saved=JSON.parse(before),restored=Game.restore(saved.game),applied=new Set(saved.applied);assert(restored);
+ const recovered=await s.flow().recover(q.id),consumed=await s.request('consume',{id:recovered.id,runId:saved.runId});
+ assert.equal(consumed.alreadyConsumed,true);
+ assert(applyEntitlement(restored,recovered,{wallet:s.wallet,runId:saved.runId,applied}));
+ assert.equal(restored.phase,'running');assert.equal(restored.health,100);assert.equal(restored.runReport.continues,1);
+ const after=JSON.parse(JSON.stringify({game:restored.snapshot(),runId:saved.runId,applied:[...applied]})),again=Game.restore(after.game);assert(again);
+ // A subsequent defeat cannot reuse the already-applied continue from history.
+ again.phase='defeat';again.health=0;
+ assert(applyEntitlement(again,recovered,{wallet:s.wallet,runId:after.runId,applied:new Set(after.applied)}));
+ assert.equal(again.phase,'defeat');assert.equal(again.health,0);assert.equal(again.runReport.continues,1);
+ assert.equal(s.submissions.length,1);assert.equal(s.signedPayments.length,1);await oneReceiptAndEntitlement(q.id);
+});
+test('delayed indexing keeps a bound checkout recoverable after quote expiry and rejects an absent session',async()=>{
+ const s=checkoutRehearsal(db),q=await s.request('quote',{product:'growth',species:'palm',defenderSlot:1});
+ s.setIndexed(false);await assert.rejects(s.flow().pay(q),/Checking payment receipt/);
+ const status=await s.request();assert.equal(status.invoices[0].status,'bound');assert.equal(status.entitlements.length,0);assert.equal(status.collection.defenders[0].level,1);
+ await assert.rejects(s.request('redeem',{id:q.id},'another-holder'),e=>e.status===401);
+ s.advance(600001);s.setIndexed(true);await s.flow().recover(q.id);
+ assert.equal((await s.request()).collection.defenders[0].level,2);
+ assert.equal(s.signedPayments.length,1);assert.equal(s.submissions.length,1);await oneReceiptAndEntitlement(q.id);
 });

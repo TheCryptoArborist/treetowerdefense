@@ -1,4 +1,4 @@
-import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance } from './engine.js';
+import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance, harvestWind } from './engine.js';
 
 import { paintTree as shapeTree, paintLifeTree, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
@@ -10,7 +10,13 @@ import {CAMPAIGN_LEVELS,campaignLevelState,levelUnlockText,beginCampaignLevel,co
 import { GuardianAiming, GUARDIAN_SCALE } from './aiming.js';
 import {createStoryDirector,storyCheckpoint} from './story.js';
 import {createStoryAnimation} from './story-art.js';
+import {createStoryPlayback} from './story-playback.js';
+import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
+import {createShopView} from './shop.js';
+import {createModePicker,hasBattleToReplace,modeName} from './modes.js';
+import {createWorldMap} from './world-map-view.js';
+import {waitForForestArt} from './asset-loading.js';
 
 const $ = id => document.getElementById(id);
 const holder=window.canopyAccess?.account;
@@ -22,6 +28,7 @@ const paidSavePrefix=location.pathname==='/play/canopy-defense/checkout-test/'?'
 const STORAGE_KEY = (paidMode?paidSavePrefix:'canopy-defense-wallet-v1:')+holder.address;
 let paidRunId=null,appliedPayments=new Set(),checkoutBusy=false,paidInvoice=null;
 let paidReview=null;
+let modePicker=null,modeEntryShown=false,restoredBattle=false;
 let game = new Game();
 const feedback = new CombatFeedback();
 const aiming = new GuardianAiming();
@@ -39,11 +46,11 @@ try {
     const parsed=JSON.parse(saved);
     if(paidMode){paidRunId=parsed.runId;appliedPayments=new Set(Array.isArray(parsed.applied)?parsed.applied:[]);}
     const restored = Game.restore(paidMode?parsed.game:parsed);
-    if (restored) game = restored;
+    if (restored) {game = restored;restoredBattle=true;}
     else game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.';
   }
 } catch { game.message = 'An unreadable preview save was skipped. Your fresh forest is ready.'; }
-if(paidMode&&!saved){try{const legacy=localStorage.getItem('canopy-defense-wallet-v1:'+holder.address);if(legacy){const restored=Game.restore(JSON.parse(legacy));if(restored)game=restored;}}catch{}}
+if(paidMode&&!saved){try{const legacy=localStorage.getItem('canopy-defense-wallet-v1:'+holder.address);if(legacy){const restored=Game.restore(JSON.parse(legacy));if(restored){game=restored;restoredBattle=true;}}}catch{}}
 game.access=false;game.allowPreview(holder.rarity);
 if(paidMode){if(!paidRunId)paidRunId=(await payments.newRun()).id;loadPurchasedGrowth(initialPayments);game.tree=Number((await payments.balance())/1000000n);}
 
@@ -53,7 +60,7 @@ function loadPurchasedGrowth(status){
  if(!ok)throw Error('Defender collection could not be loaded. Reconnect before purchasing.');
 }
 let deploymentChoice={type:null,slot:null};
-window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;}else{game.allowPreview(account.rarity);}renderUI();});
+window.canopyAccess.subscribe(account=>{if(!account||account.address!==holder.address){if(game.phase==='running')game.pause();game.access=false;if($('mode-dialog').open){modeEntryShown=false;$('mode-dialog').close();}}else{game.allowPreview(account.rarity);}renderUI();if(account?.address===holder.address&&!$('game-shell').hidden&&!modeEntryShown&&modePicker){modeEntryShown=modePicker.open(null,{initial:true,saved:restoredBattle});}});
 let selectedType = 'pine';
 let selectedTower = null;
 let hoveredPad = null;
@@ -68,35 +75,51 @@ const accessDialog = $('access-dialog');
 const helpDialog = $('help-dialog');
 const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
+const worldMapDialog=$('world-map-dialog');
+const modeDialog=$('mode-dialog');
+let worldMap=null;
 const storyAnimation=createStoryAnimation();
-let storyEnabled=true,storyBeat=0,activeScene=null;
-try{storyEnabled=localStorage.getItem('canopy-story-enabled')!=='false';}catch{}
-$('story-enabled').checked=storyEnabled;
-$('story-enabled').onchange=()=>{storyEnabled=$('story-enabled').checked;try{localStorage.setItem('canopy-story-enabled',String(storyEnabled));}catch{}};
+let audioStorage;try{audioStorage=localStorage;}catch{}
+const storyMotion=matchMedia('(prefers-reduced-motion: reduce)');
+const storyPlayback=createStoryPlayback();
+const gameAudio=createGameAudio({AudioContext:window.AudioContext||window.webkitAudioContext,
+ speech:window.speechSynthesis,Utterance:window.SpeechSynthesisUtterance,storage:audioStorage,simpleCutscenes:true,onChange:renderAudioState});
+function renderAudioState(){
+ const s=gameAudio.state,button=$('sound-button');
+ button.textContent=!s.available?'Audio unavailable':s.ready?'Sound on':'Enable sound';
+ button.setAttribute('aria-pressed',String(s.ready));button.disabled=!s.available;
+ button.title=s.ready?'Mute music, effects and narration':'Enable music, effects and narration';
+}
+$('sound-button').addEventListener('click',()=>{void gameAudio.toggle();});
+renderAudioState();
+window.canopyAccess.subscribe(account=>gameAudio.setHidden(document.hidden||!account||account.address!==holder.address));
+let storyBeat=0,activeScene=null;
 function renderStoryBeat(){
  $('story-text').textContent=storyBeat===0?activeScene.narration:`“${activeScene.dialogue}”`;
- $('story-next').textContent=storyBeat===0?'Hear your guardian →':activeScene.ending?'See chapter results →':'Return to the battlefield →';
+ $('story-next').textContent=activeScene.ending?'See chapter results →':'Return to the battlefield →';
  $('story-speaker').textContent=storyBeat===0?'THE FOREST REMEMBERS':TOWERS[activeScene.speaker].name;
+ gameAudio.setBeat(storyBeat);
 }
 const stories=createStoryDirector({dialog:storyDialog,getGame:()=>game,
- blocked:()=>checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open,
- enabled:()=>storyEnabled,
- render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
- onClose:()=>{storyAnimation.clear();save();renderUI();focusControl($('wave-button'));}
+ blocked:()=>!modeEntryShown||checkoutBusy||purchaseDialog.open||helpDialog.open||accessDialog.open||worldMapDialog.open||modeDialog.open,
+ render:scene=>{activeScene=scene;storyBeat=0;storyAnimation.reset(scene);storyPlayback.reset(scene);gameAudio.openScene(scene);storyDialog.dataset.tone=scene.tone;$('story-title').textContent=scene.title;$('story-chapter').textContent=scene.chapter;$('story-stage-label').textContent=scene.eyebrow;$('story-hint').textContent=scene.hint;$('story-cinema').setAttribute('aria-label',`${scene.title}: ${TOWERS[scene.speaker].name} protects the Tree of Life${scene.enemyName?' as '+scene.enemyName+' approaches':''}.`);renderStoryBeat();},
+ onClose:()=>{gameAudio.closeScene();storyAnimation.clear();storyPlayback.clear();save();renderUI();focusControl($('wave-button'));}
 });
-$('story-next').onclick=()=>{if(storyBeat===0){storyBeat=1;renderStoryBeat();}else stories.close();};
+$('story-next').onclick=()=>stories.close();
 $('story-skip').onclick=()=>stories.close();
-$('story-replay').onclick=()=>stories.open(storyCheckpoint(game),{replay:true});
+$('story-replay').onclick=()=>{if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();stories.open(storyCheckpoint(game),{replay:true});};
 function sendWave(){
- if(storyDialog.open||checkoutBusy)return;
+ if(!modeEntryShown||storyDialog.open||worldMapDialog.open||modeDialog.open||checkoutBusy)return;
+ if(gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();
  if(game.phase==='build'&&game.wave===0&&stories.open(0,{after:()=>{if(game.phase==='build'&&game.wave===0&&game.access&&!checkoutBusy)act(()=>game.startWave());}}))return;
  act(()=>game.startWave());
 }
-const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open,
+const shopView=createShopView({root:document.querySelector('[data-command-panel="shop"]'),getGame:()=>game,paidMode});
+const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open||modeDialog.open,
  render:section=>{renderCommandWindow(section);renderUI();},save,
  returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
-function openCommand(section,trigger=document.activeElement){commandMenu.open(section,trigger);}
+function openCommand(section,trigger=document.activeElement){if(commandMenu.open(section,trigger)){if(section==='shop')shopView.reset();helpDialog.scrollTop=0;}}
 document.querySelectorAll('[data-open-command]').forEach(button=>button.addEventListener('click',()=>openCommand(button.dataset.openCommand,button)));
 document.querySelectorAll('[data-command-tab]').forEach(button=>button.addEventListener('click',()=>openCommand(button.dataset.commandTab)));
 $('deploy-selected').addEventListener('click',()=>{if(selectedType&&game.isUnlocked(selectedType))commandMenu.close(canvas);});
@@ -141,14 +164,14 @@ for (const [i, type] of Object.keys(TOWERS).entries()) {
   button.setAttribute('aria-label', `${d.name}: ${d.role}, ${d.cost} Sap. ${d.description}`);
   button.innerHTML = `<span class="tree-icon"><canvas width="144" height="176" aria-hidden="true"></canvas></span><span><strong>${d.name}</strong><small class="roster-role">${d.role}</small><b>${d.cost} SAP</b><span class="roster-progress"></span><progress class="unlock-track" max="1" value="0" hidden></progress></span><kbd>${i + 1}</kbd>`;
   button.addEventListener('click', () => selectDefender(type));
-  shapeTree(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
+  paintModeDefender(button.querySelector('canvas').getContext('2d'), type, 72, 150, 1.08, 0, game.forest.levels[type]);
   $('tower-cards').append(button);
 }
 for (const [i, style] of STYLES.entries()) {
   const button = document.createElement('button'); button.className = 'style-card'; button.dataset.style = i;
   button.setAttribute('aria-label', `${RARITIES[i]}: ${style.name}. ${style.detail}`);
   button.innerHTML = `<canvas width="128" height="128" aria-hidden="true"></canvas><strong>${style.name}</strong><small>${RARITIES[i]}</small><span class="lock" aria-hidden="true">◆</span>`;
-  shapeTree(button.querySelector('canvas').getContext('2d'), 'oak', 64, 100, 1, i);
+  paintModeDefender(button.querySelector('canvas').getContext('2d'), 'oak', 64, 100, 1, i);
   button.addEventListener('click', () => {
     if (game.setStyle(i, selectedTower)) { game.message = `${style.name} appearance selected. Combat stats stay the same.`; save(); renderUI(); }
   }); $('style-grid').append(button);
@@ -192,7 +215,7 @@ $('preview-button').addEventListener('click', () => { if(game.phase==='running')
 $('help-button').addEventListener('click',()=>openCommand('guide',$('help-button')));
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
-  if(storyDialog.open)return;
+  if(storyDialog.open||modeDialog.open)return;
   if(paidMode)return reviewPaidPurchase(kind,towerId);
   if (purchaseDialog.open) return;
   pendingPurchase = new PurchaseReview(game, kind, towerId);
@@ -337,7 +360,7 @@ if(paidMode){
 
 async function newRun() {
   if(checkoutBusy)return false;
-  if (game.wave > 0 && !['victory', 'defeat'].includes(game.phase) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent defender growth and chapter progress are kept.')) return false;
+  if (hasBattleToReplace(game) && !confirm('Start a fresh run? This clears your current battlefield. Your permanent defender growth and chapter progress are kept.')) return false;
   if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
   game.newRun(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
@@ -357,7 +380,7 @@ $('reset-button').addEventListener('click', async() => {
   game = new Game();game.enableCollection();game.allowPreview(window.canopyAccess.account.rarity); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; backdropKey = ''; cardSignature = ''; guideStatus = 'active'; showGuideCompletion = false; saveGuide(); save(); renderUI(); accessDialog.showModal();
 });
 document.addEventListener('keydown', event => {
-  if (storyDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
+  if (storyDialog.open || worldMapDialog.open || modeDialog.open || accessDialog.open || helpDialog.open || purchaseDialog.open || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'SUMMARY'].includes(event.target.tagName)) return;
   const index = Number(event.key) - 1;
   if (index >= 0 && index < Object.keys(TOWERS).length && Number.isInteger(index)) {
     selectDefender(Object.keys(TOWERS)[index]);
@@ -365,29 +388,48 @@ document.addEventListener('keydown', event => {
   else if (event.key.toLowerCase() === 'n') sendWave();
   else if (event.key === 'Escape') { selectedTower = null; selectedType = null; renderUI(); }
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
+document.addEventListener('visibilitychange', () => { gameAudio.setHidden(document.hidden||!game.access);if (document.hidden && game.phase === 'running') { game.pause(); save(); renderUI(); } lastTime = performance.now(); });
 window.addEventListener('pagehide', save);
+window.addEventListener('pagehide',()=>gameAudio.silence());
 
 for(const level of CAMPAIGN_LEVELS){
  const button=document.createElement('button');button.className='chapter-button';button.dataset.level=level.number;
  button.innerHTML=`<span class="chapter-number">${level.number}</span><span><strong>${level.name}</strong><small>${level.difficulty==='veteran'?'VETERAN':'CAMPAIGN'}</small></span><span class="chapter-stars">☆☆☆</span>`;
- button.addEventListener('click',()=>selectLevel(level.number));$('chapter-trail').append(button);
+ button.addEventListener('click',()=>worldMap?.selectRegion('level-'+level.number));$('chapter-trail').append(button);
 }
 async function selectLevel(number){
- const level=CAMPAIGN_LEVELS.find(l=>l.number===number);if(!level||checkoutBusy||!campaignLevelState(game,level).unlocked)return;
- if(game.wave>0&&!['defeat','victory'].includes(game.phase)&&!confirm('Travel to level '+number+'? Your current battle resets. Permanent growth and forest progress are kept.'))return;
+ const level=CAMPAIGN_LEVELS.find(l=>l.number===number);if(!level||checkoutBusy||!campaignLevelState(game,level).unlocked)return false;
+ if(hasBattleToReplace(game)&&!confirm('Start level '+number+'? This replaces your current battlefield and run-only supplies. Permanent upgrades and campaign progress stay saved.'))return false;
  try{
-  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if(beginCampaignLevel(game,number)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);}
+  const nextRun=paidMode?await payments.newRun():null;
+  if(beginCampaignLevel(game,number)){if(nextRun){paidRunId=nextRun.id;appliedPayments=new Set();}feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];showGuideCompletion=false;save();renderUI();focusControl(canvas);return true;}
  }catch(error){game.message=error.message;renderUI();}
+ return false;
 }
 $('next-chapter').addEventListener('click',()=>{const action=completionAction(game);if(action)selectLevel(action.number);});
-$('enter-event').addEventListener('click',async()=>{
-  if(checkoutBusy)return;
-  if(game.wave>0 && !['victory','defeat'].includes(game.phase) && !confirm('Enter Harvest of the Canopy? This replaces the current battlefield. Campaign progress, growth and earned rewards stay.'))return;
-  if(paidMode){paidRunId=(await payments.newRun()).id;appliedPayments=new Set();}
-  if(game.startEvent(HARVEST_CANOPY.id)){feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();commandMenu.close(canvas);focusControl(canvas);}
+$('enter-event').addEventListener('click',()=>{void enterHarvest();});
+async function enterHarvest(){
+  if(checkoutBusy||!game.access||!game.forest.stars[0])return false;
+  if(hasBattleToReplace(game) && !confirm('Start a new Harvest run? This replaces your current battlefield and run-only supplies. Campaign progress, permanent upgrades and earned rewards stay saved.'))return false;
+  try{
+  const nextRun=paidMode?await payments.newRun():null;
+  if(game.startEvent(HARVEST_CANOPY.id)){if(nextRun){paidRunId=nextRun.id;appliedPayments=new Set();}feedback.clear();aiming.clear();selectedTower=null;selectedType='pine';particles=[];floaters=[];closeGuide();save();renderUI();commandMenu.close(canvas);focusControl(canvas);return true;}
+  }catch(error){game.message=error.message;renderUI();}
+  return false;
+}
+worldMap=createWorldMap({dialog:worldMapDialog,getGame:()=>game,
+ blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||helpDialog.open||accessDialog.open,
+ onTravel:selectLevel,onSeason:enterHarvest,save,
+ returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
+document.querySelectorAll('[data-open-world-map]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();worldMap.open(button);}));
+modePicker=createModePicker({dialog:modeDialog,getGame:()=>game,
+ blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||helpDialog.open||worldMapDialog.open||accessDialog.open,
+ onSelect:kind=>kind==='harvest'?enterHarvest():true,
+ onSelected:(kind,trigger)=>{modeEntryShown=true;renderUI();if(kind==='campaign'){const level=game.chapter+(game.isVeteran?4:1);if(worldMap.open(trigger))worldMap.selectRegion('level-'+level);}else focusControl(game.phase==='paused'?$('pause-button'):game.phase==='defeat'?$('continue-button'):canvas);},save
+});
+document.querySelectorAll('[data-open-modes]').forEach(button=>button.addEventListener('click',()=>modePicker.open(button)));
+
 for(const[id,type]of [['copper-look','oak'],['harvest-tower-look','watchtower'],['amber-look','tree']])$(id).addEventListener('change',event=>act(()=>game.setHarvestLook(type,event.target.checked)));
 let seasonArtSignature='';
 function renderSeason(){
@@ -402,40 +444,16 @@ function renderSeason(){
   $('season-access').textContent=game.forest.stars[0]?'Unlocked · five waves · campaign roster and permanent growth available':'Unlock by protecting Emerald Crossing.';
   const signature=getAimArtStatus().loaded.length+':'+getStructureArtStatus().loaded.length+':'+getDefenderArtStatus().loaded.length;
   if(signature!==seasonArtSignature){
-    for(const[id,type]of [['copper-preview','oak'],['harvest-tower-preview','watchtower'],['amber-preview','tree']]){const c=$(id).getContext('2d');c.clearRect(0,0,144,176);if(type==='tree')paintLifeTree(c,'oak',72,150,1.08,0,1,0);else shapeTree(c,type,72,150,1.08,0,1);paintHarvestLook(c,type,72,150,1.08);}
+    for(const[id,type]of [['copper-preview','oak'],['harvest-tower-preview','watchtower'],['amber-preview','tree']]){const c=$(id).getContext('2d');c.clearRect(0,0,144,176);if(type==='tree')paintLifeTree(c,'oak',72,150,1.08,0,1,0);else paintModeDefender(c,type,72,150,1.08,0,1);paintHarvestLook(c,type,72,150,1.08);}
     seasonArtSignature=signature;
   }
 }
-let sound = false, audio = null, lastTone = 0;
-$('sound-button').addEventListener('click', () => {
-  try {
-    sound = !sound;
-    if (sound) { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); }
-    $('sound-button').textContent = sound ? 'Sound on' : 'Sound off'; $('sound-button').setAttribute('aria-pressed', String(sound));
-    if (sound) tone(420, .15);
-  } catch { sound = false; $('sound-button').textContent = 'Sound unavailable'; $('sound-button').disabled = true; }
-});
-function tone(frequency, duration = .08) {
-  if (!sound || !audio || audio.state !== 'running' || document.hidden) return;
-  const oscillator = audio.createOscillator(), gain = audio.createGain();
-  oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(frequency, audio.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(frequency * .6, audio.currentTime + duration);
-  gain.gain.setValueAtTime(.035, audio.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
-  oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(); oscillator.stop(audio.currentTime + duration);
-}
+let lastTone=0;
+function tone(frequency,duration=.08){gameAudio.tone(frequency,duration);}
 let cardSignature = '';
-loadEnvironmentArt();
-loadEnemyArt().then(() => { scoutSignature = ''; renderUI(); });
-loadStructureArt().then(() => { cardSignature = ''; inspectorSignature = null; renderUI(); });
-loadAimArt().then(status=>{cardSignature = ''; inspectorSignature = null; renderUI(); if(status.failed.length)console.warn('Some directional guardian sprites were unavailable; aiming canvas artwork is active.');});
-loadDefenderArt().then(status => {
-  cardSignature = ''; inspectorSignature = null;
-  document.querySelectorAll('[data-style]').forEach(button => {
-    const icon = button.querySelector('canvas'), c = icon.getContext('2d');
-    c.clearRect(0,0,icon.width,icon.height); shapeTree(c,'oak',64,100,1,Number(button.dataset.style));
-  });
-  renderUI();
-  if (status.failed.length) console.warn('Some guardian sprites were unavailable; matching canvas artwork is active.');
+const forestArtReady=waitForForestArt({
+ environment:loadEnvironmentArt(),enemies:loadEnemyArt(),structures:loadStructureArt(),
+ aim:loadAimArt(),defenders:loadDefenderArt()
 });
 
 let commandRosterSignature='';
@@ -455,7 +473,7 @@ function renderCommandCollections(){
    const art=document.createElement('canvas');art.width=144;art.height=176;art.setAttribute('aria-hidden','true');button.append(art);
    const name=document.createElement('strong');name.textContent=d.name;button.append(name);
    const detail=document.createElement('small');detail.textContent=status.unlocked?d.cost+' Sap · '+(game.collection?game.availableDefenders(type).length+'/12 available':'Unlocked'):status.label+' · '+status.current+'/'+status.goal;button.append(detail);
-   shapeTree(art.getContext('2d'),type,72,150,1.08,0,deploymentLevel(type));button.onclick=()=>selectDefender(type);$('collection-roster').append(button);
+   paintModeDefender(art.getContext('2d'),type,72,150,1.08,0,deploymentLevel(type));button.onclick=()=>selectDefender(type);$('collection-roster').append(button);
    const row=document.createElement('article');row.className='unlock-row';const portrait=art.cloneNode();portrait.getContext('2d').drawImage(art,0,0);row.append(portrait);
    const text=document.createElement('div'),title=document.createElement('strong'),note=document.createElement('p');title.textContent=d.name;note.textContent=status.unlocked?'Earned · '+d.role:status.label+' · '+status.current+'/'+status.goal;text.append(title,note);row.append(text);$('unlock-roster').append(row);
   }
@@ -472,6 +490,7 @@ function renderCommandCollections(){
 }
 
 function renderUI() {
+  worldMap?.refresh();
   renderSeason(); renderGuide(); renderScout(); renderPurchase(); renderCombatUI();
   const tower = game.towers.find(t => t.id === selectedTower);
   $('forest-rank').textContent = ['Seedling Sanctuary', 'Blooming Haven', 'Ancient Refuge', 'Forest of Life'][game.forestRank];
@@ -489,16 +508,18 @@ function renderUI() {
   }
   const currentLevel=CAMPAIGN_LEVELS[game.chapter+(game.isVeteran?3:0)];
   $('level-unlocks').textContent=game.isEvent?'Seasonal battle active · choose a level above to return to the campaign.':levelUnlockText(currentLevel);
-  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + JSON.stringify(deploymentChoice) + game.towers.map(t=>t.id).join(',') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.seasonLooks,game.harvestLooks]);
+  const nextCards = Object.values(game.forest.levels).join(':') + JSON.stringify(game.collection) + JSON.stringify(deploymentChoice) + game.towers.map(t=>t.id).join(',') + ':' + getDefenderArtStatus().loaded.length + ':' + getAimArtStatus().loaded.length + ':' + getStructureArtStatus().loaded.length + ':' + JSON.stringify([game.mode,game.seasonLooks,game.harvestLooks]);
   if (nextCards !== cardSignature) {
     document.querySelectorAll('[data-tower]').forEach(button => {
       const type = button.dataset.tower, icon = button.querySelector('canvas'), c = icon.getContext('2d'), level = deploymentLevel(type);
-      c.clearRect(0,0,icon.width,icon.height); shapeTree(c,type,72,150,1.08,0,level); if(game.seasonLooks[type])paintSeasonLook(c,type,72,150,1.08);if(game.harvestLooks[type])paintHarvestLook(c,type,72,150,1.08);
+      c.clearRect(0,0,icon.width,icon.height); paintModeDefender(c,type,72,150,1.08,0,level); if(game.seasonLooks[type])paintSeasonLook(c,type,72,150,1.08);if(!game.isHarvest&&game.harvestLooks[type])paintHarvestLook(c,type,72,150,1.08);
     }); cardSignature = nextCards;
   }
   if (!tower) selectedTower = null;
   const active = game.access && ['build', 'running', 'paused'].includes(game.phase);
   $('health-value').innerHTML = `${game.health}<span> / 100</span>`;
+  if($('current-mode').textContent!==modeName(game))$('current-mode').textContent=modeName(game);
+  if(modeDialog.open)modePicker?.refresh();
   $('health-bar').style.width = game.health + '%'; $('health-bar').style.background = game.health < 30 ? '#ff6b7c' : '#7ef3a0';
   $('shield-value').textContent = `Root shield: ${game.shield}`;
   $('wave-value').innerHTML = `${String(game.wave).padStart(2, '0')}<span> / ${game.waveCount}</span>`;
@@ -507,6 +528,15 @@ function renderUI() {
   const status = { build: 'Prepare your forest', running: 'Defenders engaged', paused: 'Battle paused', defeat: 'Tree of Life fallen', victory: 'Forest protected' }[game.phase];
   $('phase-value').textContent = status; $('battle-status').textContent = game.access ? status.toUpperCase() : 'NFTREE ACCESS PREVIEW';
   if ($('message').textContent !== game.message) $('message').textContent = game.message;
+  $('harvest-rules').hidden=!game.isHarvest;
+  if(game.isHarvest){
+    const elapsed=Math.max(0,game.time-game.harvestWaveAt)%14,active=game.harvestTactics&&harvestWind(game.time,game.harvestWaveAt);
+    const text=game.phase==='victory'?'HARVEST PROTECTED':game.phase==='defeat'?'HARVEST INTERRUPTED':game.harvestTactics?(game.phase==='build'?'AUTUMN ORCHARD · WIND STARTS 10s INTO EACH WAVE':`${active?'TAILWIND · INVADERS 25% FASTER':'AUTUMN ORCHARD · NEXT TAILWIND'} · ${Math.ceil((active?14:10)-elapsed)}s`):'SAVED HARVEST ROUTE · ORIGINAL RULES';
+    if($('harvest-rule-title').textContent!==text)$('harvest-rule-title').textContent=text;
+    const detail=game.harvestTactics?'Seed thieves steal 8 Sap once at the marked cache. Defeat them early. Palm slows counter the wind; the Harvester can release four extra thieves.':'This saved battle keeps its route and rules. Start a new Harvest run for the autumn orchard, seed thieves and wind rushes.';
+    if($('harvest-rule-detail').textContent!==detail)$('harvest-rule-detail').textContent=detail;
+    $('harvest-rules').classList.toggle('wind-active',active);
+  }
   $('enemy-count').textContent = game.enemies.length ? `${game.enemies.length} ON PATH · ${game.queue.length} INCOMING` : 'PATH CLEAR';
   $('account-rarity').textContent = game.access ? RARITIES[game.rarity] : 'Choose rarity';
   $('wave-button').textContent = game.phase === 'victory' ? 'Forest protected ✓' : `Send wave ${Math.min(game.waveCount, game.wave + 1)} →`;
@@ -541,18 +571,14 @@ function renderUI() {
     button.setAttribute('aria-label', t ? `Select ${TOWERS[t.type].name} at site ${pad + 1}` : `Plant selected defender at site ${pad + 1}`);
     button.disabled = !active;
   });
-  document.querySelectorAll('[data-supply]').forEach(button => {
-    const kind = button.dataset.supply;
-    button.disabled = !active || game.tree < PRICES[kind] || (kind === 'storm' && (!game.enemies.length || game.phase !== 'running')) || (kind === 'shield' && game.shield >= 50) || (kind === 'fertilizer' && game.boostUntil > game.time);
-  });
-    $('storm-availability').textContent=game.phase!=='running'?'Resume a wave, then open Shop to use':!game.enemies.length?'Available once pests enter the path':'Ready · 180 damage to all pests';
-  const nextInspector = tower ? `${tower.id}:${tower.level}:${tower.style}:${tower.targetMode}:${JSON.stringify([game.seasonLooks,game.harvestLooks])}:${active}:${game.tree >= game.upgradeCost(tower)}` : 'none';
+  shopView.update();
+  const nextInspector = tower ? `${tower.id}:${tower.level}:${tower.style}:${tower.targetMode}:${JSON.stringify([game.mode,game.seasonLooks,game.harvestLooks])}:${active}:${game.tree >= game.upgradeCost(tower)}` : 'none';
   if (nextInspector !== inspectorSignature) {
   if (tower) {
     const d = TOWERS[tower.type];
     $('inspector').innerHTML = `<canvas class="tower-portrait" width="240" height="240" aria-hidden="true"></canvas><span class="eyebrow">SITE ${tower.pad + 1} · ${STYLES[tower.style].name.toUpperCase()}</span><h3>${d.name}<small>${game.collection?'#'+(tower.defenderSlot+1)+' · ':''}${GROWTH_NAMES[tower.level - 1]} · LEVEL ${tower.level}</small></h3><p>${d.description}</p><button id="upgrade-button" class="primary">${tower.level === 3 ? (game.collection?'This defender is Ancient ✓':'Species growth complete ✓') : `Upgrade ${game.collection?d.name+' #'+(tower.defenderSlot+1):'all '+d.name} · ${game.upgradeCost(tower).toLocaleString()} TREE`}</button>${tower.level===3?'<p class="growth-note">TREE field supplies and continues remain available for future runs.</p>':''}<div class="growth-steps">${GROWTH_NAMES.map((name,i) => `<span class="${i < tower.level ? 'grown' : ''}">${i+1} ${name}</span>`).join('')}</div><p class="growth-note">${game.collection?`TREE upgrades only ${d.name} #${tower.defenderSlot+1}. Its level stays in your collection when removed or when a new run starts.`:`TREE growth permanently upgrades every ${d.name}, now and in future runs.`} Sap only pays for deployment.</p><p class="upgrade-gains">${tower.level<3?`Next: ${GROWTH_NAMES[tower.level]} · damage ${Math.round(d.damage*(1+(tower.level-1)*.6))} → ${Math.round(d.damage*(1+tower.level*.6))} · range ${d.range+(tower.level-1)*18} → ${d.range+tower.level*18}`:"Maximum level reached"}</p><div class="tower-stats"><div><span>DAMAGE</span><strong>${Math.round(d.damage * (1 + (tower.level - 1) * .6))}</strong></div><div><span>RANGE</span><strong>${d.range + (tower.level - 1) * 18}</strong></div><div><span>INTERVAL</span><strong>${d.interval}s</strong></div></div><div class="target-orders"><label for="target-mode">Target priority</label><select id="target-mode" aria-describedby="target-detail">${Object.entries(TARGET_MODES).map(([mode,order]) => `<option value="${mode}" ${tower.targetMode === mode ? 'selected' : ''}>${order.name}</option>`).join('')}</select><p id="target-detail">${TARGET_MODES[tower.targetMode].detail}</p><small>This defender only · order included</small></div><button id="remove-button" class="secondary">Remove · return ${Math.floor(d.cost * .6)} Sap</button>`;
-    shapeTree($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
-    if(game.seasonLooks[tower.type])paintSeasonLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);if(game.harvestLooks[tower.type])paintHarvestLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);
+    paintModeDefender($('inspector').querySelector('canvas').getContext('2d'), tower.type, 120, 185, 1.38, tower.style, tower.level);
+    if(game.seasonLooks[tower.type])paintSeasonLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);if(!game.isHarvest&&game.harvestLooks[tower.type])paintHarvestLook($('inspector').querySelector('canvas').getContext('2d'),tower.type,120,185,1.38);
     $('target-mode').disabled = !active;
     $('target-mode').addEventListener('change', event => {
       const mode = event.target.value;
@@ -663,10 +689,10 @@ function renderGuide() {
   }
 }
 function renderScout() {
-  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}:${game.mode}:${game.difficulty}`;
+  const signature = `${game.chapter}:${game.wave}:${game.phase}:${game.enemyRules}:${game.mode}:${game.difficulty}:${game.eventVersion}`;
   if (signature === scoutSignature) return;
   scoutSignature = signature;
-  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules, game.mode, game.difficulty, game.encounters);
+  const scout = scoutWave(game.chapter, game.wave + 1, game.enemyRules, game.mode, game.difficulty, game.encounters,game.eventVersion);
   $('scout-title').textContent = game.wave === game.waveCount ? (game.phase === 'victory' ? 'Forest protected' : game.phase === 'defeat' ? 'Final wave interrupted' : 'Final wave underway') : `${game.phase === 'build' ? 'Scout' : 'Next:'} wave ${scout.wave} · ${scout.title}`;
   $('scout-total').textContent = scout.total ? `${scout.total} PESTS${scout.wave === game.waveCount ? ' · BOSS WAVE' : ''}` : `${game.waveCount} OF ${game.waveCount}`;
   $('scout-pests').replaceChildren();
@@ -687,11 +713,11 @@ let backdropKey = '', floaters = [];
 let seed = 89;
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 function draw(clock, dt) {
-  const visualClock = reducedMotion ? 0 : clock;
-  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || document.hidden || checkoutBusy;
+  const held = game.phase === 'paused' || accessDialog.open || helpDialog.open || purchaseDialog.open || storyDialog.open || worldMapDialog.open || modeDialog.open || !modeEntryShown || document.hidden || checkoutBusy;
   const effectDt = held ? 0 : dt;
   feedback.advance(effectDt);
   aiming.advance(effectDt);
+  const visualClock = reducedMotion ? 0 : aiming.time;
   const events = game.events.splice(0);
   if(events.some(event=>event.type==='wave-clear')){save();stories.open(game.wave);}
   feedback.consume(events);
@@ -699,13 +725,13 @@ function draw(clock, dt) {
   aiming.track(game,held);
   for(const shot of aiming.shots)if(!shot.origin)shot.origin=getGuardianShotOrigin(shot);
   const key = `${game.chapter}:${game.forestRank}:${getEnvironmentArtStatus().revision}:${game.mode}:${game.mapId}`;
-  if (key !== backdropKey) { paintBackdrop(bg, game.isEvent?2:game.chapter, game.forestRank,game.map); if(game.isHarvest)paintHarvestBackdrop(bg);else if(game.isEvent)paintHauntedBackdrop(bg); backdropKey = key; }
+  if (key !== backdropKey) { paintBackdrop(bg, game.isHarvest?0:game.isEvent?2:game.chapter, game.isHarvest?0:game.forestRank,game.map); if(game.isHarvest)paintHarvestBackdrop(bg,game.map);else if(game.isEvent)paintHauntedBackdrop(bg); backdropKey = key; }
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
   aura.addColorStop(0, '#d8ad6230'); aura.addColorStop(1, '#d8ad6200'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
   // Earning chapter landmarks grows the Tree of Life's visible silhouette.
-  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock);
-  if(game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
+  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock,game.isHarvest);
+  if(game.isHarvest||game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
   ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
   if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(885,606,75,90,0,0,Math.PI*2);ctx.stroke(); }
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
@@ -719,14 +745,15 @@ function draw(clock, dt) {
     paintBuildSite(ctx,x,y,{selected,hovered:hoveredPad===i,recommended:suggestedPad===i,occupied:!!tower,number:i+1});
     if (tower) {
       const pose=aiming.pose(tower.id);
-      shapeTree(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing);
-      if(game.seasonLooks[tower.type])paintSeasonLook(ctx,tower.type,x,y,GUARDIAN_SCALE);if(game.harvestLooks[tower.type])paintHarvestLook(ctx,tower.type,x,y,GUARDIAN_SCALE);
+      paintModeDefender(ctx,tower.type,x,y,GUARDIAN_SCALE,tower.style,tower.level,reducedMotion?0:aiming.time,pose.hold>0,pose.facing,
+        aiming.motion(tower,{battleActive:['running','paused'].includes(game.phase),reducedMotion}));
+      if(game.seasonLooks[tower.type])paintSeasonLook(ctx,tower.type,x,y,GUARDIAN_SCALE);if(!game.isHarvest&&game.harvestLooks[tower.type])paintHarvestLook(ctx,tower.type,x,y,GUARDIAN_SCALE);
       ctx.fillStyle='#d9c592';ctx.strokeStyle='#283d2e';ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(x+29,y+7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#435b39';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText(tower.level,x+29,y+10);
     }
   }
   ctx.textAlign='left';
-  for (const e of game.enemies) paintPest(ctx,e, held ? (reducedMotion ? 0 : game.time) : visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
+  for (const e of game.enemies) paintPest(ctx,e,visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
   paintCombatEffects(ctx,feedback,reducedMotion);
   for (const shot of aiming.shots) paintShot(ctx,shot,{reducedMotion});
   for (const e of game.enemies) paintPestHealth(ctx,e);
@@ -755,18 +782,36 @@ function draw(clock, dt) {
 }
 function frame(now) {
   const dt = Math.min(.05, (now - lastTime) / 1000); lastTime = now;
-  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !document.hidden && !checkoutBusy) game.step(dt);
+  if (!accessDialog.open && !helpDialog.open && !purchaseDialog.open && !storyDialog.open && !worldMapDialog.open && !modeDialog.open && modeEntryShown && !document.hidden && !checkoutBusy) game.step(dt);
   draw(now / 1000, dt);
-  if(storyDialog.open&&!document.hidden){
+  if(storyDialog.open&&!document.hidden&&game.access&&!accessDialog.open&&!checkoutBusy){
+    const sceneReducedMotion=storyMotion.matches;
     storyAnimation.advance(dt);
-    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion,beat:storyBeat});
+    gameAudio.tick(storyAnimation.seconds,{reducedMotion:sceneReducedMotion});
+    const nextBeat=storyPlayback.advance(storyAnimation.seconds,gameAudio.state);
+    if(nextBeat!==storyBeat){storyBeat=nextBeat;renderStoryBeat();}
+    const frame=storyAnimation.paint($('story-cinema').getContext('2d'),{reducedMotion:sceneReducedMotion,beat:storyBeat,speaking:gameAudio.state.voiceStatus==='speaking'});
     if(frame&&$('story-shot').textContent!==frame.label)$('story-shot').textContent=frame.label;
   }
   if (now - lastUI > 150) { renderUI(); lastUI = now; }
   if (now - lastSave > 2000 && game.access) { save(); lastSave = now; }
   requestAnimationFrame(frame);
 }
+// Dynamic import must remain pending: the holder gateway is the loading cover.
+// Paint the completed scene while hidden before the gateway reveals the shell.
+await forestArtReady;
+cardSignature='';inspectorSignature=null;scoutSignature='';backdropKey='';
+document.querySelectorAll('[data-style]').forEach(button=>{
+ const icon=button.querySelector('canvas'),c=icon.getContext('2d');
+ c.clearRect(0,0,icon.width,icon.height);paintModeDefender(c,'oak',64,100,1,Number(button.dataset.style));
+});
 renderUI();
 if (!storageAvailable) $('save-status').textContent = 'Save unavailable · keep this tab open';
 if (!game.access) accessDialog.showModal();
+lastTime=performance.now();draw(lastTime/1000,0);
 requestAnimationFrame(frame);
+
+function paintModeDefender(c,type,x,y,scale,style=0,level=1,clock=0,attack=false,facing=null,motion=null){
+ shapeTree(c,type,x,y,scale,style,level,clock,attack,facing,motion,game.isHarvest);
+ if(game.isHarvest)paintHarvestLook(c,type,x,y,scale);
+}

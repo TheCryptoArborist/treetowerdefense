@@ -15,6 +15,7 @@ export function validateZip(bytes){
   const flags=bytes.readUInt16LE(at+8),method=bytes.readUInt16LE(at+10),crc=bytes.readUInt32LE(at+16),packed=bytes.readUInt32LE(at+20),length=bytes.readUInt32LE(at+24),nameLength=bytes.readUInt16LE(at+28),extra=bytes.readUInt16LE(at+30),comment=bytes.readUInt16LE(at+32),local=bytes.readUInt32LE(at+42);
   assert.equal(flags&1,0,'Encrypted ZIP unsupported');assert([0,8].includes(method));assert(length<64*1024*1024);
   const name=bytes.subarray(at+46,at+46+nameLength).toString('utf8');assert(name&&!name.startsWith('/')&&!name.split('/').includes('..')&&!names.has(name));names.add(name);
+  assert.notEqual((bytes.readUInt32LE(at+38)>>>16)&0xf000,0xa000,'Function ZIP must contain dependency files, not symbolic links');
   assert(local+30<=offset);assert.equal(bytes.readUInt32LE(local),0x04034b50);
   const start=local+30+bytes.readUInt16LE(local+26)+bytes.readUInt16LE(local+28);assert(start+packed<=offset);
   const data=bytes.subarray(start,start+packed),plain=method===8?inflateRawSync(data,{maxOutputLength:64*1024*1024}):data;

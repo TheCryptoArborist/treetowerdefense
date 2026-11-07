@@ -1,0 +1,58 @@
+{
+  "state": "live-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "sourceCommit": "a8571240371e145297c5511bba2230c706a782eb",
+  "backendDeployId": "6aecfb0e1a5fd6a3bea6ea62",
+  "productionRoutingDeployId": "6aecfbb27e7d4b9299fb819b",
+  "previousProductionRoutingDeployId": "6aecf77eb8248a2d2846f3a3",
+  "functionDigest": "499cd569d7737e3684300cc3d456007c70b587baec0d9e6d2c5b3a46b561973b",
+  "runtime": "nodejs24.x",
+  "region": "us-east-2",
+  "memoryMb": 1024,
+  "databaseBranch": "canopy-checkout-test",
+  "localTests": {
+    "passed": 254,
+    "skipped": 1,
+    "failed": 0
+  },
+  "ci": {
+    "run": 42116895941,
+    "conclusion": "success",
+    "jobs": [
+      "Linux",
+      "Windows",
+      "PostgreSQL 16"
+    ]
+  },
+  "functionsPreservedExactly": 43,
+  "schedulesPreservedExactly": 5,
+  "staticPathsRetained": 299,
+  "unchangedStaticFiles": 298,
+  "changedStaticFiles": [
+    "/_redirects"
+  ],
+  "visualChange": "Fixed-length wooden arrow with feathered tail and metal head at the recorded hit; no bow-to-target beam or muzzle glow.",
+  "visualVerification": "Actual painter before/after, long-range and diagonal shots; offline, not authenticated holder gameplay.",
+  "damageTimingChanged": false,
+  "gameplayRulesChanged": false,
+  "pricesOrSavesChanged": false,
+  "productionDatabaseChanged": false,
+  "globalEnvironmentChanged": false,
+  "walletTransactionInitiated": false,
+  "regularGamePromoted": false,
+  "holderVisualAcceptance": "pending",
+  "canonicalHttpVerification": [
+    {
+      "path": "index.html",
+      "status": 200
+    },
+    {
+      "path": "src/art.js",
+      "status": 401
+    },
+    {
+      "path": "api/access",
+      "status": 401
+    }
+  ]
+}

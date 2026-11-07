@@ -5,19 +5,24 @@ import '@mysten/dapp-kit-core/web';
 const kit=createDAppKit({networks:['mainnet'],defaultNetwork:'mainnet',autoConnect:true,storageKey:'canopy-defense-wallet',createClient:network=>new SuiGrpcClient({network,baseUrl:'https://fullnode.mainnet.sui.io:443'})});
 const dialog=document.getElementById('access-dialog'),status=document.getElementById('gate-status'),verifyButton=document.getElementById('verify-nftree'),enter=document.getElementById('enter-holder-game'),disconnect=document.getElementById('disconnect-wallet'),shell=document.getElementById('game-shell');
 document.querySelector('mysten-dapp-kit-connect-button').instance=kit;
-let principal=null,address=null,busy=false,revision=0,loaded=false,startedWallet=null;
+let principal=null,address=null,busy=false,opening=false,revision=0,loaded=false,startedWallet=null;
+const retryForest=document.getElementById('retry-forest-load');
+retryForest.onclick=()=>location.reload();
 const listeners=new Set();
 window.canopyPayments=createPayments({kit,account:()=>principal});
 function paintGate(){
  const stage=principal?2:address?1:0;
- dialog.dataset.stage=principal?'ready':busy?'verifying':address?'verify':'connect';
+ const preparing=opening&&!!principal;
+ dialog.dataset.stage=preparing?'loading':principal?'ready':busy?'verifying':address?'verify':'connect';
+ dialog.dataset.loading=String(preparing);dialog.setAttribute('aria-busy',String(preparing));
+ enter.disabled=opening;enter.textContent=opening?'Preparing the forest…':'Enter the forest →';
  document.querySelectorAll('[data-gate-step]').forEach((step,i)=>{
   step.classList.toggle('complete',i<stage);step.classList.toggle('current',i===stage);
   if(i===stage)step.setAttribute('aria-current','step');else step.removeAttribute('aria-current');
   step.querySelector('b').textContent=i<stage?'✓':String(i+1).padStart(2,'0');
  });
- document.getElementById('gate-stage-label').textContent=principal?'HOLDER VERIFIED · FOREST UNLOCKED':busy?'AWAITING YOUR SIGN-IN APPROVAL':address?'WALLET CONNECTED · ONE STEP TO GO':'YOUR ADVENTURE STARTS HERE';
- document.getElementById('access-title').textContent=principal?'Your forest awaits.':address?'Claim your place in the canopy.':'Answer the call of the canopy.';
+ document.getElementById('gate-stage-label').textContent=preparing?'HOLDER VERIFIED · PREPARING YOUR FOREST':principal?'HOLDER VERIFIED · FOREST UNLOCKED':busy?'AWAITING YOUR SIGN-IN APPROVAL':address?'WALLET CONNECTED · ONE STEP TO GO':'YOUR ADVENTURE STARTS HERE';
+ document.getElementById('access-title').textContent=preparing?'Preparing the forest…':principal?'Your forest awaits.':address?'Claim your place in the canopy.':'Answer the call of the canopy.';
  verifyButton.hidden=!!principal;
 }
 const notify=()=>{paintGate();listeners.forEach(fn=>fn(principal));};
@@ -26,7 +31,7 @@ const lock=text=>{principal=null;enter.hidden=true;shell.hidden=true;status.text
 const post=async body=>{const r=await fetch('./api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',credentials:'same-origin'});const d=await r.json();if(!r.ok)throw Error(d.error||'Could not verify NFTree access');return d;};
 const validate=d=>{if(d.verified!==true||d.address!==address||!Number.isSafeInteger(d.count)||d.count<1||!Number.isInteger(d.rarity)||d.rarity<0||d.rarity>5||!Number.isFinite(d.expiresAt)||d.expiresAt<=Date.now())throw Error('A valid holder session was not returned');return Object.freeze({address:d.address,rarity:d.rarity,expiresAt:d.expiresAt,count:d.count});};
 async function refresh(){
- if(!address||busy)return;const stamp=revision;try{const r=await fetch('./api/access',{cache:'no-store',credentials:'same-origin'});const d=await r.json();if(stamp!==revision)return;if(!r.ok)throw Error(d.error||'Verify your NFTree to enter');principal=validate(d);status.textContent=`Verified holder · ${principal.count} NFTree${principal.count===1?'':'s'}. Ready to defend.`;enter.hidden=false;notify();}catch(e){if(stamp===revision)lock(e.message);}
+ if(!address||busy)return;const stamp=revision;try{const r=await fetch('./api/access',{cache:'no-store',credentials:'same-origin'});const d=await r.json();if(stamp!==revision)return;if(!r.ok)throw Error(d.error||'Verify your NFTree to enter');principal=validate(d);if(!opening)status.textContent=`Verified holder · ${principal.count} NFTree${principal.count===1?'':'s'}. Ready to defend.`;enter.hidden=false;notify();}catch(e){if(stamp===revision)lock(e.message);}
 }
 verifyButton.onclick=async()=>{
  if(!address||busy)return;busy=true;verifyButton.disabled=true;paintGate();const stamp=revision;
@@ -40,11 +45,19 @@ verifyButton.onclick=async()=>{
  }catch(e){if(stamp===revision)lock(e.message||'Sign-in was cancelled. Please retry.');}finally{busy=false;verifyButton.disabled=!address;paintGate();}
 };
 enter.onclick=async()=>{
+ if(opening)return;
  if(!principal||principal.expiresAt<=Date.now())return lock('Your session expired. Verify your NFTree again.');
  // Reload on wallet change so one wallet never sees another wallet's local progress.
- if(loaded&&startedWallet!==principal.address){location.reload();return;}
- if(!loaded){startedWallet=principal.address;try{status.textContent='Opening your forest…';await import('./src/app.js');loaded=true;}catch{lock('The game could not load. Verify again or refresh this page.');return;}}
- shell.hidden=false;dialog.close();notify();
+ if(startedWallet&&startedWallet!==principal.address){location.reload();return;}
+ const stamp=revision,entryWallet=principal.address;opening=true;retryForest.hidden=true;paintGate();
+ try{
+  if(!loaded){startedWallet=entryWallet;status.textContent='Preparing the forest… Loading battlefield graphics.';await import('./src/app.js');loaded=true;}
+  if(stamp!==revision||!principal||principal.address!==entryWallet)return;
+  if(principal.expiresAt<=Date.now())return lock('Your session expired. Verify your NFTree again.');
+  shell.hidden=false;dialog.close();notify();
+ }catch(error){
+  if(stamp===revision){lock(error?.code==='CANOPY_ART_NOT_READY'?'Some forest graphics could not load. Reload to try again.':'The game could not load. Reload to try again.');retryForest.hidden=false;}
+ }finally{opening=false;paintGate();}
 };
 disconnect.onclick=async()=>{revision++;lock('Wallet disconnected. Connect an NFTree holder wallet to enter.');await post({action:'logout'}).catch(()=>{});await kit.disconnectWallet();};
 dialog.addEventListener('cancel',e=>e.preventDefault());
