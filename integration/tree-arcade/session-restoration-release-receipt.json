@@ -1,0 +1,95 @@
+{
+  "state": "live-on-checkout-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "sourceCommit": "34362bea5df5bf24e05a430ee0c539fb032d5920",
+  "upstreamDeployId": "6aee9e30034016e0c155b09e",
+  "productionDeployId": "6aee9eb009ccc3479306da4d",
+  "baselineDeployId": "6aee99263cb3f99fdff0c3c5",
+  "functionZipSha256": "032f4433a7ddc371f7ea6195ac580aa172044eb06e369286fc9919531b78b37f",
+  "gatewaySha256": "30007ae6b08ff65ee13145243dd70d65ac89d365593ffe2078637fdc8bfebc5d",
+  "behavior": "A reconnected matching wallet and valid server NFTree session enter automatically once; no repeated Verify or Enter click. Existing lobby and saved-battle navigation remain manual.",
+  "security": {
+    "serverSessionRequired": true,
+    "walletMustMatch": true,
+    "currentOwnershipRequired": true,
+    "noBrowserAuthorizationFlags": true,
+    "expiredOrRevokedSessionsRequireSignIn": true,
+    "serverSessionMinutes": 15,
+    "finishedArtCoverPreserved": true,
+    "ownershipChecksDuringLoading": true,
+    "lateVerificationAfterDisconnectIgnored": true,
+    "newBackendDeploymentMayRequireFreshSignIn": true
+  },
+  "validation": {
+    "tests": 343,
+    "passed": 342,
+    "windowsOnlySkippedOnLinux": 1,
+    "syntax": "passed",
+    "protectedBuild": "passed",
+    "ci": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42335208736",
+    "ciResult": "success: Ubuntu, Windows and PostgreSQL",
+    "upstreamSmoke": [
+      {
+        "path": "index.html",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "styles.css",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "gateway.js",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "src/app.js",
+        "origin": null,
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "origin": null,
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400
+      },
+      {
+        "path": "api/access",
+        "origin": "https://evil.example",
+        "status": 403
+      }
+    ],
+    "liveSmoke": [
+      {
+        "path": "index.html",
+        "status": 200
+      },
+      {
+        "path": "gateway.js",
+        "status": 200
+      },
+      {
+        "path": "api/access",
+        "status": 401
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      }
+    ]
+  },
+  "preservation": {
+    "staticPathsRetained": 302,
+    "functionPackagesUnchanged": 43,
+    "schedulesUnchanged": 5,
+    "onlyChangedStaticFile": "/_redirects"
+  },
+  "walletSignatureOrPaymentPerformed": false,
+  "productionGamePromotion": "Earlier candidate remains superseded. Real TREE transfer verified and one current-run paid history entry observed; shield reload persistence still awaits holder confirmation."
+}
