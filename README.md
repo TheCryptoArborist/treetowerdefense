@@ -2,20 +2,37 @@
 
 **Build your forest. Defend the Tree of Life.**
 
-A playable, mobile-friendly tower-defense prototype for the TREE Arcade.
+A mobile-friendly tower-defense game for the TREE Arcade.
 
 ## Status
 
-Production promotion is being prepared on the release branch. It includes the
-approved Campaign/Harvest build, real TREE checkout, saved-battle adoption and
-the regular Arcade cabinet. It is not yet published: final real-wallet
-purchase/recovery acceptance is pending. See [production launch](docs/production-launch.md).
+Canopy Defense is **live in the [TREE Arcade](https://tree-token.xyz/play/)**.
+[Play Canopy Defense](https://tree-token.xyz/play/canopy-defense/).
+NFTree ownership grants Campaign and seasonal access with no admission fee.
+Earned Sap plants defenses. Optional upgrades, supplies and continues spend
+real TREE plus separate SUI gas after wallet approval. Individual defender
+growth is server-owned; battle progress stays in the browser. Neither mode
+offers token or cash rewards. NFTree rarity affects appearance only.
 
-This repository contains the **development preview**, not a final release. NFTree access on the canonical hosted game is verified using Sui wallet personal-message signatures and official collection ownership, including Kiosk holdings. The static preview/video remains public. The regular `/play/canopy-defense/` route uses simulated TREE purchases. The isolated `/play/canopy-defense/checkout-test/` route spends real TREE plus SUI gas and uses its separate test database; it includes the hosted payment ledger and individual defender progression. Peter accepted the latest loading playtest; real-wallet purchase/recovery and a phone-wallet round trip remain pending. Saved battle progress stays in the browser; paid growth in checkout-test is server-owned. Neither route offers money or token rewards. See [NFTree access](docs/nftree-access.md), [TREE purchase ledger](docs/tree-payments.md), [checkout interruption rehearsal](docs/checkout-recovery-rehearsal.md), and [latest motion work](docs/combat-motion.md).
+The production release includes the distinct Harvest orchard, retro
+cutscenes, lobby management and separate cosmetics, automatic valid-session
+return, working lobby checkout, and the Root Shield force-field dome.
+Christmas Chaos remains a teaser until November 27, 2026; the separate
+winter gameplay draft is not deployed. See the [production release](docs/production-launch.md).
+
+Peter's real 3,000 TREE purchase and post-refresh shield persistence were
+accepted before publication. Existing paid records were retained. On the
+same browser, the same wallet's checkout-test battle is adopted only when
+no production paid save exists; established production saves are not replaced.
 
 ## TREE Arcade home
 
-Canonical game path: https://tree-token.xyz/play/canopy-defense/ (publish only after release verification). Lobby and return links use https://tree-token.xyz/play/. The cabinet is labeled development preview; gameplay requires verified NFTree ownership and TREE purchases remain simulated. See [Arcade integration](docs/arcade-integration.md).
+The live cabinet links to https://tree-token.xyz/play/canopy-defense/.
+Lobby and return links use https://tree-token.xyz/play/. The public
+introduction/video remains at the game's `/preview/` route. The isolated
+`/checkout-test/` route remains available on its existing backend; it is not
+the production entry. Local/default development builds retain simulation
+labels; the production profile requires explicit live checkout settings.
 
 ## Current gated development workflow
 
@@ -41,14 +58,14 @@ The server binds to localhost by default and serves only game assets. Do not dou
 
 ## Game modes
 
-Verified entry on checkout-test offers Campaign, Harvest seasonal challenge, and the existing
+Verified game entry offers Campaign, Harvest seasonal challenge, and the existing
 saved battle. Choosing Campaign opens the map; continuing keeps the exact
 run. Harvest retains its unlock and replacement warning. The current mode is
 shown while playing. See [mode navigation](docs/game-mode-entry.md).
 
-## Individual progression preview
+## Individual defender progression
 
-The new collection preview changes growth from species-wide to individual numbered defenders while preserving earlier species purchases. It retains the three current levels; ten-level/HQ/research progression is not yet implemented. Activation and migration details: [Individual defender collection](docs/individual-defenders.md). The regular game remains on its previous release.
+The live collection changes growth from species-wide to individual numbered defenders while preserving earlier species purchases. It retains the three current levels; ten-level/HQ/research progression is not yet implemented. Activation and migration details: [Individual defender collection](docs/individual-defenders.md). The regular game uses the live server-owned collection.
 
 ## Fantasy forest build · v0.17
 

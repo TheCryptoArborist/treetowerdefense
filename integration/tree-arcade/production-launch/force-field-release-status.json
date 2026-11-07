@@ -1,5 +1,5 @@
 {
-  "status": "ready-awaiting-netlify-cli-authorization",
+  "status": "published-and-verified",
   "sourceCommit": "b4295d507a7c811b058699d5a9e10c188edf63a6",
   "feature": "Root Shield translucent force-field dome",
   "validation": {
@@ -13,20 +13,9 @@
   },
   "liveWalletRecovery": "accepted; no new payment needed",
   "publicationAuthorized": true,
-  "deploymentAttempt": {
-    "site": "tree-token",
-    "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
-    "branchAlias": "canopy-checkout-test",
-    "context": "deploy-preview",
-    "exitCode": 127,
-    "error": "/bin/bash: line 1: /home/agent/.npm/_npx/251cbab0c7453ed9/node_modules/.bin/netlify: No such file or directory",
-    "deploymentCreated": false,
-    "deployId": null,
-    "deployLogUrl": null
-  },
-  "lastKnownPublishedRoutingDeploy": "6aee9eb009ccc3479306da4d",
+  "lastKnownPublishedRoutingDeploy": "6aef402b05aed0cc8955b087",
   "previewLibraryFileId": "libfile_5a3c3ceb90a08191a7ef70f240b8b88c",
-  "nextRequiredWork": "Check the locally saved official Netlify login ticket after the user authorizes it. Then deploy the prepared production profile, verify the immutable backend and preservation candidate, publish with existing authorization and verify the live Arcade. No further purchase or publication approval is needed.",
+  "nextRequiredWork": null,
   "restoredWorkspace": {
     "path": "/workspace/scratch/canopy-release-20261107",
     "deploymentCliPath": "/workspace/scratch/canopy-release-tools/node_modules/.bin/netlify",
@@ -39,7 +28,23 @@
     "syntax": "passed",
     "productionProfileBuild": "passed",
     "privateModules": 23,
-    "authorizationStatus": "NOT_LOGGED_IN; official agent/human login ticket created and pending",
+    "authorizationStatus": "authorized using official Netlify login ticket; no ticket data committed",
     "authorizationTicketLocation": "ignored .netlify/publishing-auth-ticket.json; never commit ticket details"
+  },
+  "publishedDeployId": "6aef402b05aed0cc8955b087",
+  "upstreamDeployId": "6aef3f85bc79792fbca350c0",
+  "productionEntry": "https://tree-token.xyz/play/canopy-defense/",
+  "publicationBlocker": null,
+  "currentReceipt": "integration/tree-arcade/production-launch/release-receipt.json",
+  "previousDeploymentAttempt": {
+    "site": "tree-token",
+    "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+    "branchAlias": "canopy-checkout-test",
+    "context": "deploy-preview",
+    "exitCode": 127,
+    "error": "/bin/bash: line 1: /home/agent/.npm/_npx/251cbab0c7453ed9/node_modules/.bin/netlify: No such file or directory",
+    "deploymentCreated": false,
+    "deployId": null,
+    "deployLogUrl": null
   }
 }

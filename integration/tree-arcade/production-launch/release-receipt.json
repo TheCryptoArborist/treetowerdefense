@@ -1,0 +1,220 @@
+{
+  "status": "published-and-verified",
+  "publishedAt": "2026-11-07T15:19:58.175626+00:00",
+  "siteId": "aa62f324-b880-47d6-85b8-4ba0700ff5bf",
+  "siteName": "tree-token",
+  "entry": "https://tree-token.xyz/play/canopy-defense/",
+  "arcade": "https://tree-token.xyz/play/",
+  "publishedDeployId": "6aef402b05aed0cc8955b087",
+  "upstreamDeployId": "6aef3f85bc79792fbca350c0",
+  "previousPublishedDeployId": "6aee9eb009ccc3479306da4d",
+  "gameSourceCommit": "9f4effdaafc6e8d87e8d8f40c11054b63a6d3f51",
+  "validatedGameCommit": "b4295d507a7c811b058699d5a9e10c188edf63a6",
+  "runtimeMatchesValidatedCommit": true,
+  "functionZipSha256": "80671f0cb2fa6b4124b24ee076832cae88ce1dbfa2a9c52d74b36397dece6ba2",
+  "gatewaySha256": "30007ae6b08ff65ee13145243dd70d65ac89d365593ffe2078637fdc8bfebc5d",
+  "runtime": {
+    "node": "24.x",
+    "region": "us-east-2",
+    "memory": 1024,
+    "privateModules": 23
+  },
+  "features": [
+    "Campaign and distinct autumn Harvest",
+    "1990s retro cutscenes with fixed defaults",
+    "Finished-art loading and automatic valid-session return",
+    "Lobby shop, defenders, cosmetics and guide shortcuts",
+    "Working lobby purchase review",
+    "Root Shield translucent honeycomb force field",
+    "Wallet-owned individual defender progression",
+    "Same-wallet checkout battle adoption when no production paid save exists"
+  ],
+  "walletAcceptance": {
+    "status": "accepted",
+    "transactionDigest": "AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3",
+    "onChainTransferVerified": true,
+    "historyPurchaseCount": 1,
+    "shieldVisibleAfterReload": true,
+    "numericHUDReading": "not supplied; no numeric reading invented",
+    "recoveryWithoutSecondPayment": true,
+    "duplicateGrantObserved": false
+  },
+  "ledger": {
+    "branch": "canopy-checkout-test",
+    "existingPaidRowsRetained": true,
+    "migrationsApplied": 3,
+    "pendingMigrations": 0,
+    "databaseRowsResetOrCopied": false
+  },
+  "preservation": {
+    "staticPathsRetained": 302,
+    "functionPackagesRetained": 43,
+    "unrelatedFunctionsUnchanged": 42,
+    "schedulesUnchanged": 5,
+    "changedStaticFiles": [
+      "/_redirects",
+      "/play/index.html"
+    ],
+    "legacyCanopyRouteParked": "/play/canopy-defense/legacy-disabled/*",
+    "publishedInventoryVerified": true,
+    "existingCheckoutRewriteRetained": true
+  },
+  "validation": {
+    "tests": 345,
+    "passed": 344,
+    "windowsOnlySkippedOnLinux": 1,
+    "syntax": "passed",
+    "protectedProductionBuild": "passed",
+    "nativeCanvasQA": "Original tree and force field inspected at ranks 0, 2 and 3",
+    "ci": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42336145314",
+    "ciResult": "success: Ubuntu, Windows and PostgreSQL",
+    "upstreamSmoke": [
+      {
+        "path": "index.html",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "styles.css",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "gateway.js",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "src/art.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "src/app.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "api/payments",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400,
+        "profile": "production"
+      },
+      {
+        "path": "api/access",
+        "origin": "https://evil.example",
+        "status": 403,
+        "profile": "production"
+      }
+    ],
+    "candidateSmoke": [
+      {
+        "path": "/play/",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/src/art.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/payments",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/access",
+        "origin": "https://evil.example",
+        "status": 403,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/checkout-test/api/access",
+        "origin": null,
+        "status": 401,
+        "profile": null
+      }
+    ],
+    "liveSmoke": [
+      {
+        "path": "/play/",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/gateway.js",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/src/art.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/payments",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/access",
+        "origin": "https://evil.example",
+        "status": 403,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/checkout-test/api/access",
+        "origin": null,
+        "status": 401,
+        "profile": null
+      }
+    ]
+  },
+  "session": "Production cookie isolated from checkout/legacy; matching wallet and current server ownership required; valid sessions auto-enter after refresh, expiry still applies.",
+  "christmas": "Christmas Chaos remains a teaser until November 27, 2026; winter draft PR 3 not deployed.",
+  "deploymentLogs": "https://app.netlify.com/projects/tree-token/deploys/6aef402b05aed0cc8955b087",
+  "backendLogs": "https://app.netlify.com/projects/tree-token/deploys/6aef3f85bc79792fbca350c0"
+}

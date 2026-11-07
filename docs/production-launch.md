@@ -1,114 +1,81 @@
-# Canopy Defense production launch
+# Canopy Defense production release
 
-The release branch prepares the regular `/play/canopy-defense/` entry and its
-Tree Arcade cabinet for the approved Campaign and Harvest build. Christmas
-Chaos remains a teaser until November 27, 2026. The winter gameplay draft is
-not included.
+Canopy Defense is published and verified at
+https://tree-token.xyz/play/canopy-defense/ and its LIVE cabinet is available
+at https://tree-token.xyz/play/. Published deploy:
+`6aef402b05aed0cc8955b087`. Immutable game backend:
+`6aef3f85bc79792fbca350c0`. Authoritative evidence:
+[integrity and release receipt](../integration/tree-arcade/production-launch/release-receipt.json).
 
-## Current status
+## Released behavior
 
-The current production candidate includes the approved lobby management,
-separate cosmetics, Campaign and Harvest game. **This candidate is now superseded by the lobby purchase fix and must not be
-published.** See [purchase guard correction](lobby-purchase-fix.md). Backend: `6aee93ef532103e89cfc72c6`. Site candidate:
-`6aee9467cd626c3f4efe9a70`. The previous candidate is superseded.
-See the [candidate receipt](../integration/tree-arcade/production-launch/candidate-receipt.json).
+NFTree ownership grants access to Campaign and seasonal play; new runs have
+no admission charge. Earned Sap plants defenses. Optional growth, supplies
+and continues spend real TREE plus separate SUI network gas after wallet
+approval. The production profile cannot fall back to simulated purchases.
 
-The user accepted the latest lobby; their device was not specified. All 335
-local tests completed (334 passed, one Windows-only skip), syntax and protected
-packaging passed, and Ubuntu, Windows and PostgreSQL CI passed on
-`95ae49834a772d0a2017503a0f5c973a960a7ea9`. Runtime sources are unchanged
-between that validated commit and the deployed `8cb71e2b1f4c35f99b6f842b1faf573d8f71c715`.
-Hosted assets, canonical-origin boundaries, protected modules and actual
-candidate routing passed. All 302 static paths, 43 function packages and five
-schedules are retained, with only the Canopy card, rewrite and legacy Canopy
-route bindings changed. The published baseline remains locked and unchanged.
+Campaign and the distinct Harvest orchard include the approved retro
+cutscenes, finished-art loading, mode entrance, lobby shop/defender/cosmetic/
+guide shortcuts, permanent numbered defender growth and run-specific supplies.
+Root Shield now displays a translucent teal/mint honeycomb force field around
+the original Tree of Life. Shimmer respects pause and reduced motion; the
+existing 50-point refill/cap and damage rules are unchanged.
 
-The remaining launch condition is one real-wallet purchase/recovery check.
-Production publication is already authorized; do not request it again.
+A reconnected matching wallet and valid server session return automatically
+after refresh. Initial production sign-in and expired sessions still require
+verification. No automatic signature, payment or wave start occurs.
 
-## Release behavior
+## Saved and paid progress
 
-- NFTree verification remains mandatory. Entry and new runs have no SUI fee.
-- Earned Sap plants defenders. Optional purchases spend real TREE and SUI gas
-  after the player's wallet approval. A disabled live checkout cannot fall
-  back to simulated purchases.
-- The production backend uses the existing `canopy-checkout-test` database
-  branch, retaining the real-TREE ledger and server-owned defender levels.
-  Its new session cookie is scoped to the regular game path.
-- A checkout-test saved battle is copied only when the same wallet has no
-  production paid save. The original remains available. Server-owned growth
-  replaces editable local collection levels.
-- The release changes only the Canopy cabinet and routing file. All existing
-  static paths, function packages and five schedules are retained. The old
-  Canopy root function binding is parked so it cannot intercept the new
-  backend rewrite. The separate checkout-test rewrite stays pinned.
+Production uses the existing `canopy-checkout-test` ledger branch. All three
+migrations were already applied; none were pending. No paid rows were reset
+or copied. Server inventory remains authoritative for permanent purchases.
+On the same browser, an existing checkout-test save is adopted only for the
+same wallet when no production paid save exists. Run ID, applied entitlement
+IDs and battle progress are retained; the original checkout save remains.
 
-## Final holder test
+The production HttpOnly cookie is isolated from legacy and checkout cookies.
+The existing checkout-test rewrite remains pinned to its original backend.
+Use the normal production entry for the new force-field visual.
 
-Use https://tree-token.xyz/play/canopy-defense/checkout-test/ with the verified
-holder wallet. If a real Root Shield purchase already completed, use that
-transaction and its history/recovery results; do not pay again merely for a
-new receipt. Otherwise buy Root Shield once for 3,000 TREE plus SUI gas.
-Confirm 50 shield, one verified history entry, and reload/recovery without a
-second payment or duplicate grant. A phone wallet round trip covers the
-remaining device handoff. The user must approve their own transaction.
+## Live acceptance
 
-Record verified evidence in
-`integration/tree-arcade/production-launch/wallet-acceptance.json`; pending
-evidence intentionally blocks `tools/release-canopy-production.mjs publish`.
-Existing authorization covers publication once this check passes.
+Mainnet transaction `AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3` was
+independently verified for exactly 3,000 TREE to the configured treasury.
+The user showed one applied paid shield for the current run and explicitly
+confirmed visible protection after refresh. No duplicate current-run payment
+or grant was observed. Numeric HUD strength was not supplied; the acceptance
+record uses visible post-refresh protection rather than inventing a reading.
+No additional purchase or publication approval is needed.
 
-## Preservation release
+## Preservation and validation
 
-Build the isolated backend with explicit production candidate, checkout and
-individual-defender flags, using the existing database branch alias. Never
-run a full-repository production deployment. Verify the immutable upstream
-and protected sources, then use the preservation release tool's `prepare`,
-`candidate` and `verify` modes. The production site remains locked to its old
-deploy while the candidate is inspected. Record deploy IDs, package digest,
-source commit and preservation checks before publication.
+The release retained all 302 static paths, all 43 function packages, 42
+unrelated functions unchanged and all five scheduled jobs. Only the routing
+file and Canopy cabinet changed. The old Canopy root function binding was
+parked so it cannot intercept the new game rewrite. The published site remains
+locked against automatic replacement by an unrelated build.
 
-After accepted wallet evidence, `publish` promotes that exact candidate;
-`verify-live` checks the published inventory, function bindings and schedules.
-The public entry is https://tree-token.xyz/play/canopy-defense/ and the lobby
-is https://tree-token.xyz/play/.
+All 345 tests completed: 344 passed and one Windows-only test was skipped on
+Linux. Syntax and protected production packaging passed. Ubuntu, Windows and
+PostgreSQL CI passed. Actual Canvas renders were inspected at forest ranks
+0, 2 and 3. Hosted upstream, candidate and production checks verified public
+assets, gateway bytes, NFTree-protected modules, payment endpoint gating,
+canonical-origin rejection and the retained checkout-test route.
 
-## Live payment evidence
+The source is `9f4effdaafc6e8d87e8d8f40c11054b63a6d3f51`; runtime files
+match validated commit `b4295d507a7c811b058699d5a9e10c188edf63a6`.
+See the receipt for package hashes and immutable deployment log URLs.
 
-The user supplied transaction `AE1mRfDF3s886k77YUtDkUREFQSgywMaprhq5JceRub3`.
-An independent Mainnet gRPC read verified successful execution, exact
-3,000 TREE sender debit and configured treasury credit, six decimals,
-checkpoint 342502382 and 0.001422532 SUI gas. This is public transfer
-evidence, not a fabricated server-owned invoice or entitlement.
-See `root-shield-chain-verification.json` in the production launch folder.
+## Future releases
 
-Do not ask the user to purchase again. The remaining evidence is that the
-game granted 50 shield, retained it after refresh of the same battle, and
-shows one purchase with no second payment or duplicate grant. Keep the
-publish acceptance pending until that evidence arrives, then rebuild the
-corrected production candidate and publish under the existing authorization.
+Use the preservation release workflow, not a full-repository production deploy.
+Start from the currently published inventory, retain unrelated functions and
+schedules, build a draft backend/candidate, verify it and publish that exact
+candidate. The initial promotion tool assumed a checkout-only rewrite; later
+releases must update its preflight from the published receipt and preserve
+both the checkout and normal-game rules. Credentials stay in the official CLI; do not read token files.
 
-## Recovery accepted and force-field release
-
-The user confirmed that the shield still shows after refresh. The real
-purchase/recovery gate is complete: verified 3,000 TREE transfer, one applied
-current-run history entry, visible protection after reload, and no second
-payment or duplicate grant observed. Do not invent a numeric HUD reading.
-The current production build must include the force-field visual correction
-and automatic session return. Publication remains authorized.
-
-## Current publication blocker
-
-The force-field correction is committed at
-`b4295d507a7c811b058699d5a9e10c188edf63a6`. All 345 tests completed
-(344 passed, one Windows-only skip), syntax checks, native Canvas visual QA
-and Ubuntu/Windows/PostgreSQL CI passed. Wallet recovery is accepted.
-Publication remains authorized.
-
-The local deploy launcher failed with exit 127 before Netlify ran:
-`/bin/bash: line 1: /home/agent/.npm/_npx/251cbab0c7453ed9/node_modules/.bin/netlify: No such file or directory`.
-Affected target: tree-token, branch alias canopy-checkout-test. No deployment
-was created and no deploy log URL exists. No further Netlify operations were
-attempted. Restore the official CLI dependency before continuing the
-existing preservation release procedure. Do not request another purchase or
-publication approval. See `force-field-release-status.json`.
+Christmas Chaos remains a teaser for November 27, 2026. Winter gameplay on
+its separate draft branch/PR is excluded from this production release. Merge
+current production fixes into that work before any future seasonal promotion.
