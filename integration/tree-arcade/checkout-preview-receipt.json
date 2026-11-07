@@ -57,21 +57,21 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aee769eb270ae5a44d02d78",
-    "upstreamDeployId": "6aee76184855bbd05e6ff42f",
-    "backendSourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
-    "releaseSourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "productionDeployId": "6aef402b05aed0cc8955b087",
+    "upstreamDeployId": "6aee9e30034016e0c155b09e",
+    "backendSourceCommit": "34362bea5df5bf24e05a430ee0c539fb032d5920",
+    "releaseSourceCommit": "34362bea5df5bf24e05a430ee0c539fb032d5920",
     "existingStaticFilesPreserved": 301,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
     "newStaticFiles": [],
     "browserRedirectsToNetlify": false,
     "productionDatabaseChanged": false,
-    "regularGameCheckoutEnabled": false,
+    "regularGameCheckoutEnabled": true,
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
+    "gameplaySourceCommit": "34362bea5df5bf24e05a430ee0c539fb032d5920",
     "existingStaticEntriesRetained": 302
   },
   "gatewayRedesign": {
@@ -1548,5 +1548,32 @@
     "state": "live-test",
     "sourceCommit": "5b41029f87bbdb9e3b3d3efaabc9f6b613f7dc3b",
     "receipt": "harvest-orchard-release-receipt.json"
+  },
+  "lobbyManagement": {
+    "receipt": "integration/tree-arcade/lobby-management-release-receipt.json",
+    "sourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
+    "upstreamDeployId": "6aee8f954de7e6b1748cf5ff",
+    "productionDeployId": "6aee900be7f4cbafae9c333d"
+  },
+  "lobbyPurchaseFix": {
+    "receipt": "integration/tree-arcade/lobby-purchase-fix-release-receipt.json",
+    "sourceCommit": "642d414953d7938646cba52b7cde0f86461fe7ce",
+    "upstreamDeployId": "6aee98acc05bd09753714631",
+    "productionDeployId": "6aee99263cb3f99fdff0c3c5"
+  },
+  "sessionRestoration": {
+    "receipt": "integration/tree-arcade/session-restoration-release-receipt.json",
+    "sourceCommit": "34362bea5df5bf24e05a430ee0c539fb032d5920",
+    "upstreamDeployId": "6aee9e30034016e0c155b09e",
+    "productionDeployId": "6aee9eb009ccc3479306da4d"
+  },
+  "productionLaunch": {
+    "state": "live",
+    "entry": "https://tree-token.xyz/play/canopy-defense/",
+    "sourceCommit": "9f4effdaafc6e8d87e8d8f40c11054b63a6d3f51",
+    "upstreamDeployId": "6aef3f85bc79792fbca350c0",
+    "productionDeployId": "6aef402b05aed0cc8955b087",
+    "receipt": "integration/tree-arcade/production-launch/release-receipt.json",
+    "checkoutTestRetained": true
   }
 }

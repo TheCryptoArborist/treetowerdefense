@@ -1,6 +1,6 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance, harvestWind } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintRootShield, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
 import { loadEnemyArt } from './enemy-art.js';
 import { CombatFeedback, bossStatus } from './combat.js';
@@ -14,6 +14,7 @@ import {createStoryPlayback} from './story-playback.js';
 import {createGameAudio} from './audio.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createShopView} from './shop.js';
+import {adoptCheckoutBattle,requireLiveCheckout} from './save-promotion.js';
 import {createModePicker,hasBattleToReplace,modeName} from './modes.js';
 import {createWorldMap} from './world-map-view.js';
 import {waitForForestArt} from './asset-loading.js';
@@ -23,12 +24,13 @@ const holder=window.canopyAccess?.account;
 if(!holder)throw Error('Verified NFTree access is required');
 const payments=window.canopyPayments;
 const initialPayments=await payments.status();
+requireLiveCheckout(initialPayments);
 const paidMode=initialPayments.enabled===true;
 const paidSavePrefix=location.pathname==='/play/canopy-defense/checkout-test/'?'canopy-defense-checkout-test-v1:':'canopy-defense-paid-v1:';
 const STORAGE_KEY = (paidMode?paidSavePrefix:'canopy-defense-wallet-v1:')+holder.address;
 let paidRunId=null,appliedPayments=new Set(),checkoutBusy=false,paidInvoice=null;
 let paidReview=null;
-let modePicker=null,modeEntryShown=false,restoredBattle=false;
+let modePicker=null,modeEntryShown=false,restoredBattle=false,lobbyManagement=false;
 let game = new Game();
 const feedback = new CombatFeedback();
 const aiming = new GuardianAiming();
@@ -36,6 +38,7 @@ let storageAvailable = true;
 let saved = null;
 try {
   saved = localStorage.getItem(STORAGE_KEY);
+  if(paidMode&&!saved&&location.pathname==='/play/canopy-defense/')saved=adoptCheckoutBattle(localStorage,holder.address,Game.restore);
   if(!paidMode && !saved && !localStorage.getItem('canopy-defense-preview-migrated-to')){
     const legacy=localStorage.getItem('canopy-defense-preview-v1');
     if(legacy && Game.restore(JSON.parse(legacy))){saved=legacy;localStorage.setItem(STORAGE_KEY,legacy);localStorage.setItem('canopy-defense-preview-migrated-to',holder.address);}
@@ -115,14 +118,14 @@ function sendWave(){
  act(()=>game.startWave());
 }
 const shopView=createShopView({root:document.querySelector('[data-command-panel="shop"]'),getGame:()=>game,paidMode});
-const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open||modeDialog.open,
+const commandMenu=createCommandMenu({dialog:helpDialog,getGame:()=>game,blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||worldMapDialog.open||(modeDialog.open&&!lobbyManagement),
  render:section=>{renderCommandWindow(section);renderUI();},save,
- returnFocus:target=>{if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
+ returnFocus:target=>{lobbyManagement=false;modePicker?.refresh();if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});}
 });
 function openCommand(section,trigger=document.activeElement){if(commandMenu.open(section,trigger)){if(section==='shop')shopView.reset();helpDialog.scrollTop=0;}}
 document.querySelectorAll('[data-open-command]').forEach(button=>button.addEventListener('click',()=>openCommand(button.dataset.openCommand,button)));
 document.querySelectorAll('[data-command-tab]').forEach(button=>button.addEventListener('click',()=>openCommand(button.dataset.commandTab)));
-$('deploy-selected').addEventListener('click',()=>{if(selectedType&&game.isUnlocked(selectedType))commandMenu.close(canvas);});
+$('deploy-selected').addEventListener('click',()=>{if(lobbyManagement)commandMenu.close();else if(selectedType&&game.isUnlocked(selectedType))commandMenu.close(canvas);});
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const GUIDE_KEY = 'canopy-defense-guide-v1';
@@ -155,7 +158,7 @@ $('guide-action').addEventListener('click', () => {
 
 function save() {
   if (!storageAvailable) return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(paidMode?{game:game.snapshot(),runId:paidRunId,applied:[...appliedPayments]}:game.snapshot())); $('save-status').textContent = 'Preview saved on this device'; }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(paidMode?{game:game.snapshot(),runId:paidRunId,applied:[...appliedPayments]}:game.snapshot())); $('save-status').textContent = paidMode?'Battle saved on this device':'Preview saved on this device'; }
   catch { storageAvailable = false; $('save-status').textContent = 'Save unavailable · keep this tab open'; }
 }
 for (const [i, type] of Object.keys(TOWERS).entries()) {
@@ -170,7 +173,7 @@ for (const [i, type] of Object.keys(TOWERS).entries()) {
 for (const [i, style] of STYLES.entries()) {
   const button = document.createElement('button'); button.className = 'style-card'; button.dataset.style = i;
   button.setAttribute('aria-label', `${RARITIES[i]}: ${style.name}. ${style.detail}`);
-  button.innerHTML = `<canvas width="128" height="128" aria-hidden="true"></canvas><strong>${style.name}</strong><small>${RARITIES[i]}</small><span class="lock" aria-hidden="true">◆</span>`;
+  button.innerHTML = `<canvas width="128" height="128" aria-hidden="true"></canvas><strong>${style.name}</strong><small>${RARITIES[i]}</small><span class="style-state"></span><span class="lock" aria-hidden="true">◆</span>`;
   paintModeDefender(button.querySelector('canvas').getContext('2d'), 'oak', 64, 100, 1, i);
   button.addEventListener('click', () => {
     if (game.setStyle(i, selectedTower)) { game.message = `${style.name} appearance selected. Combat stats stay the same.`; save(); renderUI(); }
@@ -215,7 +218,7 @@ $('preview-button').addEventListener('click', () => { if(game.phase==='running')
 $('help-button').addEventListener('click',()=>openCommand('guide',$('help-button')));
 $('continue-button').addEventListener('click', () => reviewPurchase('continue'));
 function reviewPurchase(kind, towerId = null) {
-  if(storyDialog.open||modeDialog.open)return;
+  if(storyDialog.open||(modeDialog.open&&!(lobbyManagement&&helpDialog.open&&commandMenu.section==='shop')))return;
   if(paidMode)return reviewPaidPurchase(kind,towerId);
   if (purchaseDialog.open) return;
   pendingPurchase = new PurchaseReview(game, kind, towerId);
@@ -426,6 +429,7 @@ document.querySelectorAll('[data-open-world-map]').forEach(button=>button.addEve
 modePicker=createModePicker({dialog:modeDialog,getGame:()=>game,
  blocked:()=>checkoutBusy||purchaseDialog.open||storyDialog.open||helpDialog.open||worldMapDialog.open||accessDialog.open,
  onSelect:kind=>kind==='harvest'?enterHarvest():true,
+ onManage:(section,trigger)=>{lobbyManagement=true;openCommand(section,trigger);if(!helpDialog.open)lobbyManagement=false;},
  onSelected:(kind,trigger)=>{modeEntryShown=true;renderUI();if(kind==='campaign'){const level=game.chapter+(game.isVeteran?4:1);if(worldMap.open(trigger))worldMap.selectRegion('level-'+level);}else focusControl(game.phase==='paused'?$('pause-button'):game.phase==='defeat'?$('continue-button'):canvas);},save
 });
 document.querySelectorAll('[data-open-modes]').forEach(button=>button.addEventListener('click',()=>modePicker.open(button)));
@@ -435,9 +439,9 @@ let seasonArtSignature='';
 function renderSeason(){
   const harvest=game.harvestRewards;
   $('harvest-badge-progress').textContent=harvest.includes('harvest-badge')?'Earned ✓':`${game.harvest.bestWave}/5 best waves cleared`;
-  $('copper-progress').textContent=harvest.includes('copperleaf-oak')?'Earned ✓':`Best completed run: ${game.harvest.bestHealth}/80 health`;
-  $('harvest-team-progress').textContent=harvest.includes('harvest-watchtower')?'Earned ✓':game.isHarvest?`${Math.min(3,game.eventTeam.length)}/3 types planted · finish to earn`:'Win with three defender types';
-  $('amber-progress').textContent=harvest.includes('amber-life-tree')?'Earned ✓':`Best completed run: ${game.harvest.bestHealth}/100 health`;
+  $('copper-progress').textContent=harvest.includes('copperleaf-oak')?(game.harvestLooks.oak?'Equipped ✓':'Available · earned'):`Locked · best completed run: ${game.harvest.bestHealth}/80 health`;
+  $('harvest-team-progress').textContent=harvest.includes('harvest-watchtower')?(game.harvestLooks.watchtower?'Equipped ✓':'Available · earned'):game.isHarvest?`Locked · ${Math.min(3,game.eventTeam.length)}/3 types planted · finish to earn`:'Locked · win with three defender types';
+  $('amber-progress').textContent=harvest.includes('amber-life-tree')?(game.harvestLooks.tree?'Equipped ✓':'Available · earned'):`Locked · best completed run: ${game.harvest.bestHealth}/100 health`;
   for(const[id,type,reward]of [['copper-look','oak','copperleaf-oak'],['harvest-tower-look','watchtower','harvest-watchtower'],['amber-look','tree','amber-life-tree']]){$(id).disabled=!game.access||!harvest.includes(reward);$(id).checked=game.harvestLooks[type];}
   $('enter-event').disabled=!game.access || !game.forest.stars[0];
   $('enter-event').textContent=game.isHarvest?'Restart the Harvest →':'Enter the Harvest →';
@@ -460,6 +464,10 @@ let commandRosterSignature='';
 function renderCommandWindow(section=commandMenu.section){
  $('command-title').textContent=COMMAND_SECTIONS[section];
  $('command-hold-note').textContent=game.phase==='running'?'Battle is held while this window is open. Return to the map, then Resume when ready.':game.phase==='paused'?'Battle paused. Return to the map and Resume when ready.':'Manage your forest, then return to the map.';
+ if(lobbyManagement)$('command-hold-note').textContent='Return to the lobby when ready. Your saved battle stays paused; browsing does not start a new run.';
+ document.querySelector('.command-close').textContent=lobbyManagement?'Back to lobby ×':'Back to map ×';
+ document.querySelector('.command-close').setAttribute('aria-label',lobbyManagement?'Close management and return to lobby':'Close management and return to map');
+ $('deploy-selected').textContent=lobbyManagement?'Back to lobby':'Return to map & deploy';
  for(const panel of document.querySelectorAll('[data-command-panel]'))panel.hidden=panel.dataset.commandPanel!==section;
  for(const button of document.querySelectorAll('[data-command-tab]'))button.setAttribute('aria-pressed',String(button.dataset.commandTab===section));
 }
@@ -485,7 +493,7 @@ function renderCommandCollections(){
   for(const tower of game.towers){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=(tower.level<3?'Upgrade ':'✓ ')+TOWERS[tower.type].name+(game.collection?' #'+(tower.defenderSlot+1):'')+' · '+GROWTH_NAMES[tower.level-1];b.setAttribute('aria-pressed',String(selectedTower===tower.id));b.onclick=()=>{selectedTower=tower.id;selectedType=null;renderUI();};list.append(b);}
   list.dataset.signature=shopSignature;
  }
- $('deploy-selected').disabled=!game.access||!selectedType||!game.isUnlocked(selectedType)||!['build','running','paused'].includes(game.phase)||(game.collection&&!game.availableDefenders(selectedType).length);
+ $('deploy-selected').disabled=!game.access||(!lobbyManagement&&(!selectedType||!game.isUnlocked(selectedType)||!['build','running','paused'].includes(game.phase)||(game.collection&&!game.availableDefenders(selectedType).length)));
  if(helpDialog.open)renderCommandWindow();
 }
 
@@ -563,8 +571,11 @@ function renderUI() {
     const i = Number(button.dataset.style); button.disabled = !game.access || i > game.rarity;
     button.classList.toggle('selected', i === (tower?.style ?? game.style)); button.setAttribute('aria-pressed', String(i === (tower?.style ?? game.style)));
     button.querySelector('.lock').hidden = game.access && i <= game.rarity;
+    button.querySelector('.style-state').textContent=i>game.rarity?'Locked · higher NFTree rarity':i===(tower?.style??game.style)?'Equipped':'Available · included';
   });
   $('style-instruction').textContent = tower ? `Customize this ${TOWERS[tower.type].name}.` : 'Choose the style for your next defender.';
+  const lobbyArt=$('lobby-style-preview').getContext('2d');lobbyArt.clearRect(0,0,128,128);paintModeDefender(lobbyArt,'oak',64,106,.92,game.style);if(game.seasonLooks.oak)paintSeasonLook(lobbyArt,'oak',64,106,.92);if(!game.isHarvest&&game.harvestLooks.oak)paintHarvestLook(lobbyArt,'oak',64,106,.92);
+  $('lobby-style-name').textContent=`${STYLES[game.style].name} · equipped for new defenders`;
   document.querySelectorAll('[data-pad]').forEach(button => {
     const pad = Number(button.dataset.pad); const t = game.towers.find(t => t.pad === pad);
     button.textContent = t ? `${pad + 1} · ${TOWERS[t.type].name}` : `Site ${pad + 1}`;
@@ -730,10 +741,12 @@ function draw(clock, dt) {
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
   aura.addColorStop(0, '#d8ad6230'); aura.addColorStop(1, '#d8ad6200'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
   // Earning chapter landmarks grows the Tree of Life's visible silhouette.
+  const shieldView={scale:(1.02+game.forestRank*.08)*(game.forestRank>=2?1.06:1),shield:game.shield,clock:visualClock,reducedMotion};
+  paintRootShield(ctx,885,659,{...shieldView,layer:'back'});
   paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock,game.isHarvest);
   if(game.isHarvest||game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
+  paintRootShield(ctx,885,659,shieldView);
   ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
-  if (game.shield > 0) { ctx.strokeStyle='#eafed6';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(885,606,75,90,0,0,Math.PI*2);ctx.stroke(); }
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
   for (let i = 0; i < game.map.pads.length; i++) {
     const [x,y] = game.map.pads[i], tower = game.towers.find(t => t.pad === i);

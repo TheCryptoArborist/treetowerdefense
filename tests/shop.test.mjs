@@ -26,6 +26,13 @@ test('shop explains shield refill, full shield and insufficient funds without bu
  s.game.shield=50;s.view.update();assert.equal(button.disabled,true);assert.match(note.textContent,/already full/);
  s.game.shield=0;s.game.tree=2999;s.view.update();assert.equal(button.disabled,true);assert.match(note.textContent,/Not enough TREE/);assert.doesNotMatch(note.textContent,/preview/);
 });
+test('shop names the supply destination while cosmetics stay separate from purchases',async()=>{
+ const s=await fixture();s.game.forest.stars[0]=1;s.game.startEvent('harvest-canopy');const before=s.game.snapshot();s.view.update();
+ assert.match(s.root.querySelector('#shop-battle-target').textContent,/seasonal challenge.*Harvest.*preparing wave 1/);assert.deepEqual(s.game.snapshot(),before);
+ assert.equal(s.root.querySelector('#style-grid'),null);assert.equal(s.root.querySelector('#copper-look'),null);
+ const looks=s.document.querySelector('[data-command-panel="cosmetics"]');assert(looks.querySelector('#style-grid'));assert(looks.querySelector('#copper-look'));assert.equal(looks.querySelectorAll('[data-supply]').length,0);assert.match(looks.textContent,/Appearance only.*combat stats stay the same/);
+ for(const id of ['style-grid','copper-look','amber-look','harvest-tower-look'])assert.equal(s.document.querySelectorAll('#'+id).length,1);
+});
 test('supply availability follows battle rules and category tabs support arrow keys',async()=>{
  const s=await fixture(),storm=s.root.querySelector('[data-supply="storm"]');
  s.view.update();assert.equal(storm.disabled,true);assert.match(s.root.querySelector('#storm-availability').textContent,/pests|running/);

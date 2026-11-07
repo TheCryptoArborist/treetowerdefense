@@ -23,6 +23,7 @@ export function createShopView({root,getGame,paidMode=false}){
   reset(){select('supplies');},
   update(){
    const game=getGame();
+   text(root.querySelector('#shop-battle-target'),`Supplies apply to ${game.isEvent?'seasonal challenge':'Campaign'} · ${game.runName} · ${game.phase==='build'?'preparing wave '+(game.wave+1):'wave '+game.wave+' of '+game.waveCount}. They stay with this battle; starting another run replaces them.`);
    text(root.querySelector('#shop-payment-note'),paidMode?'Prices are in TREE. SUI network gas is separate. Review your purchase before wallet approval.':'Preview only · purchases use simulated TREE.');
    for(const button of root.querySelectorAll('[data-supply]')){
     const kind=button.dataset.supply,quote=purchaseQuote(game,kind);

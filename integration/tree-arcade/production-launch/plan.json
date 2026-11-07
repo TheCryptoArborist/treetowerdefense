@@ -1,0 +1,13 @@
+{
+  "entry": "https://tree-token.xyz/play/canopy-defense/",
+  "checkoutTest": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "baseLobbySha1": "0563276913f586b1fe2cb554ec81547cc3a6648a",
+  "lobbySha1": "f8b05b34b7b4ee61b0e5757ab90e2745b7f72725",
+  "backendBranch": "canopy-checkout-test",
+  "ledgerReuse": "Retain the existing real-TREE ledger branch and wallet-owned defender levels; no reset or copy of paid records.",
+  "requiresLiveAcceptance": true,
+  "christmasEntry": "Teaser until November 27, 2026",
+  "basePublishedDeployId": "6aee9eb009ccc3479306da4d",
+  "unchangedLobbyNormalizedSha1": "24c0062c0d170ceb1a007cab43334fc649458b50",
+  "baseGameSourceCommit": "4e072604c65a2ea148896b5772d7d0fa7874ff17"
+}

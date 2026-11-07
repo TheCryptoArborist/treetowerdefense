@@ -1,0 +1,147 @@
+{
+  "status": "published-and-verified",
+  "liveWalletAcceptance": "accepted",
+  "releaseState": "published-and-verified",
+  "gameSourceCommit": "9f4effdaafc6e8d87e8d8f40c11054b63a6d3f51",
+  "validatedGameCommit": "b4295d507a7c811b058699d5a9e10c188edf63a6",
+  "runtimeSourcesUnchangedSinceValidation": true,
+  "upstreamDeployId": "6aef3f85bc79792fbca350c0",
+  "siteCandidateDeployId": "6aef402b05aed0cc8955b087",
+  "publishedBaseline": "6aee9eb009ccc3479306da4d",
+  "functionZipSha256": "80671f0cb2fa6b4124b24ee076832cae88ce1dbfa2a9c52d74b36397dece6ba2",
+  "privateModules": 23,
+  "runtime": {
+    "node": "24.x",
+    "region": "us-east-2",
+    "memory": 1024
+  },
+  "preservation": {
+    "staticPaths": 302,
+    "functionPackages": 43,
+    "unrelatedFunctionsUnchanged": 42,
+    "schedules": 5,
+    "changedStaticFiles": [
+      "/_redirects",
+      "/play/index.html"
+    ],
+    "legacyCanopyRoutesParked": "/play/canopy-defense/legacy-disabled/*",
+    "verification": "passed; published baseline locked and unchanged before promotion"
+  },
+  "validation": {
+    "tests": 345,
+    "passed": 344,
+    "windowsOnlySkippedOnLinux": 1,
+    "syntax": "passed",
+    "protectedBuild": "passed",
+    "ci": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42336145314",
+    "ciResult": "success: Ubuntu, Windows and PostgreSQL",
+    "upstreamSmoke": [
+      {
+        "path": "index.html",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "styles.css",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "gateway.js",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "src/art.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "src/app.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "api/payments",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400,
+        "profile": "production"
+      },
+      {
+        "path": "api/access",
+        "origin": "https://evil.example",
+        "status": 403,
+        "profile": "production"
+      }
+    ],
+    "candidateSmoke": [
+      {
+        "path": "/play/",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/",
+        "origin": null,
+        "status": 200,
+        "profile": null
+      },
+      {
+        "path": "/play/canopy-defense/src/art.js",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/payments",
+        "origin": null,
+        "status": 401,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/api/access",
+        "origin": "https://evil.example",
+        "status": 403,
+        "profile": "production"
+      },
+      {
+        "path": "/play/canopy-defense/checkout-test/api/access",
+        "origin": null,
+        "status": 401,
+        "profile": null
+      }
+    ]
+  },
+  "ledger": {
+    "branch": "canopy-checkout-test",
+    "existingRowsRetained": true,
+    "appliedMigrations": 3,
+    "pendingMigrations": 0
+  },
+  "walletAcceptanceEvidence": "wallet-acceptance.json and root-shield-chain-verification.json; user confirmed protection after refresh",
+  "entry": "https://tree-token.xyz/play/canopy-defense/",
+  "arcade": "https://tree-token.xyz/play/",
+  "christmas": "teaser only; November 27, 2026; winter gameplay draft excluded",
+  "publicationAuthorized": true,
+  "publishedAt": "2026-11-07T15:19:58.175626+00:00",
+  "publishedDeployId": "6aef402b05aed0cc8955b087",
+  "liveVerification": "passed: exact static inventory, 43 function packages, 42 unrelated functions unchanged, five schedules retained, live production gateway and protected endpoints"
+}
