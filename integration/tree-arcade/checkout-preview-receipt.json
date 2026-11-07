@@ -57,10 +57,10 @@
   "canonicalRouting": {
     "state": "live",
     "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
-    "productionDeployId": "6aee900be7f4cbafae9c333d",
-    "upstreamDeployId": "6aee8f954de7e6b1748cf5ff",
-    "backendSourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
-    "releaseSourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
+    "productionDeployId": "6aee99263cb3f99fdff0c3c5",
+    "upstreamDeployId": "6aee98acc05bd09753714631",
+    "backendSourceCommit": "642d414953d7938646cba52b7cde0f86461fe7ce",
+    "releaseSourceCommit": "642d414953d7938646cba52b7cde0f86461fe7ce",
     "existingStaticFilesPreserved": 301,
     "functionsPreservedExactly": 43,
     "schedulesPreservedExactly": 5,
@@ -71,7 +71,7 @@
     "changedStaticFiles": [
       "/_redirects"
     ],
-    "gameplaySourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
+    "gameplaySourceCommit": "642d414953d7938646cba52b7cde0f86461fe7ce",
     "existingStaticEntriesRetained": 302
   },
   "gatewayRedesign": {
@@ -1554,5 +1554,11 @@
     "sourceCommit": "95ae49834a772d0a2017503a0f5c973a960a7ea9",
     "upstreamDeployId": "6aee8f954de7e6b1748cf5ff",
     "productionDeployId": "6aee900be7f4cbafae9c333d"
+  },
+  "lobbyPurchaseFix": {
+    "receipt": "integration/tree-arcade/lobby-purchase-fix-release-receipt.json",
+    "sourceCommit": "642d414953d7938646cba52b7cde0f86461fe7ce",
+    "upstreamDeployId": "6aee98acc05bd09753714631",
+    "productionDeployId": "6aee99263cb3f99fdff0c3c5"
   }
 }

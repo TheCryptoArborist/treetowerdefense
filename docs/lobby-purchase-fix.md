@@ -20,3 +20,8 @@ Syntax checks passed. No real wallet transaction was performed.
 The earlier production candidate predates this fix and must not be
 published. Rebuild the current game after the live purchase/recovery
 acceptance, which is still pending.
+
+The fix is live on the existing checkout-test link. See the
+[release receipt](../integration/tree-arcade/lobby-purchase-fix-release-receipt.json).
+Ubuntu, Windows and PostgreSQL CI passed. Reload the open game tab before
+retrying Buy Root Shield so it imports the corrected handler.

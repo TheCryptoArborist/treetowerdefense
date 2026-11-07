@@ -1,0 +1,84 @@
+{
+  "state": "live-on-checkout-test",
+  "url": "https://tree-token.xyz/play/canopy-defense/checkout-test/",
+  "sourceCommit": "642d414953d7938646cba52b7cde0f86461fe7ce",
+  "upstreamDeployId": "6aee98acc05bd09753714631",
+  "productionDeployId": "6aee99263cb3f99fdff0c3c5",
+  "baselineDeployId": "6aee900be7f4cbafae9c333d",
+  "functionZipSha256": "032f4433a7ddc371f7ea6195ac580aa172044eb06e369286fc9919531b78b37f",
+  "rootCause": "The general lobby-open guard returned before purchase review, including clicks in the lobby-owned shop.",
+  "correction": "Allow review from the lobby-owned management window on its shop section; keep all other purchase guards.",
+  "validation": {
+    "tests": 339,
+    "passed": 338,
+    "windowsOnlySkippedOnLinux": 1,
+    "syntax": "passed",
+    "protectedBuild": "passed",
+    "packagedGuard": "corrected lobby guard verified inside deployed private source ZIP",
+    "ci": "https://github.com/TheCryptoArborist/treetowerdefense/actions/runs/42333430279",
+    "ciResult": "success: Ubuntu, Windows and PostgreSQL",
+    "upstreamSmoke": [
+      {
+        "path": "index.html",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "styles.css",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "gateway.js",
+        "origin": null,
+        "status": 200
+      },
+      {
+        "path": "src/app.js",
+        "origin": null,
+        "status": 401
+      },
+      {
+        "path": "api/payments",
+        "origin": null,
+        "status": 401
+      },
+      {
+        "path": "api/access",
+        "origin": "https://tree-token.xyz",
+        "status": 400
+      },
+      {
+        "path": "api/access",
+        "origin": "https://evil.example",
+        "status": 403
+      }
+    ],
+    "liveSmoke": [
+      {
+        "path": "index.html",
+        "status": 200
+      },
+      {
+        "path": "gateway.js",
+        "status": 200
+      },
+      {
+        "path": "api/payments",
+        "status": 401
+      },
+      {
+        "path": "src/app.js",
+        "status": 401
+      }
+    ]
+  },
+  "preservation": {
+    "staticPathsRetained": 302,
+    "functionPackagesUnchanged": 43,
+    "schedulesUnchanged": 5,
+    "onlyChangedStaticFile": "/_redirects"
+  },
+  "walletPurchasePerformed": false,
+  "productionGamePromotion": "Earlier candidate superseded; rebuild corrected game after real-wallet purchase/recovery acceptance."
+}
