@@ -19,7 +19,7 @@ function verified(s){const d=api('getDeploy',{deploy_id:s.candidate});assert.equ
 const mode=process.argv[2];assert(['prepare','candidate','verify','publish','verify-live'].includes(mode));
 if(mode==='prepare'){
  const upstream=process.argv[3];assert(/^[a-f0-9]{24}$/.test(upstream));
- const u=api('getDeploy',{deploy_id:upstream});assert.equal(u.state,'ready');assert.equal(u.available_functions.length,1);assert.equal(u.available_functions[0].r,'nodejs24.x');assert.equal(u.available_functions[0].im,'stream');assert.equal(u.available_functions[0].ro.length,3);
+ const u=api('getDeploy',{deploy_id:upstream});assert.equal(u.state,'ready');assert.equal(u.branch,'canopy-checkout-test','Use the existing paid-ledger branch');assert.equal(u.context,'branch-deploy','A generic deploy-preview lacks the paid-ledger runtime configuration');assert.equal(u.available_functions.length,1);assert.equal(u.available_functions[0].r,'nodejs24.x');assert.equal(u.available_functions[0].im,'stream');assert.equal(u.available_functions[0].ro.length,3);
  const d=api('getDeploy',{deploy_id:api('getSite',{site_id:site}).published_deploy.id});assert.equal(d.locked,true);
  const originalFiles=inventory(),old=fs.readFileSync('.netlify/audio-baseline-redirects','utf8');assert.equal(hash(old),originalFiles['/_redirects'],'Existing rewrite content must match exactly');
  const rules=old.split('\n');assert.equal(rules.filter(l=>l.startsWith('/play/canopy-defense/* ')).length,1);

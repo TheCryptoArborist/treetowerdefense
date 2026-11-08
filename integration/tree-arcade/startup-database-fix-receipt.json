@@ -1,0 +1,31 @@
+{
+  "status": "published-and-inventory-verified",
+  "reason": "Authenticated startup failed at transactionDatabase/getDatabase. The previous audio backend was a generic deploy-preview rather than the existing paid-ledger branch-deploy.",
+  "evidence": {
+    "checkoutStatusFailure": "257cebfa-5cb2-40e5-821d-6adfc2271478",
+    "source": "canopy-access.mjs:308:37",
+    "workingBranch": "canopy-checkout-test",
+    "workingContext": "branch-deploy",
+    "migrationsApplied": 3,
+    "migrationsPending": 0
+  },
+  "sourceRuntimeUnchanged": "534a0f27063ff686a770a23a5249fc9485cac4e1",
+  "upstreamDeployId": "6af08a3ea284ce3b3b419a86",
+  "siteDeployId": "6af08a98f03f8d9a559c3492",
+  "previousPublishedDeployId": "6af0885e17ec3ad4e71f3337",
+  "changes": [
+    "Backend deployed with --alias canopy-checkout-test to reuse the existing paid-ledger context",
+    "Publication preflight now requires the expected branch and branch-deploy context",
+    "Only normal Canopy rewrite updated"
+  ],
+  "preserved": {
+    "sitePaths": 366,
+    "functionPackages": 45,
+    "scheduledJobs": 5,
+    "dataAndPurchasesUnchanged": true,
+    "checkoutTestRewriteUnchanged": true
+  },
+  "authenticatedPlayerReload": "pending user retry",
+  "at": "2026-11-08T14:44:12.536992+00:00",
+  "publicChecks": "index 200; access/payment endpoints correctly require sign-in; production profile present"
+}
