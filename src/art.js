@@ -953,3 +953,24 @@ export function paintHarvestBackdrop(c,map=LEGACY_MAP){
  if(map.id==='harvest-v2'){c.font='bold 10px Arial';c.fillStyle='#ffe1a0';c.textAlign='center';c.strokeStyle='#301b12';c.lineWidth=3;c.strokeText('SEED CACHE',145,269);c.fillText('SEED CACHE',145,269);}
  c.restore();
 }
+
+// Arrival feedback is presentation only; the engine applies each breach once.
+export function paintRootAssault(c,feedback,{health,shield,reducedMotion=false}={}) {
+  c.save();
+  for(const hit of feedback.breaches) {
+    const age=1-hit.life/hit.max,color=hit.damage?'#ff795b':'#00f1d2';
+    c.globalAlpha=Math.min(1,hit.life*2);
+    c.strokeStyle=color;c.lineWidth=4;
+    c.beginPath();c.ellipse(885,647,reducedMotion?64:32+age*54,17+age*12,0,0,TAU);c.stroke();
+    // A visible strike connects the route endpoint to the roots.
+    line(c,[[hit.x,hit.y],[915,625],[885,647]],color,5);
+    ellipse(c,885,647,10,10,color);
+  }
+  c.globalAlpha=1;
+  c.fillStyle='#040810eb';c.fillRect(804,674,162,23);
+  c.fillStyle='#31403a';c.fillRect(812,680,96,9);
+  c.fillStyle=health<=25?'#ff795b':'#7ef3a0';c.fillRect(812,680,96*Math.max(0,Math.min(100,health))/100,9);
+  c.fillStyle='#fff4d8';c.font='bold 11px Arial';c.textAlign='right';c.fillText(`${health}/100`,960,689);
+  if(shield>0){c.fillStyle='#00f1d2';c.font='bold 11px Arial';c.textAlign='center';c.fillText(`SHIELD ${shield}/50`,885,670);}
+  c.restore();
+}

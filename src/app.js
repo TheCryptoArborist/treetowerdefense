@@ -1,6 +1,6 @@
 import { Game, WIDTH, HEIGHT, PADS, TOWERS, RARITIES, STYLES, PRICES, CHAPTERS, GROWTH_NAMES, TARGET_MODES, UNLOCKS, HAUNTED_GROVE, HARVEST_CANOPY, pestAppearance, harvestWind } from './engine.js';
 
-import { paintTree as shapeTree, paintLifeTree, paintRootShield, paintPest, paintPestHealth, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
+import { paintTree as shapeTree, paintLifeTree, paintRootShield, paintPest, paintPestHealth, paintRootAssault, paintCombatEffects, paintBackdrop, paintShot, paintBuildSite, loadDefenderArt, getDefenderArtStatus, loadEnvironmentArt, getEnvironmentArtStatus, loadAimArt, getAimArtStatus, loadStructureArt, getStructureArtStatus, getGuardianShotOrigin, paintSeasonLook, paintHauntedBackdrop, paintHarvestBackdrop, paintHarvestLook } from './art.js';
 import { scoutWave, starterTip, PurchaseReview, battleReport } from './playtest.js';
 import { loadEnemyArt } from './enemy-art.js';
 import { CombatFeedback, bossStatus } from './combat.js';
@@ -740,13 +740,6 @@ function draw(clock, dt) {
   ctx.clearRect(0, 0, WIDTH, HEIGHT); ctx.drawImage(backdrop, 0, 0);
   const aura = ctx.createRadialGradient(920, 610, 15, 920, 610, 105);
   aura.addColorStop(0, '#d8ad6230'); aura.addColorStop(1, '#d8ad6200'); ctx.fillStyle = aura; ctx.fillRect(800,490,200,230);
-  // Earning chapter landmarks grows the Tree of Life's visible silhouette.
-  const shieldView={scale:(1.02+game.forestRank*.08)*(game.forestRank>=2?1.06:1),shield:game.shield,clock:visualClock,reducedMotion};
-  paintRootShield(ctx,885,659,{...shieldView,layer:'back'});
-  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock,game.isHarvest);
-  if(game.isHarvest||game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
-  paintRootShield(ctx,885,659,shieldView);
-  ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
   const suggestedPad = guideStatus === 'active' && game.access ? starterTip(game).pad : null;
   for (let i = 0; i < game.map.pads.length; i++) {
     const [x,y] = game.map.pads[i], tower = game.towers.find(t => t.pad === i);
@@ -767,9 +760,17 @@ function draw(clock, dt) {
   }
   ctx.textAlign='left';
   for (const e of game.enemies) paintPest(ctx,e,visualClock,game.time,{hit:feedback.reaction(e.id),reducedMotion,healthBar:false});
+  // Earning chapter landmarks grows the Tree of Life's visible silhouette.
+  const shieldView={scale:(1.02+game.forestRank*.08)*(game.forestRank>=2?1.06:1),shield:game.shield,clock:visualClock,reducedMotion};
+  paintRootShield(ctx,885,659,{...shieldView,layer:'back'});
+  paintLifeTree(ctx, 'oak', 885, 659, 1.02 + game.forestRank * .08, 0, game.forestRank >= 2 ? 2 : 1, visualClock,game.isHarvest);
+  if(game.isHarvest||game.harvestLooks.tree)paintHarvestLook(ctx,'tree',885,659,1.1);
+  paintRootShield(ctx,885,659,shieldView);
+  ctx.save();ctx.fillStyle='#efe5c6';ctx.font='bold 12px Trebuchet MS, Arial';ctx.textAlign='center';ctx.strokeStyle='#101b14';ctx.lineWidth=4;ctx.strokeText('TREE OF LIFE',885,704);ctx.fillText('TREE OF LIFE',885,704);ctx.restore();
+  paintRootAssault(ctx,feedback,{health:game.health,shield:game.shield,reducedMotion});
   paintCombatEffects(ctx,feedback,reducedMotion);
   for (const shot of aiming.shots) paintShot(ctx,shot,{reducedMotion});
-  for (const e of game.enemies) paintPestHealth(ctx,e);
+  for (const e of game.enemies) if (!(e.x > 810 && e.y > 480)) paintPestHealth(ctx,e);
   if (!held && aiming.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of events) {
     if (['attack','chain','hit','wave-start','wave-clear','boss-arrival','roster-unlock','season-reward'].includes(event.type)) continue;
@@ -778,7 +779,7 @@ function draw(clock, dt) {
     if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#dbd9b4',life:1});
     if(event.type==='upgrade') {floaters.push({x:event.x,y:event.y-82,text:'GROWN!',color:'#eed3a3',life:1.2});tone(660,.2);}
     if(event.type==='plant')tone(340,.12);
-    if(event.type==='leak'){floaters.push({x:875,y:550,text:event.damage?`−${event.damage} LIFE`:event.absorbed?'SHIELD HELD':'ROOTS BREACHED',color:event.damage?'#e9a68e':'#c9dcc0',life:1.2});tone(130,.2);}
+    if(event.type==='leak'){floaters.push({x:825,y:475-floaters.filter(f=>f.breach).length*20,breach:true,text:event.damage?`ROOT ATTACK −${event.damage} LIFE`:event.absorbed?`SHIELD BLOCKED ${event.absorbed}`:'ROOTS BREACHED',color:event.damage?'#ffb29b':'#7ef3a0',life:2.4});tone(130,.2);}
     if(event.type==='storm')tone(240,.3);
     if(event.type==='victory')tone(880,.4);
   }

@@ -4,7 +4,7 @@ import { scoutWave } from './playtest.js';
 // Transient presentation state: never part of a game save or combat calculation.
 export class CombatFeedback {
   constructor() { this.clear(); }
-  clear() { this.impacts = []; this.defeats = []; this.reactions = new Map(); this.notice = null; }
+  clear() { this.breaches = []; this.impacts = []; this.defeats = []; this.reactions = new Map(); this.notice = null; }
   consume(events) {
     for (const event of events) {
       if (event.type === 'hit') {
@@ -25,11 +25,16 @@ export class CombatFeedback {
         this.announce(`WAVE ${event.wave} CLEARED`, `+${event.sap} Sap earned. Prepare your next defense.`, 'success', 3.5);
       } else if (event.type === 'roster-unlock') {
         this.announce(`${TOWERS[event.defender].name.toUpperCase()} UNLOCKED`, 'Earned through play. Select your new defender in the roster; plant it with Sap.', 'success', 5);
-      } else if (event.type === 'leak' && event.kind === 'boss') {
+      } else if (event.type === 'leak') {
+        this.breaches.push({...event,life:1.3,max:1.3});
+        this.announce(event.damage ? 'TREE OF LIFE UNDER ATTACK' : 'ROOT SHIELD BLOCKED THE ATTACK',
+          `${event.kind === 'boss' ? event.bossName || 'Blight King' : event.kind} reached the roots. ${event.damage} life lost${event.absorbed ? ` · ${event.absorbed} blocked by shield` : ''}.`,event.damage?'danger':'success',3);
+        if(event.kind !== 'boss') continue;
         this.announce(`THE ${(event.bossName||'Blight King').toUpperCase()} BREACHED THE ROOTS`, event.damage ? `The Tree of Life took ${event.damage} damage.` : 'Your Root Shield absorbed the attack.', 'danger', 4);
       }
     }
     // Limit memory and rendering cost even after a large number of hits.
+    this.breaches = this.breaches.slice(-12);
     this.impacts = this.impacts.slice(-80);
     this.defeats = this.defeats.slice(-32);
     while (this.reactions.size > 64) this.reactions.delete(this.reactions.keys().next().value);
@@ -37,7 +42,8 @@ export class CombatFeedback {
   announce(title, text, tone, life) { this.notice = { title, text, tone, life }; }
   advance(dt) {
     if (!Number.isFinite(dt) || dt <= 0) return;
-    for (const list of [this.impacts, this.defeats]) for (const effect of list) effect.life -= dt;
+    for (const list of [this.impacts, this.defeats, this.breaches]) for (const effect of list) effect.life -= dt;
+    this.breaches = this.breaches.filter(effect => effect.life > 0);
     this.impacts = this.impacts.filter(effect => effect.life > 0);
     this.defeats = this.defeats.filter(effect => effect.life > 0);
     for (const [id, life] of this.reactions) {
