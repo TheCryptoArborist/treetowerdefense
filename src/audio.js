@@ -60,6 +60,9 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   for(const style of ['heroic','natural'])write('canopy-narration-voice-'+style,voiceChoicesByStyle[style]);
   write('canopy-narration-voice','');
  }
+ let effectsVolume=volume('canopy-effects-volume',.7),ambienceVolume=volume('canopy-ambience-volume',.3);
+ function volume(key,fallback){const raw=readText(key),n=Number(raw);return raw!==''&&Number.isFinite(n)?Math.max(0,Math.min(1,n)):fallback;}
+ let effects=null,ambience=null,battleSeconds=0,nextForest=0,battleActive=false,lastBattlePhase=null;const lastCue=new Map();
  let context=null,music=null,noise=null,unlocked=false,hidden=false,disposed=false,error='';
  let scene=null,beat=0,seconds=0,musicBar=-1,played=new Set(),utterance=null,voiceToken=0,voiceTimer=null;
  let voiceStatus='idle',voiceError='',spokenKey='',sceneId=0,attempt=0;
@@ -71,7 +74,7 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   effectiveNarrationVoice:describe(pair[narrationStyle]),deliveryVoices:{heroic:describe(pair.heroic),natural:describe(pair.natural)},
   distinctDeliveryVoices:!!pair.heroic&&!!pair.natural&&voiceId(pair.heroic)!==voiceId(pair.natural),
   voiceSupported:!!speech?.speak&&!!Utterance,canNarrate:!!speech?.speak&&!!Utterance&&list.length>0,voiceStatus,voiceError,error,
-  sceneActive:!!scene,hidden};}
+  effectsVolume,ambienceVolume,sceneActive:!!scene,hidden};}
  const notify=()=>{try{onChange(state());}catch{}};
  const duck=on=>{try{music?.gain.setTargetAtTime(on ? .36 : 1,context.currentTime,.06);}catch{}};
  function clearVoiceTimer(){if(voiceTimer!==null)clearTimer(voiceTimer);voiceTimer=null;}
@@ -89,26 +92,26 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   const item={source,scene:forScene,clean(){nodes.delete(item);for(const n of [source,gain,filter])try{n?.disconnect();}catch{}}};
   source.onended=item.clean;nodes.add(item);return item;
  }
- function note(frequency,duration=.3,{delay=0,level=.045,type='sine',end=frequency,forScene=true,sustain=false}={}){
-  if(!ready()||!Number.isFinite(frequency)||frequency<=0)return;
+ function note(frequency,duration=.3,{delay=0,level=.045,type='sine',end=frequency,forScene=true,sustain=false,bus=null}={}){
+  if(!ready()||!forScene&&nodes.size>=64||!Number.isFinite(frequency)||frequency<=0)return;
   try{
    const source=context.createOscillator(),gain=context.createGain(),t=context.currentTime+delay;
    source.type=type;source.frequency.setValueAtTime(frequency,t);source.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+duration);
    gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(level,t+.025);
    if(sustain)gain.gain.linearRampToValueAtTime(level,t+duration*.72);
    gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
-   source.connect(gain);gain.connect(forScene?music:context.destination);attach(source,gain,null,forScene);
+   source.connect(gain);gain.connect(bus||(forScene?music:effects));attach(source,gain,null,forScene);
    source.start(t);source.stop(t+duration+.02);
   }catch{error='Audio effects could not play. Try enabling audio again.';notify();}
  }
- function rustle(duration=.25,level=.035,cutoff=900){
-  if(!ready())return;
+ function rustle(duration=.25,level=.035,cutoff=900,{forScene=true,bus=null}={}){
+  if(!ready()||!forScene&&nodes.size>=64)return;
   try{
    if(!noise){noise=context.createBuffer(1,context.sampleRate*2,context.sampleRate);const data=noise.getChannelData(0);let seed=719;for(let i=0;i<data.length;i++){seed=(seed*1664525+1013904223)>>>0;data[i]=(seed/4294967296)*2-1;}}
    const source=context.createBufferSource(),filter=context.createBiquadFilter(),gain=context.createGain(),t=context.currentTime;
    source.buffer=noise;source.loop=true;filter.type='lowpass';filter.frequency.setValueAtTime(cutoff,t);
    gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(level,t+Math.min(.12,duration/3));gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
-   source.connect(filter);filter.connect(gain);gain.connect(music);attach(source,gain,filter,true);
+   source.connect(filter);filter.connect(gain);gain.connect(bus||(forScene?music:effects));attach(source,gain,filter,forScene);
    source.start(t);source.stop(t+duration+.02);
   }catch{error='Forest ambience is unavailable; music and captions remain available.';notify();}
  }
@@ -156,6 +159,8 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
   try{
    if(!context||context.state==='closed'){
     context=new AudioContext();music=context.createGain();music.connect(context.destination);
+    effects=context.createGain();effects.gain.setValueAtTime(effectsVolume,context.currentTime);effects.connect(context.destination);
+    ambience=context.createGain();ambience.gain.setValueAtTime(ambienceVolume,context.currentTime);ambience.connect(context.destination);
     context.onstatechange=()=>{if(context.state!=='running'){stopNodes();stopVoice(scene?'interrupted':'idle');}notify();};
    }
    const resumed=context.state==='running'?Promise.resolve():context.resume();
@@ -173,11 +178,78 @@ export function createGameAudio({AudioContext,speech,Utterance,storage,onChange=
  }
  function mute(){enabled=false;attempt++;write('canopy-sound-enabled',false);stopVoice();stopNodes();notify();}
  function closeScene(){scene=null;sceneId++;stopVoice();stopNodes(true);played.clear();seconds=0;musicBar=-1;spokenKey='';voiceError='';notify();}
+ // Original synthesized battlefield instruments, triggered by simulation events.
+ function battleCue(kind){
+  if(!ready()||scene||effectsVolume===0)return;
+  const now=context.currentTime,gap=kind==='kill'?.12:kind==='hit'?.08:.075;
+  if(now-(lastCue.get(kind)??-Infinity)<gap)return;
+  lastCue.set(kind,now);
+  const hit=(f,d,level=.055,type='triangle',end=f*.45,delay=0)=>note(f,d,{forScene:false,level,type,end,delay});
+  const air=(d,level,cutoff)=>rustle(d,level,cutoff,{forScene:false});
+  switch(kind){
+   case 'pine':air(.06,.055,4200);hit(1550,.07,.025,'triangle',600);break;
+   case 'watchtower':air(.08,.055,2800);hit(520,.14,.065,'triangle',125);break;
+   case 'oak':hit(125,.32,.11,'sine',38);air(.23,.085,420);break;
+   case 'palm':air(.48,.07,1300);hit(320,.3,.018,'sine',650);break;
+   case 'cypress':air(.19,.085,850);hit(210,.12,.05,'triangle',55);hit(145,.12,.04,'triangle',45,.08);break;
+   case 'mushroom':air(.3,.055,480);hit(420,.12,.035,'sine',120);hit(600,.1,.022,'sine',180,.1);break;
+   case 'willow':hit(720,.18,.035,'sawtooth',165);air(.12,.025,5000);break;
+   case 'cannon':hit(90,.42,.13,'sine',28);air(.24,.11,750);break;
+   case 'hit':air(.055,.02,1250);break;
+   case 'kill':air(.13,.035,650);break;
+   case 'shield':hit(880,.34,.055,'sine',440);hit(1320,.28,.025,'sine',660);break;
+   case 'roots':hit(85,.5,.12,'triangle',32);air(.28,.1,700);break;
+   case 'wave':hit(220,.22,.06,'triangle',220);hit(330,.3,.055,'triangle',330,.24);break;
+   case 'clear':hit(330,.2);hit(440,.25,.05,'triangle',440,.15);hit(660,.4,.05,'triangle',660,.3);break;
+   case 'boss':hit(110,.65,.08,'sawtooth',55);hit(82,.7,.06,'triangle',41,.25);break;
+   case 'defeat':hit(180,.45);hit(120,.5,.07,'triangle',55,.35);break;
+  }
+ }
+ function battle(events,{active=false,dt=0,phase='running'}={}){
+  if(!ready()||scene){battleActive=false;return;}
+  if(!active){
+   if(battleActive)for(const item of [...nodes])if(!item.scene){try{item.source.stop();}catch{}item.clean();}
+   battleActive=false;nextForest=battleSeconds;return;
+  }
+  battleActive=true;
+  const ended=['defeat','victory'].includes(phase);
+  if(ended&&lastBattlePhase!==phase){
+   for(const item of [...nodes])if(!item.scene){try{item.source.stop();}catch{}item.clean();}
+   if(phase==='defeat')battleCue('defeat');
+  }
+  lastBattlePhase=phase;
+  battleSeconds+=Number.isFinite(dt)?Math.max(0,Math.min(dt,.1)):0;
+  if(!ended&&battleSeconds>=nextForest){
+   nextForest=battleSeconds+3.8;
+   if(ambienceVolume>0){
+    rustle(3.9,.045,430,{forScene:false,bus:ambience});
+    note(1750,.16,{forScene:false,bus:ambience,level:.025,end:2450,delay:.4});
+    note(2200,.2,{forScene:false,bus:ambience,level:.018,end:1700,delay:.65});
+   }
+  }
+  for(const event of events){
+   if(event.type==='attack')battleCue(event.guardian);
+   else if(event.type==='hit')battleCue('hit');
+   else if(event.type==='kill')battleCue('kill');
+   else if(event.type==='leak'){if(event.absorbed)battleCue('shield');if(event.damage)battleCue('roots');}
+   else if(event.type==='wave-start')battleCue('wave');
+   else if(event.type==='wave-clear'||event.type==='victory')battleCue('clear');
+   else if(event.type==='boss-arrival')battleCue('boss');
+  }
+ }
+ function setVolume(channel,value){
+  const n=Number(value);if(!['effects','ambience'].includes(channel)||!Number.isFinite(n))return false;
+  const level=Math.max(0,Math.min(1,n));
+  if(channel==='effects')effectsVolume=level;else ambienceVolume=level;
+  write('canopy-'+channel+'-volume',level);
+  (channel==='effects'?effects:ambience)?.gain.setTargetAtTime(level,context.currentTime,.03);
+  notify();return true;
+ }
  const voicesChanged=()=>{if(scene&&voiceStatus==='unavailable')speakCurrent();notify();};
  speech?.addEventListener?.('voiceschanged',voicesChanged);
  return {
-  get state(){return state();},enable,mute,toggle(){return ready()?mute():enable();},
-  openScene(next,{beat:nextBeat=0}={}){closeScene();scene=next;beat=nextBeat;sceneId++;voiceStatus='idle';if(ready())wake();notify();},
+  get state(){return state();},enable,mute,battle,battleCue,setVolume,toggle(){return ready()?mute():enable();},
+  openScene(next,{beat:nextBeat=0}={}){stopNodes();battleActive=false;nextForest=battleSeconds;closeScene();scene=next;beat=nextBeat;sceneId++;voiceStatus='idle';if(ready())wake();notify();},
   setBeat(next){if(!scene||next===beat)return;stopVoice();beat=next;spokenKey='';voiceError='';if(ready())note(hz((keys[scene.tone]??50)+24),.3,{level:.03});speakCurrent();notify();},
   tick(next,{reducedMotion=false}={}){
    if(!scene||!Number.isFinite(next)||next<seconds||hidden)return;

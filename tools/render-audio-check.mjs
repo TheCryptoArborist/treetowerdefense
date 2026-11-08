@@ -13,11 +13,11 @@ const beat=app.slice(app.indexOf('function renderStoryBeat(){'),app.indexOf('con
 const dialog=index.match(/<dialog id="story-dialog"[\s\S]*?<\/dialog>/)[0]
  .replace('</dialog>','<output id="qa-audio-check" style="display:block;padding:10px 24px;color:#b9e5d4;font:12px monospace"></output></dialog>');
 const html=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Canopy cutscene audio check</title>
-<style>${fs.readFileSync('styles.css','utf8')}</style><main style="padding:20px"><h1>Cutscene audio check</h1><p>Isolated component · no game, wallet or payments.</p><button id="sound-button" aria-pressed="false">Enable sound</button> <button id="qa-open">Open cutscene</button></main>${dialog}
+<style>${fs.readFileSync('styles.css','utf8')}</style><main style="padding:20px"><h1>Cutscene audio check</h1><p>Isolated component · no game, wallet or payments.</p><button id="sound-button" aria-pressed="false">Enable sound</button> <button id="qa-open">Open cutscene</button><div id="battle-audio-settings"><input id="audio-effects" type="range"><input id="audio-ambience" type="range"></div></main>${dialog}
 <script type="module">
 ${audio}
 ${motionSettings}
-const $=id=>document.getElementById(id),observed=[];
+const $=id=>document.getElementById(id),observed=[],game={access:true};
 const NativeContext=window.AudioContext||window.webkitAudioContext;
 class MeteredContext{
  constructor(){

@@ -94,6 +94,15 @@ function renderAudioState(){
  button.title=s.ready?'Mute music, effects and narration':'Enable music, effects and narration';
 }
 $('sound-button').addEventListener('click',()=>{void gameAudio.toggle();});
+for(const channel of ['effects','ambience']){
+ const slider=$('audio-'+channel);slider.value=Math.round(gameAudio.state[channel+'Volume']*100);
+ slider.addEventListener('input',()=>gameAudio.setVolume(channel,Number(slider.value)/100));
+}
+// A gameplay gesture unlocks browser audio while preserving an explicit mute.
+for(const event of ['pointerdown','keydown'])document.addEventListener(event,e=>{
+ if(e.target.closest?.('#sound-button, #battle-audio-settings')||e.type==='keydown'&&(e.repeat||e.key==='Tab'))return;
+ if(game.access&&gameAudio.state.enabled&&!gameAudio.state.ready)void gameAudio.enable();
+});
 renderAudioState();
 window.canopyAccess.subscribe(account=>gameAudio.setHidden(document.hidden||!account||account.address!==holder.address));
 let storyBeat=0,activeScene=null;
@@ -452,7 +461,7 @@ function renderSeason(){
     seasonArtSignature=signature;
   }
 }
-let lastTone=0;
+
 function tone(frequency,duration=.08){gameAudio.tone(frequency,duration);}
 let cardSignature = '';
 const forestArtReady=waitForForestArt({
@@ -731,6 +740,7 @@ function draw(clock, dt) {
   const visualClock = reducedMotion ? 0 : aiming.time;
   const events = game.events.splice(0);
   if(events.some(event=>event.type==='wave-clear')){save();stories.open(game.wave);}
+  gameAudio.battle(events,{active:!held&&!storyDialog.open&&game.access,dt:effectDt,phase:game.phase});
   feedback.consume(events);
   aiming.consume(events);
   aiming.track(game,held);
@@ -771,7 +781,6 @@ function draw(clock, dt) {
   paintCombatEffects(ctx,feedback,reducedMotion);
   for (const shot of aiming.shots) paintShot(ctx,shot,{reducedMotion});
   for (const e of game.enemies) if (!(e.x > 810 && e.y > 480)) paintPestHealth(ctx,e);
-  if (!held && aiming.shots.some(shot=>shot.life>.27) && clock-lastTone>.16) { tone(220,.045);lastTone=clock; }
   for (const event of events) {
     if (['attack','chain','hit','wave-start','wave-clear','boss-arrival','roster-unlock','season-reward'].includes(event.type)) continue;
     const n=event.type==='storm'?65:event.type==='victory'?80:14;
@@ -779,7 +788,7 @@ function draw(clock, dt) {
     if(event.type==='kill')floaters.push({x:event.x,y:event.y-32,text:event.kind==='boss'?'+150 SAP':'+12 SAP',color:'#dbd9b4',life:1});
     if(event.type==='upgrade') {floaters.push({x:event.x,y:event.y-82,text:'GROWN!',color:'#eed3a3',life:1.2});tone(660,.2);}
     if(event.type==='plant')tone(340,.12);
-    if(event.type==='leak'){floaters.push({x:825,y:475-floaters.filter(f=>f.breach).length*20,breach:true,text:event.damage?`ROOT ATTACK −${event.damage} LIFE`:event.absorbed?`SHIELD BLOCKED ${event.absorbed}`:'ROOTS BREACHED',color:event.damage?'#ffb29b':'#7ef3a0',life:2.4});tone(130,.2);}
+    if(event.type==='leak'){floaters.push({x:825,y:475-floaters.filter(f=>f.breach).length*20,breach:true,text:event.damage?`ROOT ATTACK −${event.damage} LIFE`:event.absorbed?`SHIELD BLOCKED ${event.absorbed}`:'ROOTS BREACHED',color:event.damage?'#ffb29b':'#7ef3a0',life:2.4});}
     if(event.type==='storm')tone(240,.3);
     if(event.type==='victory')tone(880,.4);
   }

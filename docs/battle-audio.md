@@ -1,0 +1,9 @@
+# Battlefield audio
+
+Battlefield attacks now use original synthesized instruments instead of the shared 220 Hz shot tone. Pine uses a short needle hiss, Watchtower a woody bow twang, Oak a low root impact, Palm a wind sweep, Cypress a double root crack, Mushroom a soft spore pop, Willow a charged pulse, and Cannon a bass launch. Actual attack/hit/kill/leak/wave/boss events trigger effects; shield absorption and actual root damage have different cues. No Plants vs. Zombies or Defense Grid audio was copied.
+
+Quiet filtered wind and bird calls form the forest bed. Effects and ambience have separately saved 0–100 volume sliders next to the master Sound button. Explicit mute persists; an ordinary gameplay gesture unlocks enabled browser audio. Pause, management dialogs, tab hiding and loss of access stop battlefield output. Cutscenes retain the existing score and default narration; battle audio stops before a scene starts. End-of-run ambience stops, with a defeat cue on loss. Repeated same-instrument shots are throttled and battlefield synthesis is capped at 64 active sources.
+
+Validation: 348 tests completed, 347 passed and one Windows-only skip. Syntax and protected production-profile packaging passed. Offline rendering of 14 individual cue graphs and the crowded eight-defender mix produced finite, distinct, non-clipping output and verified silence after mute. Crowded mix peak was 0.2064. Existing four-biome story audio signal checks also passed. Browser speakers and authenticated hosted gameplay have not yet been verified.
+
+Publication is pending the existing official Netlify login ticket. Package through the current production inventory preservation workflow; keep all unrelated site paths, function packages, schedules, checkout routing, paid ledger and private-source gate. These changes contain no game balance, ownership, payment or progress migrations.
