@@ -6,4 +6,4 @@ Both victory and defeat offer Canopy Defense home (the existing mode lobby, reta
 
 Validation: complete suite passed (345 passes, one Windows-only skip), syntax checks passed, native Canvas scene rendered and inspected. This is offline visual verification, not an authenticated production browser session.
 
-Publication is pending: official Netlify CLI reports NOT_LOGGED_IN in this workspace. Use the preservation release process from the production receipt; retain the current site inventory, unrelated functions, five scheduled jobs, checkout route and protected module gating. Do not deploy this repository as a replacement for the entire Tree Token site.
+Published with battlefield audio on November 8, 2026. See integration/tree-arcade/battlefield-update-release-receipt.json. The current 366-path site, 45 function packages and five schedules were preserved; only the normal Canopy route changed.
