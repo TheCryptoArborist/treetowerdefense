@@ -1,0 +1,43 @@
+{
+  "status": "published-and-verified",
+  "publishedAt": "2026-11-08T15:39:23.065156+00:00",
+  "entry": "https://tree-token.xyz/play/canopy-defense/",
+  "publishedDeployId": "6af097313cb381e5d5b0a550",
+  "upstreamDeployId": "6af096da765b220eae442ba8",
+  "previousPublishedDeployId": "6af08a98f03f8d9a559c3492",
+  "runtimeSourceCommit": "4b3ff518aee526c27340a3f630f7fb11e7dab9cb",
+  "reviewPreviewCommit": "09fe7e3abd428a6c465ed9c5fe3d78dac6af4f4d",
+  "approvedForPublication": true,
+  "ledgerBranch": "canopy-checkout-test",
+  "backendContext": "branch-deploy",
+  "preserved": {
+    "staticPaths": 366,
+    "functionPackages": 45,
+    "scheduledJobs": 5,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "unrelatedFunctionPackagesUnchanged": true,
+    "checkoutTestRouteUnchanged": true
+  },
+  "validation": {
+    "tests": 351,
+    "passed": 350,
+    "windowsOnlySkip": 1,
+    "syntax": "passed",
+    "productionPackaging": "passed",
+    "isolatedAppBootDefeatRecovery": "passed; local DOM/native Canvas, art readiness stubbed",
+    "standalonePreviewInteractions": "passed",
+    "liveAssetBytes": "match approved WebP",
+    "liveHTMLAndCSS": "passed",
+    "privateOutcomeModule": "401 without holder session",
+    "authenticatedPlayerSession": "not performed"
+  },
+  "artwork": {
+    "path": "assets/outcomes/tree-of-life-fallen-v1.webp",
+    "bytes": 426856,
+    "sha256": "8b55675121c5716af65767c774cd109fafddd5513446ad1d7473396f0c6394ea",
+    "fixedScene": "Armored beetle over fallen Tree of Life; not dynamically selected by fatal enemy"
+  },
+  "gameplayPaymentsAndSavesUnchanged": true
+}
