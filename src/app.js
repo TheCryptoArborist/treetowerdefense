@@ -12,6 +12,7 @@ import {createStoryDirector,storyCheckpoint} from './story.js';
 import {createStoryAnimation} from './story-art.js';
 import {createStoryPlayback} from './story-playback.js';
 import {createGameAudio} from './audio.js';
+import {createOutcomePresentation} from './outcome.js';
 import {createCommandMenu,COMMAND_SECTIONS} from './command-menu.js';
 import {createShopView} from './shop.js';
 import {adoptCheckoutBattle,requireLiveCheckout} from './save-promotion.js';
@@ -80,6 +81,7 @@ const purchaseDialog = $('purchase-dialog');
 const storyDialog=$('story-dialog');
 const worldMapDialog=$('world-map-dialog');
 const modeDialog=$('mode-dialog');
+const outcomeView=createOutcomePresentation({root:$('outcome'),canvas,report:$('battle-report'),reportButton:$('outcome-report'),backButton:$('report-back-outcome'),continueButton:$('continue-button'),freshButton:$('outcome-new-run')});
 let worldMap=null;
 const storyAnimation=createStoryAnimation();
 let audioStorage;try{audioStorage=localStorage;}catch{}
@@ -615,8 +617,7 @@ function renderUI() {
   }
   inspectorSignature = nextInspector;
   }
-  const ended = ['defeat', 'victory'].includes(game.phase); $('outcome').hidden = !ended;
-  $('battle-report').hidden = !ended;
+  const ended = ['defeat', 'victory'].includes(game.phase);
   if (ended) {
     const report = battleReport(game);
     $('report-coverage').textContent = report.complete ? 'Full run recorded' : 'Partial history · only activity recorded since this update is included below.';
@@ -635,9 +636,13 @@ function renderUI() {
     $('next-chapter').hidden=!nextAction;
     $('next-chapter').textContent=nextAction?.label||'';
     $('outcome-new-run').textContent=game.isEvent?'Replay seasonal event · included':'Replay this level · included';
-    $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : `Continue to restore health and keep your towers and current wave. Costs 20,000 ${paidMode?'TREE plus SUI network gas':'preview TREE'}. A fresh run is included with NFTree access.`;
+    $('outcome-description').textContent = won && game.isEvent ? `${game.runName} protected. ${game.activeSeasonRewards.length}/${game.event.rewards.length} seasonal rewards earned. Equip your looks in the event panel. Your campaign progress is preserved.` : won ? `${game.runName} protected. ${stars}/3 ${game.isVeteran?'Veteran stars. Standard progress stays saved.':'stars.'} Your forest landmark and permanent growth are saved. No tokens or cash awarded.` : 'Restore the tree and keep your defenders and current wave.';
     $('continue-button').hidden = won; $('continue-button').disabled = game.tree < PRICES.continue;
+    $('outcome-wallet-note').hidden=won;
+    $('outcome-wallet-note').textContent=paidMode?'Plus SUI network gas · wallet approval required':'Preview only · no token transfer';
+    if(!won)$('outcome-new-run').textContent='Start a fresh run · included';
   }
+  outcomeView.update({phase:game.phase,reducedMotion});
 }
 
 function deploymentLevel(type){
