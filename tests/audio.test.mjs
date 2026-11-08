@@ -237,3 +237,29 @@ test('one English voice, duplicate records, and a removed voice have a truthful 
  assert.match(narrationVoiceInfo(x.audio.state),/one English voice/);
  x.speech.voices=[];assert.match(narrationVoiceInfo(x.audio.state),/No English device voice/);x.audio.dispose();
 });
+
+test('battle cues use actual attacks, distinguish shields and roots, and hold during pause',async()=>{
+ const x=setup({simpleCutscenes:true});
+ x.audio.battle([{type:'attack',guardian:'cannon'}],{active:true,dt:.05});assert.equal(x.contexts.length,0);
+ await x.audio.enable();
+ for(const guardian of ['oak','pine','palm','cypress','mushroom','willow','watchtower','cannon']){
+  const before=x.sources.length;x.audio.battle([{type:'attack',guardian}],{active:true,dt:.05});assert(x.sources.length>before,guardian);
+ }
+ const before=x.sources.length;
+ x.audio.battle([{type:'attack',guardian:'pine'}],{active:true,dt:.05});assert.equal(x.sources.length,before,'same-instant repeated shots are throttled');
+ x.contexts[0].currentTime+=1;
+ x.audio.battle([{type:'leak',absorbed:6,damage:12}],{active:true,dt:.05});assert(x.sources.length>before+2);
+ x.audio.battle([],{active:false});assert(x.sources.every(s=>s.stopped));
+ const held=x.sources.length;x.audio.battle([{type:'attack',guardian:'oak'}],{active:false,dt:.05});assert.equal(x.sources.length,held);
+ x.audio.dispose();
+});
+test('battle mix volumes persist, clamp, and remain silent with explicit mute',async()=>{
+ const x=setup({simpleCutscenes:true,preferences:{'canopy-effects-volume':'.42','canopy-ambience-volume':'.18'}});
+ assert.equal(x.audio.state.effectsVolume,.42);assert.equal(x.audio.state.ambienceVolume,.18);
+ assert.equal(x.audio.setVolume('effects',NaN),false);x.audio.setVolume('effects',2);assert.equal(x.audio.state.effectsVolume,1);
+ x.audio.setVolume('ambience',-.2);assert.equal(x.audio.state.ambienceVolume,0);assert.equal(x.prefs.get('canopy-ambience-volume'),'0');
+ await x.audio.enable();x.audio.setVolume('effects',0);
+ let count=x.sources.length;x.audio.battle([{type:'attack',guardian:'oak'}],{active:true,dt:.05});assert.equal(x.sources.length,count);
+ x.audio.setVolume('effects',.6);x.audio.mute();count=x.sources.length;
+ x.audio.battle([{type:'attack',guardian:'cannon'}],{active:true,dt:.05});assert.equal(x.sources.length,count);x.audio.dispose();
+});

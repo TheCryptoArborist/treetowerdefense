@@ -1,0 +1,47 @@
+{
+  "status": "published-and-verified",
+  "publishedAt": "2026-11-08T14:35:59.747525+00:00",
+  "entry": "https://tree-token.xyz/play/canopy-defense/",
+  "sourceCommit": "534a0f27063ff686a770a23a5249fc9485cac4e1",
+  "publishedDeployId": "6af0885e17ec3ad4e71f3337",
+  "upstreamDeployId": "6af08811c123854df423b3a6",
+  "previousPublishedDeployId": "6af0035c13e0b75a4221d382",
+  "preservation": {
+    "staticPaths": 366,
+    "functionPackages": 45,
+    "scheduledJobs": 5,
+    "changedStaticFiles": [
+      "/_redirects"
+    ],
+    "functionPackagesUnchanged": true,
+    "checkoutTestRouteUnchanged": true
+  },
+  "validation": {
+    "tests": 348,
+    "passed": 347,
+    "windowsOnlySkip": 1,
+    "syntax": "passed",
+    "productionPackaging": "passed",
+    "audioCues": 14,
+    "crowdedMixPeak": 0.2064,
+    "offlineMuteSilence": "passed",
+    "candidateHTTP": "passed; protected endpoints 401, static controls present, current style bytes match",
+    "hostedAuthenticatedGameplay": "not performed",
+    "productionHTTP": "passed",
+    "liveInventory": "exact match; only normal Canopy rewrite changed"
+  },
+  "functionZipSha256": "b7e1680b1be19877583403a94c32458b17c9a006b740056f9c96957b6d0d5ed9",
+  "features": [
+    "Eight original defender sounds",
+    "Quiet forest ambience",
+    "Wave, boss, shield and root damage cues",
+    "Separate saved effects and ambience volume, master mute",
+    "Tree canopy occlusion and root strike feedback",
+    "Home exits from battlefield and outcome"
+  ],
+  "supersededDrafts": [
+    "6af0872f4f0453172bfc64dc",
+    "6af0879e0121817fa1c603d1"
+  ],
+  "supersededDraftReason": "First draft lacked route metadata; second reused a non-streaming upload. Neither was published. Final backend has fresh ZIP digest and verified streaming invocation."
+}
