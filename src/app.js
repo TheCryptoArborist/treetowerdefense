@@ -157,7 +157,7 @@ function focusControl(control) {
 $('guide-action').addEventListener('click', () => {
   const tip = starterTip(game);
   if (tip.tower) {
-    selectedType = tip.tower; selectedTower = null;
+    selectedType = tip.tower; selectedTower = null; deploymentChoice={type:tip.tower,slot:null};
     document.querySelector('.build-sites').open = true; renderUI();
     focusControl(document.querySelector(`[data-pad="${tip.pad}"]`));
   } else if (tip.key === 'launch') focusControl($('wave-button'));
@@ -379,11 +379,23 @@ async function newRun() {
   game.newRun(); feedback.clear(); aiming.clear(); selectedTower = null; selectedType = 'pine'; particles = []; floaters = []; showGuideCompletion = false; save(); renderUI();
   return true;
 }
-$('guided-run-button').addEventListener('click', async() => {
-  if (!await newRun()) return;
-  game.chooseChapter(0);save();
-  guideStatus = 'active'; showGuideCompletion = false; saveGuide(); helpDialog.close(); renderUI();
-});
+let tutorialStarting=false;
+async function startTutorial() {
+  if(tutorialStarting || checkoutBusy || purchaseDialog.open || storyDialog.open || worldMapDialog.open || !game.access)return;
+  tutorialStarting=true;
+  try {
+    if (!await newRun()) return;
+    game.chooseChapter(0);save();
+    guideStatus = 'active'; showGuideCompletion = false; saveGuide();
+    modeEntryShown=true;
+    if(helpDialog.open)commandMenu.close();
+    if(modeDialog.open)modeDialog.close();
+    lobbyManagement=false;renderUI();focusControl($('starter-guide'));
+  } catch(error) { game.message=error.message;renderUI();$('mode-error').textContent=error.message; }
+  finally { tutorialStarting=false; }
+}
+$('guided-run-button').addEventListener('click', startTutorial);
+$('lobby-tutorial').addEventListener('click', startTutorial);
 $('new-run-button').addEventListener('click', ()=>newRun().catch(error=>{game.message=error.message;renderUI();}));
 $('outcome-new-run').addEventListener('click', ()=>newRun().catch(error=>{game.message=error.message;renderUI();}));
 $('reset-button').addEventListener('click', async() => {
