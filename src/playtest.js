@@ -71,15 +71,15 @@ export function starterTip(game) {
     return { key: 'recover', step: 4, title: 'Give your roots another chance.', text: 'A fresh run is included with NFTree access. Try Pine at site 1 and Oak at site 2. A continue costs 20,000 preview TREE.', action: 'Start a fresh run' };
   }
   if (game.wave > 0) {
-    return { key: 'watch', step: 4, title: game.phase === 'paused' ? 'Resume when you are ready.' : 'Watch your guardians defend.', text: 'They attack automatically. You can plant more during battle using earned Sap. No TREE purchase is needed for this guided start.', action: game.phase === 'paused' ? 'Resume battle' : 'Show battlefield' };
+    return { key: 'watch', step: 4, title: game.phase === 'paused' ? 'Resume when you are ready.' : 'Watch your guardians defend.', text: 'Watch the pests move along the stone path. Your defenders attack automatically. Each pest that reaches the Tree of Life lowers its health; zero health ends the run. Defeating pests earns Sap for more defenders. No TREE purchase is needed for this tutorial.', action: game.phase === 'paused' ? 'Resume battle' : 'Show battlefield' };
   }
   if (game.towers.length === 0) {
-    return { key: 'plant', step: 1, title: 'Plant your first guardian.', text: 'Choose Pine, then site 1 near the entrance. Planting uses earned Sap. The glowing ring marks the suggested site.', action: 'Choose Pine · 80 Sap', tower: 'pine', pad: 0 };
+    return { key: 'plant', step: 1, title: 'Plant your first guardian.', text: 'Protect the Tree of Life at the end of the stone path. Press Choose Pine below, then tap Site 1 in the opened build-site list or its glowing ring on the map. This spends 80 of your starting 300 Sap. Pests cannot arrive until you send a wave.', action: 'Choose Pine · 80 Sap', tower: 'pine', pad: 0 };
   }
   if (game.towers.length === 1) {
-    return { key: 'reinforce', step: 2, title: 'Give your guardian a teammate.', text: 'Oak at site 2 covers the first bend with splash damage. You can choose any defender or open site; the guide follows your progress.', action: 'Choose Oak · 105 Sap', tower: 'oak', pad: game.towers.some(tower => tower.pad === 1) ? 0 : 1 };
+    return { key: 'reinforce', step: 2, title: 'Give your guardian a teammate.', text: 'Your first defender is planted! Press Choose Oak below, then tap the highlighted empty site. Oak hits groups of pests. Planting costs 105 Sap; Sap is earned during play and is separate from wallet TREE.', action: 'Choose Oak · 105 Sap', tower: 'oak', pad: game.towers.some(tower => tower.pad === 1) ? 0 : 1 };
   }
-  return { key: 'launch', step: 3, title: 'Send your first wave.', text: 'Your team is ready. Scout the eight incoming termites below, then send wave 1. New runs have no admission fee.', action: 'Show wave button' };
+  return { key: 'launch', step: 3, title: 'Send your first wave.', text: 'Your defenders are ready. Press Show wave button, then Send wave 1 to let the pests enter. Defenders attack automatically whenever pests come within reach. You do not need to aim or shoot.', action: 'Show wave button' };
 }
 
 export function purchaseQuote(game, kind, towerId = null) {
