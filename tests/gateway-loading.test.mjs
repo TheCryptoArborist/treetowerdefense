@@ -6,6 +6,7 @@ function setup({fetchImpl=()=>{throw Error('Unexpected request');},initialPrinci
  let resolve,reject,calls=0,reloads=0,connection;const loading=new Promise((a,b)=>{resolve=a;reject=b;});
  const context=vm.createContext({document,window,location:{origin:'https://tree-token.xyz',reload(){reloads++;}},setInterval(){},Date,TextEncoder,
   createDAppKit:()=>({stores:{$connection:{subscribe(fn){connection=fn;}}}}),SuiGrpcClient:class{},createPayments:()=>({}),fetch:fetchImpl,
+  mountFreeWave:(panel,actions)=>{panel.querySelector('#guest-unlock').onclick=actions.onUnlock;return{open(){panel.hidden=false;},close(){panel.hidden=true;}};},
   loadGame:()=>{calls++;return loading;}});
  const source=fs.readFileSync('client/gateway.mjs','utf8').replace(/^import .*;\r?\n/gm,'').replace("import('./src/app.js')",'loadGame()');
  vm.runInContext(source,context);if(initialPrincipal)vm.runInContext("address='wallet-a';principal={address,expiresAt:Date.now()+60000,count:1,rarity:0};enter.hidden=false;",context);
@@ -67,4 +68,15 @@ test('automatic restoration keeps ownership checks active while artwork loads an
  let allowed=true;const x=setup({initialPrincipal:false,fetchImpl:async()=>({ok:allowed,json:async()=>allowed?holder('wallet-a'):{error:'Access revoked'}})});
  x.connect(connected('wallet-a'));await new Promise(setImmediate);assert.equal(x.calls,1);allowed=false;await vm.runInContext('refresh()',x.context);x.resolve();await new Promise(setImmediate);assert(x.shell.hidden);assert(x.dialog.open);
  const failed=setup({initialPrincipal:false,fetchImpl:async()=>({ok:true,json:async()=>holder('wallet-a')})});failed.connect(connected('wallet-a'));await new Promise(setImmediate);failed.reject(Object.assign(Error('art'),{code:'CANOPY_ART_NOT_READY'}));await new Promise(setImmediate);await vm.runInContext('refresh()',failed.context);assert.equal(failed.calls,1);assert(failed.shell.hidden);
+});
+
+test('free wave suspends the holder dialog and returns to verification without loading the campaign',async()=>{
+ const x=setup({initialPrincipal:false});
+ const guest=x.document.getElementById('guest-wave');
+ x.document.getElementById('play-free-wave').onclick();
+ assert.equal(guest.hidden,false);assert.equal(x.dialog.open,false);
+ await x.enter.onclick();assert.equal(x.calls,0);assert(x.shell.hidden);
+ guest.querySelector('#guest-unlock').onclick();
+ assert(guest.hidden);assert(x.dialog.open);assert(x.shell.hidden);
+ assert.match(x.document.getElementById('gate-status').textContent,/verify your NFTree/i);
 });

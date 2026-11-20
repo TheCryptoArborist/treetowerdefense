@@ -384,3 +384,22 @@ dialog.world-map-dialog{width:min(1320px,calc(100% - 24px));max-width:1320px;max
 
 /* Beginner entry appears before modes, shops and permanent progression. */
 .tutorial-welcome{margin:18px 0;padding:20px;border:1px solid var(--cyan);border-radius:12px;background:#0a2630}.tutorial-welcome h3{font-size:25px;margin:8px 0}.tutorial-welcome p,.tutorial-welcome li{font-size:15px;line-height:1.6}.tutorial-welcome ol{padding-left:24px}.tutorial-welcome small{display:block;margin-top:12px;line-height:1.6;color:var(--muted)}.tutorial-welcome button{min-height:48px}.starter-guide p{font-size:15px}.guide-controls button{min-height:44px;font-size:13px}@media(max-width:600px){.tutorial-welcome{padding:16px}.tutorial-welcome button{width:100%}.starter-guide p{font-size:14px}}
+
+.guest-wave{width:min(880px,100%);margin:0 auto;padding:16px;color:#f3f9ed}
+.guest-wave[hidden],.guest-wave [hidden]{display:none}
+.guest-heading,.guest-hud,.guest-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.guest-heading,.guest-hud{justify-content:space-between}
+.guest-heading p,.guest-note{color:#b4cfc3}
+.guest-heading h1{margin:0;font:clamp(1.6rem,5vw,2.7rem) Georgia,serif}
+.guest-heading p{margin:0 0 4px}
+.guest-hud{margin:12px 0 7px;color:#e7edce}
+.guest-battlefield{position:relative;overflow:hidden;border:1px solid #769a74;border-radius:12px;background:#14261f}
+.guest-battlefield canvas{display:block;width:100%;height:auto}
+#guest-sites{position:absolute;inset:0;pointer-events:none}
+#guest-sites button{position:absolute;transform:translate(-50%,-50%);width:clamp(30px,5vw,46px);height:clamp(30px,5vw,46px);padding:0;border-radius:50%;border:2px solid #b9ecaa;background:#11291f;color:#f6f8d6;font-weight:800;pointer-events:auto}
+.guest-actions{margin-top:12px}
+.guest-wave button:focus-visible{outline:3px solid #ffd84b;outline-offset:2px}
+.guest-actions [aria-pressed="true"]{border-color:#b9ecaa;background:#254837}
+#guest-status{min-height:2.6em;margin:12px 0 0;color:#f2df9e}
+.guest-note{font-size:.9rem;margin-top:0}
+@media(max-width:520px){.guest-wave{padding:10px}.guest-actions button{flex:1 1 auto;min-height:44px}}

@@ -1,3 +1,4 @@
+import {mountFreeWave} from './free-wave.mjs';
 import {createPayments} from './payments.mjs';
 import {createDAppKit} from '@mysten/dapp-kit-core';
 import {SuiGrpcClient} from '@mysten/sui/grpc';
@@ -6,6 +7,17 @@ const kit=createDAppKit({networks:['mainnet'],defaultNetwork:'mainnet',autoConne
 const dialog=document.getElementById('access-dialog'),status=document.getElementById('gate-status'),verifyButton=document.getElementById('verify-nftree'),enter=document.getElementById('enter-holder-game'),disconnect=document.getElementById('disconnect-wallet'),shell=document.getElementById('game-shell');
 document.querySelector('mysten-dapp-kit-connect-button').instance=kit;
 let principal=null,address=null,busy=false,opening=false,revision=0,loaded=false,startedWallet=null,restoring=false,reconnecting=false,entryAttempted=false;
+let guestActive=false;
+const guestButton=document.getElementById('play-free-wave');
+const guest=mountFreeWave(document.getElementById('guest-wave'),{
+ onExit:closeGuest,
+ onUnlock:()=>{closeGuest();document.getElementById('gate-status').textContent=principal?'NFTree verified. Enter to play the campaign.':'Connect and verify your NFTree to unlock the campaign.';}
+});
+function closeGuest(){guestActive=false;guest.close();show();if(!enter.hidden)enter.focus();else if(!verifyButton.disabled)verifyButton.focus();else guestButton.focus();}
+guestButton.onclick=()=>{
+ if(opening||guestActive)return;
+ guestActive=true;dialog.close();guest.open();
+};
 const retryForest=document.getElementById('retry-forest-load');
 retryForest.onclick=()=>location.reload();
 const listeners=new Set();
@@ -27,7 +39,7 @@ function paintGate(){
  verifyButton.hidden=!!principal||checking;
 }
 const notify=()=>{paintGate();listeners.forEach(fn=>fn(principal));};
-const show=()=>{if(!dialog.open)dialog.showModal();};
+const show=()=>{if(!guestActive&&!dialog.open)dialog.showModal();};
 const lock=text=>{principal=null;restoring=false;enter.hidden=true;shell.hidden=true;status.textContent=text;notify();show();};
 const post=async body=>{const r=await fetch('./api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',credentials:'same-origin'});const d=await r.json();if(!r.ok)throw Error(d.error||'Could not verify NFTree access');return d;};
 const validate=d=>{if(d.verified!==true||d.address!==address||!Number.isSafeInteger(d.count)||d.count<1||!Number.isInteger(d.rarity)||d.rarity<0||d.rarity>5||!Number.isFinite(d.expiresAt)||d.expiresAt<=Date.now())throw Error('A valid holder session was not returned');return Object.freeze({address:d.address,rarity:d.rarity,expiresAt:d.expiresAt,count:d.count});};
@@ -39,7 +51,7 @@ async function refresh(){
   restoring=false;if(!opening)status.textContent=`Verified holder · ${principal.count} NFTree${principal.count===1?'':'s'}. Ready to defend.`;enter.hidden=false;notify();
   // A server-verified cookie and the reconnected wallet authorize returning.
   // No browser flag, cached ownership claim, signature or payment is needed.
-  if(!loaded&&!opening&&!entryAttempted)await enter.onclick();
+  if(!guestActive&&!loaded&&!opening&&!entryAttempted)await enter.onclick();
  }catch(e){if(stamp===revision)lock(e.message);}
  finally{if(stamp===revision){restoring=false;paintGate();}}
 }
@@ -55,7 +67,7 @@ verifyButton.onclick=async()=>{
  }catch(e){if(stamp===revision)lock(e.message||'Sign-in was cancelled. Please retry.');}finally{busy=false;verifyButton.disabled=!address;paintGate();}
 };
 enter.onclick=async()=>{
- if(opening)return;
+ if(opening||guestActive)return;
  if(!principal||principal.expiresAt<=Date.now())return lock('Your session expired. Verify your NFTree again.');
  // Reload on wallet change so one wallet never sees another wallet's local progress.
  if(startedWallet&&startedWallet!==principal.address){location.reload();return;}

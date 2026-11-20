@@ -81,6 +81,27 @@
     <footer><span>CANOPY DEFENSE <b>v0.17</b> · THE TREE ARCADE</span><div><span id="save-status">Saves on this device</span><button id="new-run-button" class="quiet">New run</button><button id="reset-button" class="quiet">Reset preview</button></div></footer>
     <section id="payment-history" class="panel" hidden style="padding:20px;margin:24px 0"><h2>Purchase history</h2><p>Recover a recorded payment before creating another. Run supplies and continues belong to the run where they were purchased.</p><button id="refresh-payment-history" class="secondary">Refresh purchases</button><div id="payment-history-list" aria-live="polite"></div></section>
   </main>
+  <main id="guest-wave" class="guest-wave" hidden>
+    <header class="guest-heading">
+      <div><p>Canopy Defense · Emerald Crossing</p><h1 tabindex="-1">Play wave 1 free</h1></div>
+      <button id="guest-exit" class="secondary" type="button">Back to entry</button>
+    </header>
+    <div class="guest-hud"><span id="guest-sap"></span><strong id="guest-health"></strong></div>
+    <div class="guest-battlefield">
+      <canvas width="1000" height="720" aria-label="Emerald Crossing battlefield"></canvas>
+      <div id="guest-sites" role="group" aria-label="Build sites"></div>
+    </div>
+    <div class="guest-actions" role="group" aria-label="Defenders and wave controls">
+      <button class="secondary" type="button" data-guest-defender="oak">Oak · 105 Sap</button>
+      <button class="secondary" type="button" data-guest-defender="pine">Pine · 80 Sap</button>
+      <button id="guest-start" class="primary" type="button">Start wave 1</button>
+      <button id="guest-unlock" class="primary" type="button" hidden>Unlock campaign with NFTree</button>
+      <button id="guest-retry" class="secondary" type="button" hidden>Replay wave 1</button>
+    </div>
+    <p id="guest-status" role="status"></p>
+    <p class="guest-note">Guest play has no wallet requirement. The full campaign uses its own save.</p>
+  </main>
+
   <dialog id="access-dialog" class="forest-gateway" aria-labelledby="access-title">
     <div class="gateway-layout">
       <section class="gateway-scene" aria-label="Canopy Defense guardian">
@@ -94,9 +115,10 @@
         <ol class="gateway-steps" aria-label="Enter the forest"><li data-gate-step="0" aria-current="step"><b>01</b><span>Connect</span></li><li data-gate-step="1"><b>02</b><span>Verify</span></li><li data-gate-step="2"><b>03</b><span>Defend</span></li></ol>
         <p id="gate-stage-label" class="gateway-stage">YOUR ADVENTURE STARTS HERE</p>
         <h2 id="access-title">Answer the call<br>of the canopy.</h2>
-        <p class="gateway-intro">Your NFTree is your key. Connect your wallet, prove ownership, and take command of the forest.</p>
+        <p class="gateway-intro">Play the first wave of Emerald Crossing without a wallet. Verify an NFTree to unlock the full campaign and seasonal battles.</p>
         <div class="gateway-unlocks"><span><b>3</b> forest chapters</span><span><b>8</b> defenders to discover</span><span><b>✦</b> seasonal looks</span></div>
         <div class="gateway-controls">
+          <button id="play-free-wave" class="primary" type="button">Play wave 1 free</button>
           <mysten-dapp-kit-connect-button></mysten-dapp-kit-connect-button>
           <p id="gate-wallet" class="gateway-wallet">No wallet connected</p>
           <p id="gate-status" role="status">Loading wallet connector… If this stays visible, refresh the page.</p>
